@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Atlas TUI — Screen Designs</title>
+<style>
+  :root {
+    /* Hermes-derived palette (matches internal/tui/styles.go) */
+    --bg: #101014;
+    --text: #FFF8DC;
+    --muted: #6b6b80;
+    --border: #CD7F32;
+    --accent: #FFBF00;
+    --primary: #FFD700;
+    --prompt: #FFF8DC;
+    --user: #7AA2F7;
+    --asst: #F5A97F;
+    --ok: #4caf50;
+    --warn: #ffa726;
+    --err: #ef5350;
+    --status-good: #8FBC8F;
+    --status-warn: #FFD700;
+    --status-bad: #FF8C00;
+    --status-crit: #FF6B6B;
+    --shell-dollar: #4dabf7;
+    --header-bg: #1a1a2e;
+    --status-bg: #2a1a1a;
+    --selection: #3a3a55;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
+    background: #08080a;
+    color: var(--text);
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .subtitle {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 32px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 32px;
+  }
+  @media (max-width: 1400px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Each screen is a self-contained terminal window */
+  .screen {
+    background: var(--bg);
+    border: 1px solid #2a2a3a;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 540px;
+  }
+  .screen-title {
+    background: #0a0a0e;
+    color: var(--muted);
+    font-size: 10px;
+    padding: 6px 12px;
+    border-bottom: 1px solid #1a1a2a;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .terminal {
+    padding: 0;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  /* Header bar (full width filled) */
+  .header-bar {
+    background: var(--header-bg);
+    color: var(--text);
+    padding: 4px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .header-bar .left { color: var(--text); }
+  .header-bar .right { color: var(--accent); font-weight: 400; }
+
+  /* Main content area */
+  .content {
+    flex: 1;
+    padding: 12px 16px;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  /* Welcome panel */
+  .welcome-title {
+    color: var(--accent);
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 12px;
+  }
+  .welcome-info {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin-left: 8px;
+  }
+  .accordion-header {
+    color: var(--accent);
+    font-weight: bold;
+    margin: 16px 0 4px;
+    cursor: pointer;
+  }
+  .accordion-body {
+    color: var(--muted);
+    font-size: 12px;
+    margin-left: 20px;
+    line-height: 1.6;
+  }
+  .tips {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* User/assistant messages */
+  .msg { margin-bottom: 16px; }
+  .user-msg { display: flex; gap: 8px; }
+  .user-bar { color: var(--user); font-weight: bold; }
+  .user-content {
+    border-left: 3px solid var(--user);
+    padding-left: 10px;
+    color: var(--text);
+  }
+  .user-label { color: var(--user); font-weight: bold; font-size: 12px; }
+  .asst-msg { display: flex; gap: 8px; margin-top: 8px; }
+  .asst-bar { color: var(--asst); font-weight: bold; }
+  .asst-content {
+    border-left: 3px solid var(--asst);
+    padding-left: 10px;
+    color: var(--text);
+  }
+  .asst-label { color: var(--asst); font-weight: bold; font-size: 12px; }
+  .timestamp { color: var(--muted); font-size: 10px; margin-bottom: 2px; }
+
+  /* Approval prompt (double border) */
+  .approval {
+    border: 2px double var(--err);
+    padding: 12px 16px;
+    margin: 12px 0;
+    background: rgba(239, 83, 80, 0.06);
+  }
+  .approval-header { color: var(--err); font-weight: bold; font-size: 13px; }
+  .approval-body { color: var(--text); margin: 8px 0; font-size: 12px; }
+  .approval-options { margin: 8px 0; font-size: 12px; }
+  .approval-option {
+    padding: 2px 0;
+    color: var(--text);
+  }
+  .approval-option.selected {
+    background: var(--selection);
+    color: var(--primary);
+    font-weight: bold;
+    padding: 2px 8px;
+    margin: 2px -8px;
+  }
+  .approval-hint { color: var(--muted); font-size: 10px; margin-top: 8px; }
+
+  /* Clarify prompt */
+  .clarify {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    background: rgba(255, 191, 0, 0.04);
+  }
+  .clarify-title { color: var(--accent); font-weight: bold; margin-bottom: 8px; }
+  .clarify-question { color: var(--text); margin: 6px 0; }
+  .clarify-question.active { color: var(--user); font-weight: bold; }
+  .clarify-question.answered { color: var(--status-good); }
+  .clarify-choice { color: var(--muted); margin: 2px 0 2px 20px; font-size: 11px; }
+
+  /* Picker (provider/model) */
+  .picker {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 12px 0;
+    background: var(--bg);
+  }
+  .picker-title {
+    text-align: center;
+    color: var(--accent);
+    font-weight: bold;
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .picker-row {
+    padding: 4px 12px;
+    color: var(--text);
+    display: flex;
+    gap: 8px;
+  }
+  .picker-row.selected {
+    background: var(--selection);
+    color: var(--primary);
+    font-weight: bold;
+  }
+  .picker-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 10px;
+    padding: 6px;
+    border-top: 1px solid #2a2a3a;
+  }
+  .picker-glyph { color: var(--status-good); }
+  .picker-glyph.current { color: var(--accent); }
+  .picker-glyph.unauth { color: var(--muted); }
+
+  /* Session switcher */
+  .session {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 12px 0;
+  }
+  .session-title {
+    text-align: center;
+    color: var(--accent);
+    font-weight: bold;
+    padding: 8px;
+  }
+  .session-table {
+    font-size: 11px;
+    padding: 0 8px 8px;
+  }
+  .session-row {
+    display: grid;
+    grid-template-columns: 28px 90px 70px 130px 1fr;
+    padding: 3px 4px;
+    color: var(--text);
+  }
+  .session-row.selected {
+    background: var(--selection);
+    color: var(--primary);
+    font-weight: bold;
+  }
+  .session-row.header {
+    color: var(--muted);
+    border-bottom: 1px solid #2a2a3a;
+  }
+  .session-divider {
+    color: var(--muted);
+    margin: 0 8px;
+  }
+
+  /* Help popover */
+  .help {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .help-row { display: flex; }
+  .help-col {
+    flex: 1;
+    padding: 10px 14px;
+    font-size: 11px;
+  }
+  .help-col-title {
+    color: var(--accent);
+    font-weight: bold;
+    margin-bottom: 6px;
+  }
+  .help-key { color: var(--user); font-weight: bold; display: inline-block; min-width: 90px; }
+  .help-desc { color: var(--muted); }
+  .help-divider {
+    color: var(--muted);
+    text-align: center;
+    padding: 2px 0;
+  }
+
+  /* Pager */
+  .pager {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 12px 0;
+  }
+  .pager-title { text-align: center; color: var(--accent); padding: 6px; font-weight: bold; border-bottom: 1px solid var(--border); }
+  .pager-body { padding: 8px 14px; color: var(--text); font-size: 12px; }
+  .pager-hint {
+    text-align: center; color: var(--muted);
+    font-size: 10px; padding: 4px; border-top: 1px solid #2a2a3a;
+  }
+
+  /* Sticky prompt breadcrumb */
+  .sticky {
+    color: var(--muted);
+    padding: 4px 12px;
+    font-size: 12px;
+    border-top: 1px solid #1a1a2a;
+    background: rgba(0,0,0,0.2);
+  }
+  .sticky-prefix { color: var(--accent); }
+
+  /* Input box */
+  .input-box {
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin: 0 12px;
+    padding: 8px 12px;
+    color: var(--muted);
+    font-style: italic;
+    background: var(--bg);
+  }
+  .input-prompt { color: var(--user); font-weight: bold; }
+
+  /* Status bar */
+  .status-bar {
+    background: var(--status-bg);
+    color: var(--muted);
+    padding: 4px 12px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+  }
+  .status-bar .left { color: var(--text); }
+  .status-bar .sep { color: #555; }
+  .status-bar .notice { color: var(--accent); }
+
+  /* FPS overlay */
+  .fps {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    color: var(--status-good);
+    font-size: 10px;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  /* Error screen */
+  .error {
+    border: 2px double var(--err);
+    padding: 12px 16px;
+    margin: 12px 0;
+    background: rgba(239, 83, 80, 0.08);
+  }
+  .error-title { color: var(--err); font-weight: bold; font-size: 14px; margin-bottom: 8px; }
+  .error-stack { color: var(--muted); font-size: 10px; font-family: monospace; line-height: 1.4; }
+  .error-line { padding-left: 12px; }
+  .error-loc { color: var(--user); }
+
+  /* Diff preview */
+  .diff-add { color: var(--ok); }
+  .diff-remove { color: var(--err); }
+  .diff-context { color: var(--muted); }
+</style>
+</head>
+<body>
+  <h1>● ATLAS TUI — Screen Mockups v1</h1>
+  <p class="subtitle">Tüm ekranlar, Hermes-Agent renk paleti. Sol üstten sağ alta, sağ üstten sol alta.</p>
+
+  <div class="grid">
+
+    <!-- ============== 1. WELCOME PANEL ============== -->
+    <div class="screen">
+      <div class="screen-title">1. WELCOME / HOŞGELDİN PANELİ · boş transkript</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="welcome-title">Atlas'a hoş geldin</div>
+          <div class="welcome-info">
+            sağlayıcı: gemini<br>
+            model: gemini-2.5-pro<br>
+            dizin: D:\Atlas<br>
+            dal: main
+          </div>
+          <div class="accordion-header">▾ Araçlar (5)</div>
+          <div class="accordion-body">read_file, write_file, edit_file, run_shell, fetch_url</div>
+          <div class="accordion-header">▸ Yetenekler (0)</div>
+          <div class="accordion-header">▸ Sistem Promptu</div>
+          <div class="accordion-header">▸ MCP Sunucuları (0)</div>
+          <div class="tips">
+            <div>· Bir mesaj yazıp Enter'a bas.</div>
+            <div>· /model — modeli değiştir</div>
+            <div>· /provider — LLM sağlayıcısını değiştir</div>
+            <div>· /help — tüm komutlar</div>
+            <div>· ? — kısayollar</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>Bir mesaj yaz... (? ile kısayollar)</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 0↑ 0↓ &nbsp; • &nbsp; main &nbsp; • &nbsp; Atlas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 2. ACTIVE CHAT ============== -->
+    <div class="screen">
+      <div class="screen-title">2. ACTIVE CHAT · kullanıcı + asistan + tool trail</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="msg user-msg">
+            <div class="user-bar">┃</div>
+            <div class="user-content">
+              <div class="timestamp">[14:23]</div>
+              <div class="user-label">Sen</div>
+              <div>hermes agent'ın cli tui'ını birebir go'ya port et</div>
+            </div>
+          </div>
+          <div class="msg asst-msg">
+            <div class="asst-bar">┊</div>
+            <div class="asst-content">
+              <div class="timestamp">[14:23]</div>
+              <div class="asst-label">Atlas</div>
+              <div>Hermes-Agent TUI'ı TypeScript + React + Ink stack'inde yazılmış, Atlas ise Go + Bubbletea. Stack farkı yüzünden kaynak kodu birebir aynısı olmaz, ama görsel + davranışsal parity mümkün.</div>
+              <div style="margin-top:8px; font-size:11px; color:var(--muted)">  ▸ run_shell çalıştırılıyor...</div>
+            </div>
+          </div>
+        </div>
+        <div class="sticky"><span class="sticky-prefix">↳ </span>hermes agent'ın cli tui'ını birebir go'ya port et</div>
+        <div class="input-box"><span class="input-prompt">┃ </span>Bir mesaj yaz... (? ile kısayollar)</div>
+        <div class="status-bar">
+          <span class="left">● yanıtlanıyor &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓ &nbsp; • &nbsp; 12.4s &nbsp; • &nbsp; main</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 3. APPROVAL PROMPT ============== -->
+    <div class="screen">
+      <div class="screen-title">3. APPROVAL PROMPT · multi-option (once/session/always/deny)</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="msg user-msg" style="opacity:.4">
+            <div class="user-bar">┃</div>
+            <div class="user-content">
+              <div class="user-label">Sen</div>
+              <div>hermes agent'ın cli tui'ını birebir go'ya port et</div>
+            </div>
+          </div>
+          <div class="approval">
+            <div class="approval-header">⚠ onay gerekli: run_shell</div>
+            <div class="approval-body">
+              <div style="color:var(--muted)">{"command":"git status","cwd":"D:\\Atlas"}</div>
+            </div>
+            <div class="approval-options">
+              <div class="approval-option selected">▸ [1] Bir kez &nbsp; &nbsp; &nbsp; Yalnızca bu çağrıyı onayla</div>
+              <div class="approval-option">&nbsp; [2] Oturum &nbsp; &nbsp; &nbsp; Bu oturum boyunca aynı aracı onayla</div>
+              <div class="approval-option">&nbsp; [3] Her zaman &nbsp; &nbsp; Bu aracı kalıcı olarak onayla</div>
+              <div class="approval-option">&nbsp; [4] Reddet &nbsp; &nbsp; &nbsp; Bu aracı çalıştırma</div>
+            </div>
+            <div class="approval-hint">↑/↓ seç · Enter onayla · 1-4 hızlı seçim · Esc/ctrl+c reddet</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>(onay bekleniyor)</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 4. MODEL PICKER (2-stage) ============== -->
+    <div class="screen">
+      <div class="screen-title">4. MODEL PICKER · 2-stage (provider → model)</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="picker">
+            <div class="picker-title">Sağlayıcı seç</div>
+            <div class="picker-row selected"><span class="picker-prompt">▸</span> <span class="picker-glyph current">*</span> gemini &nbsp; &nbsp; <span class="picker-glyph current">şu an aktif</span></div>
+            <div class="picker-row"><span>&nbsp;</span> <span class="picker-glyph unauth">○</span> anthropic &nbsp; &nbsp; <span class="picker-glyph">api_key</span></div>
+            <div class="picker-row"><span>&nbsp;</span> <span class="picker-glyph unauth">○</span> openai &nbsp; &nbsp; &nbsp; <span class="picker-glyph">api_key</span></div>
+            <div class="picker-hint">↑/↓ seç · Tab filtre · Enter onayla · Ctrl+N yeni · Esc kapat</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>/</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 5. CLARIFY (batch Q&A) ============== -->
+    <div class="screen">
+      <div class="screen-title">5. CLARIFY Prompt · batch Q&A</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="clarify">
+            <div class="clarify-title">Birkaç soru var</div>
+            <div class="clarify-question answered">✓ Senkron mu asenkron mu çağırmalıyım?</div>
+            <div class="clarify-choice">  → asenkron</div>
+            <div class="clarify-question active">▸ Hangi veritabanını kullanayım?</div>
+            <div class="clarify-choice">  [1] PostgreSQL</div>
+            <div class="clarify-choice">  [2] SQLite</div>
+            <div class="clarify-choice">  [3] MongoDB</div>
+            <div class="clarify-choice">  [4] Diğer (kendi cevabını yaz)</div>
+            <div class="clarify-choice">  [s] Atla</div>
+            <div class="clarify-question">  · Test framework?</div>
+            <div style="margin-top:10px; font-size:10px; color:var(--muted)">1/3 yanıtlandı · ↑/↓ seç · Enter kilitle · Tab/Shift+Tab soru değiştir · Esc/Ctrl+C iptal</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>(onay bekleniyor)</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 6. SESSION SWITCHER ============== -->
+    <div class="screen">
+      <div class="screen-title">6. SESSION SWITCHER · /sessions</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="session">
+            <div class="session-title">Oturum değiştir</div>
+            <div class="session-table">
+              <div class="session-row header">
+                <span></span><span>model</span><span>zaman</span><span>eylem</span><span>başlık</span>
+              </div>
+              <div class="session-row"><span class="picker-prompt">&nbsp;</span><span>+</span><span></span><span>Ctrl+N</span><span>yeni oturum</span></div>
+              <div class="session-row selected">
+                <span>▶</span><span>gemini-2.5-pro</span><span>2h</span><span>Ctrl+D</span><span>hermes agent tui port</span>
+              </div>
+              <div class="session-row">
+                <span>✓</span><span>gemini-2.5-pro</span><span>1d</span><span>d sil</span><span>refactor picker</span>
+              </div>
+              <div class="session-row">
+                <span>✓</span><span>claude-sonnet-4</span><span>3d</span><span>d sil</span><span>login page</span>
+              </div>
+              <div class="session-row">
+                <span>✓</span><span>gemini-2.5-pro</span><span>5d</span><span>d sil</span><span>initial setup</span>
+              </div>
+              <div class="session-divider">────────────────────────────────</div>
+            </div>
+            <div class="picker-hint">↑/↓ seç · Enter geç · Ctrl+N yeni · Ctrl+R yenile · Ctrl+D kapat · d sil · Esc kapat</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>Bir mesaj yaz...</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 7. HELP POPOVER ============== -->
+    <div class="screen">
+      <div class="screen-title">7. HELP POPOVER · ? tuşu</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="help">
+            <div class="help-row">
+              <div class="help-col">
+                <div class="help-col-title">Komutlar</div>
+                <div><span class="help-key">/help</span> <span class="help-desc">tüm komutlar</span></div>
+                <div><span class="help-key">/model</span> <span class="help-desc">model değiştir</span></div>
+                <div><span class="help-key">/provider</span> <span class="help-desc">sağlayıcı</span></div>
+                <div><span class="help-key">/sessions</span> <span class="help-desc">oturum listesi</span></div>
+                <div><span class="help-key">/clear</span> <span class="help-desc">geçmişi temizle</span></div>
+                <div><span class="help-key">/new</span> <span class="help-desc">yeni oturum</span></div>
+                <div><span class="help-key">/exit</span> <span class="help-desc">çıkış</span></div>
+              </div>
+              <div class="help-col">
+                <div class="help-col-title">Kısayollar</div>
+                <div><span class="help-key">Enter</span> <span class="help-desc">gönder</span></div>
+                <div><span class="help-key">↑/↓</span> <span class="help-desc">geçmiş</span></div>
+                <div><span class="help-key">Tab</span> <span class="help-desc">öneri uygula</span></div>
+                <div><span class="help-key">1-9</span> <span class="help-desc">hızlı seçim</span></div>
+                <div><span class="help-key">?</span> <span class="help-desc">bu yardım</span></div>
+                <div><span class="help-key">Esc Esc</span> <span class="help-desc">taslağı sil</span></div>
+                <div><span class="help-key">Ctrl+C</span> <span class="help-desc">iptal/çık</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>?</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 8. PAGER (long content) ============== -->
+    <div class="screen">
+      <div class="screen-title">8. PAGER · uzun içerik viewer</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="pager">
+            <div class="pager-title">📄 git log --oneline -50</div>
+            <div class="pager-body">
+              <div>3f2a1bc fix: streaming markdown fence handling</div>
+              <div>8e9d4a2 feat: 2-stage model picker with API key entry</div>
+              <div>1c5b3d7 feat: session switcher overlay</div>
+              <div>4d2e8f1 feat: multi-option approval (once/session/always)</div>
+              <div>...</div>
+            </div>
+            <div class="pager-hint">↓/j satır · Enter/Space/PgDn sayfa · b/PgUp sayfa · q kapat · son</div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>/log</div>
+        <div class="status-bar">
+          <span class="left">○ hazır &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 9. ERROR / CRASH SCREEN ============== -->
+    <div class="screen">
+      <div class="screen-title">9. ERROR / CRASH · runtime panic</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="error">
+            <div class="error-title">✗ bir hata oluştu</div>
+            <div style="color:var(--text); font-size:13px; margin-bottom:12px;">runtime error: index out of range [0] with length 0</div>
+            <div class="error-stack">
+              <div class="error-line">goroutine 1 [running]:</div>
+              <div class="error-line">  <span class="error-loc">app.go:1423</span> +0x339</div>
+              <div class="error-line">  <span class="error-loc">app.go:890</span> +0x1d3</div>
+              <div class="error-line">  <span class="error-loc">streaming_markdown.go:67</span> +0x2c5</div>
+              <div class="error-line">  <span class="error-loc">test.go:2123</span> +0x239</div>
+            </div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>(devam etmek için Enter)</div>
+        <div class="status-bar">
+          <span class="left"><span style="color:var(--err)">✗ hata</span> &nbsp; gemini/gemini-2.5-pro</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== 10. DIFF PREVIEW ============== -->
+    <div class="screen">
+      <div class="screen-title">10. DIFF PREVIEW · file edit approval</div>
+      <div class="terminal">
+        <div class="header-bar">
+          <span class="left">Atlas — terminal AI agent</span>
+          <span class="right">gemini/gemini-2.5-pro</span>
+        </div>
+        <div class="content">
+          <div class="approval">
+            <div class="approval-header">⚠ onay gerekli: edit_file</div>
+            <div class="approval-body">
+              <div style="color:var(--user); font-weight:bold; margin-bottom:4px;">D:\Atlas\internal\tui\app.go</div>
+              <pre style="font-family:monospace; font-size:11px; line-height:1.5; margin:0; color:var(--text)">
+<span class="diff-context">  func renderStatusBar() string {</span>
+<span class="diff-remove">-     left := fmt.Sprintf("%s  %s/%s", ...)</span>
+<span class="diff-add">+     left := fmt.Sprintf("%s  %s/%s", a.statusIndicator(...), ...)</span>
+<span class="diff-context">    if n := len(a.queuedMessages); n &gt; 0 {</span>
+              </pre>
+            </div>
+            <div class="approval-options">
+              <div class="approval-option selected">▸ [1] Bir kez</div>
+              <div class="approval-option">&nbsp; [2] Oturum</div>
+              <div class="approval-option">&nbsp; [3] Her zaman</div>
+              <div class="approval-option">&nbsp; [4] Reddet</div>
+            </div>
+          </div>
+        </div>
+        <div class="input-box"><span class="input-prompt">┃ </span>(onay bekleniyor)</div>
+        <div class="status-bar">
+          <span class="left">○ hazır</span>
+          <span>tokens &nbsp; • &nbsp; 1.2k↑ 340↓</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

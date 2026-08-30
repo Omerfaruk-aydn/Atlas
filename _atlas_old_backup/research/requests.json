@@ -1,0 +1,64 @@
+{
+  "requests": [
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-01-welcome.png",
+      "prompt": "A pristine dark-themed terminal UI mockup on a black background, screenshot of a fictional CLI tool called 'Atlas'. The window has a thin gray title bar. A solid amber/gold header band reads 'Atlas — terminal AI agent' on the left and 'gemini/gemini-2.5-pro' on the right in dim amber. The main area is near-black (#101014) with cream-colored monospace text. Top-line: 'Atlas'a hoş geldin' in bold amber. Below: 'sağlayıcı: gemini  model: gemini-2.5-pro  dizin: D:\\Atlas  dal: main' in muted gray. A '▾ Araçlar (5)' header in amber with a downward chevron, body listing 'read_file, write_file, edit_file, run_shell, fetch_url' in muted gray. Below: '▸ Yetenekler (0)' and '▸ Sistem Promptu' and '▸ MCP Sunucuları (0)' in collapsed state. A '· Bir mesaj yazıp Enter'a bas. /model /provider /help ?' tips block in muted gray. A bordered input box at the bottom with prompt '┃ ' in sky-blue and italic gray placeholder 'Bir mesaj yaz... (? ile kısayollar)'. Bottom status bar in dark red-brown fill: '○ hazır  gemini/gemini-2.5-pro  tokens  •  0↑ 0↓  •  main  •  Atlas'. Clean, dense, real terminal app, not a stock mockup. Pixel-perfect, monospace, no gradients."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-02-active-chat.png",
+      "prompt": "Dark terminal UI screenshot of 'Atlas' CLI mid-conversation. Solid amber header bar at top: 'Atlas — terminal AI agent' left, 'gemini/gemini-2.5-pro' right. Main chat area: a USER message in a sky-blue left-border with 'Sen' label, '[14:23]' timestamp above, body 'hermes agent'ın cli tui'ını birebir go'ya port et' in cream text. Below: an ASSISTANT message in a peach/orange left-border with 'Atlas' label, timestamp '[14:23]', body 'Hermes-Agent TUI'ı TypeScript + React + Ink stack'inde yazılmış, Atlas ise Go + Bubbletea. Stack farkı yüzünden kaynak kodu birebir aynısı olmaz, ama görsel + davranışsal parity mümkün.' in cream. Below that: a small dim gray inline activity line '▸ run_shell çalıştırılıyor...' in muted italic. Sticky prompt breadcrumb above input: '↳ hermes agent'ın cli tui'ını birebir go'ya port et' in muted gray. Bordered input box with sky-blue prompt '┃ '. Bottom status bar in dark red-brown: '● yanıtlanıyor  gemini/gemini-2.5-pro  tokens  •  1.2k↑ 340↓  •  12.4s  •  main' with the busy dot in amber. Real terminal aesthetic, monospace font, deep dark colors, no skeuomorphism, dense info."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-03-approval.png",
+      "prompt": "Dark terminal UI screenshot showing a TOOL APPROVAL prompt modal. Top header bar in amber: 'Atlas — terminal AI agent'. Main area: a faded user message in background, and front-and-center a DOUBLE-LINE RED BORDER BOX containing: header '⚠ onay gerekli: run_shell' in bold red, body text showing a pretty-printed JSON command '{\"command\":\"git status\",\"cwd\":\"D:\\\\Atlas\"}' in muted gray on a faint red-tinted background, then 4 numbered options: '[1] Bir kez' (highlighted with a violet/indigo background fill = selected, bold cream text), '[2] Oturum', '[3] Her zaman', '[4] Reddet' in cream text. Footer hint in dim red: '↑/↓ seç · Enter onayla · 1-4 hızlı seçim · Esc/ctrl+c reddet'. Bottom input box shows '(onay bekleniyor)' in italic gray. Status bar shows '○ hazır' in dim cream. Pixel-perfect monospace, deep dark colors, the double-border red box is the visual focal point. Real Hermes-CLI-style approval modal, not a generic popup."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-04-picker.png",
+      "prompt": "Dark terminal UI showing a TWO-STAGE MODEL PICKER overlay. Amber header: 'Atlas — terminal AI agent'. Center: a thin gold-bordered picker box with centered title 'Sağlayıcı seç' in bold amber. Three rows: row 1 highlighted with violet/indigo background fill (selected) showing '▸ * gemini  şu an aktif' with a gold asterisk glyph meaning 'current provider', row 2 '○ anthropic  api_key' with a dim gray circle meaning 'unauthenticated', row 3 '○ openai  api_key'. Footer hint in dim gray centered: '↑/↓ seç · Tab filtre · Enter onayla · Ctrl+N yeni · Esc kapat'. Bottom shows the input with '/' typed. The picker is a clean modal with rounded corners, gold-amber border, sitting over a near-black background. Monospace font, terminal aesthetic, the indigo selection highlight is the visual focal point. Hermes-CLI style, not a generic dropdown."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-05-clarify.png",
+      "prompt": "Dark terminal UI showing a CLARIFY BATCH Q&A prompt with three questions. Amber header. Center: a thin gold-bordered box with title 'Birkaç soru var' in bold amber. Question 1: '✓ Senkron mu asenkron mu çağırmalıyım?' in green (answered) with body '→ asenkron' indented below. Question 2: '▸ Hangi veritabanını kullanayım?' in sky-blue (active, highlighted) with 4 choice rows indented below: '[1] PostgreSQL', '[2] SQLite', '[3] MongoDB', '[4] Diğer (kendi cevabını yaz)', '[s] Atla' in muted gray. Question 3: '· Test framework?' in dim gray (untouched). Footer status in muted gray: '1/3 yanıtlandı · ↑/↓ seç · Enter kilitle · Tab/Shift+Tab soru değiştir · Esc/Ctrl+C iptal'. The active question is visually distinct via sky-blue color and the '▸' marker. Bottom input shows '(onay bekleniyor)'. Monospace, deep dark, intentional color coding (green=answered, blue=active, gray=untouched)."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-06-sessions.png",
+      "prompt": "Dark terminal UI showing a SESSION SWITCHER overlay with table layout. Amber header bar. Center: gold-bordered modal titled 'Oturum değiştir' in bold amber. Below: a table with 5 columns and 5 rows. Header row in muted gray: '' 'model' 'zaman' 'eylem' 'başlık'. Row 1: ' +  Ctrl+N  yeni oturum' in muted gray (the +new pinned row). Row 2 HIGHLIGHTED with violet/indigo background: '▶ gemini-2.5-pro  2h  Ctrl+D  hermes agent tui port' in bold cream (currently selected, playing). Row 3: '✓ gemini-2.5-pro  1d  d sil  refactor picker' in dim cream (idle). Row 4: '✓ claude-sonnet-4  3d  d sil  login page'. Row 5: '✓ gemini-2.5-pro  5d  d sil  initial setup'. Below the table: a horizontal divider '────────────────' in dim gray, then the footer hint centered: '↑/↓ seç · Enter geç · Ctrl+N yeni · Ctrl+R yenile · Ctrl+D kapat · d sil · Esc kapat'. Monospace, dense table, the highlighted row is the visual focal point, status glyphs (▶/✓) colored to match session state."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-07-help.png",
+      "prompt": "Dark terminal UI showing a HELP POPOVER with two aligned columns. Amber header bar. Center: gold-bordered modal containing two side-by-side columns separated by a vertical divider. LEFT column titled 'Komutlar' in bold amber, with 7 rows pairing sky-blue bold keys with muted gray descriptions: '/help  tüm komutlar', '/model  model değiştir', '/provider  sağlayıcı', '/sessions  oturum listesi', '/clear  geçmişi temizle', '/new  yeni oturum', '/exit  çıkış'. RIGHT column titled 'Kısayollar' in bold amber, with 7 rows: 'Enter  gönder', '↑/↓  geçmiş', 'Tab  öneri uygula', '1-9  hızlı seçim', '?  bu yardım', 'Esc Esc  taslağı sil', 'Ctrl+C  iptal/çık'. The label column is padded so descriptions align vertically. Bottom shows the input with '?' typed. Monospace, intentional 2-column layout with column-aligned descriptions, deep dark background, sky-blue keys are the visual focal point. Hermes-style help popover, not a generic dialog."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-08-pager.png",
+      "prompt": "Dark terminal UI showing a PAGER for long content. Amber header bar. Center: gold-bordered modal with title '📄 git log --oneline -50' in bold amber. Body shows 4 monospace lines of git log output in cream: '3f2a1bc fix: streaming markdown fence handling', '8e9d4a2 feat: 2-stage model picker with API key entry', '1c5b3d7 feat: session switcher overlay', '4d2e8f1 feat: multi-option approval (once/session/always)'. Below: a horizontal divider in dim gray. Footer hint centered in muted gray: '↓/j satır · Enter/Space/PgDn sayfa · b/PgUp sayfa · q kapat · son' (the 'son' indicates we're at the bottom of the content). Bottom shows the input with '/log' typed. Monospace, dense git log view, the title and bottom hint are the visual anchors. Hermes-style pager modal, not a generic text viewer."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-09-error.png",
+      "prompt": "Dark terminal UI showing a CRASH SCREEN with double-line red border. Amber header bar. Center: a DOUBLE-LINE RED BORDERED BOX (the visual focal point) with title '✗ bir hata oluştu' in bold red. Body in cream: 'runtime error: index out of range [0] with length 0'. Below: a stack trace in dim gray monospace, 4 lines: 'goroutine 1 [running]:', '  app.go:1423 +0x339' (file:line in sky-blue), '  app.go:890 +0x1d3' (file:line in sky-blue), '  streaming_markdown.go:67 +0x2c5' (file:line in sky-blue), '  test.go:2123 +0x239' (file:line in sky-blue). Bottom shows input '(devam etmek için Enter)' in italic gray. Status bar in dark red: '✗ hata  gemini/gemini-2.5-pro'. The double-border red box is the dramatic visual element. Monospace, deep dark, the red dominates without being garish. Hermes-CLI style crash screen, not a generic error popup."
+    },
+    {
+      "aspect_ratio": "16:9",
+      "resolution": "2K",
+      "output_file": "screen-10-diff.png",
+      "prompt": "Dark terminal UI showing a FILE DIFF PREVIEW inside an approval modal. Amber header bar. Center: a DOUBLE-LINE RED BORDERED APPROVAL BOX with header '⚠ onay gerekli: edit_file' in bold red. Body: a file path 'D:\\Atlas\\internal\\tui\\app.go' in bold sky-blue. Below: a monospace code diff with 3 visible lines: a dim gray context line '  func renderStatusBar() string {', a removed line in red '-     left := fmt.Sprintf(\"%s  %s/%s\", ...)', an added line in green '+     left := fmt.Sprintf(\"%s  %s/%s\", a.statusIndicator(...), ...)'. Below the diff: 4 numbered options '▸ [1] Bir kez' (highlighted with violet/indigo background, selected), '[2] Oturum', '[3] Her zaman', '[4] Reddet' in cream. The diff is the visual focal point — red/green lines that programmers instantly recognize. Monospace, deep dark background, the double-border red approval box dominates. Hermes-CLI style diff+approval, not a generic code viewer."
+    }
+  ]
+}
