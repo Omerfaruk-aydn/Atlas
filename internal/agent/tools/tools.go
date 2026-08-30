@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"charm.land/fantasy"
+	"github.com/charmbracelet/crush/internal/permission"
 )
 
 type (
@@ -61,9 +62,28 @@ func GetModelNameFromContext(ctx context.Context) string {
 	return getContextValue(ctx, ModelNameContextKey, "")
 }
 
-// NewPermissionDeniedResponse returns a tool response indicating the user
-// denied permission, with StopTurn set so the agent loop does not retry.
-func NewPermissionDeniedResponse() fantasy.ToolResponse {
+// NewPermissionDeniedResponse returns a tool response indicating the call
+// was denied.
+//
+// For a real user denial it sets StopTurn so the agent loop does not retry:
+// the user said no, and the turn is over.
+//
+// ModePlan is deliberately the opposite. The denial there is automatic, and
+// the model's correct next move is to call "exit_plan_mode" to ask the user
+// to leave plan mode — which it cannot do if the turn ends the moment the
+// tool result lands. So plan mode leaves StopTurn false and spends the tool
+// result itself on the instructions, which weaker models follow far more
+// reliably than an earlier system reminder. Retries are cheap (plan mode
+// denies without a dialog) and the loop's step limit still bounds them.
+func NewPermissionDeniedResponse(perms permission.Service) fantasy.ToolResponse {
+	if perms != nil && perms.Mode() == permission.ModePlan {
+		return fantasy.NewTextErrorResponse(
+			"Denied: you are in PLAN MODE (read-only), so the system auto-denied this call — the user did not reject it, and retrying any write/edit/execute tool will be denied the same way.\n\n" +
+				"Your next action must be one of these two, in this turn:\n" +
+				"1. If you have already presented your plan to the user, call the \"exit_plan_mode\" tool now, passing your plan as the \"plan\" argument. That asks the user to approve leaving plan mode; if they approve, plan mode turns off and you can do the real work.\n" +
+				"2. If you have not presented a plan yet, write the plan out as text first, then call \"exit_plan_mode\".",
+		)
+	}
 	resp := fantasy.NewTextErrorResponse("User denied permission")
 	resp.StopTurn = true
 	return resp

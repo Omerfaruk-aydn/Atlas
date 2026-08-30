@@ -347,11 +347,11 @@ type UI struct {
 	// in-flight fetch captures it at dispatch and its result is discarded
 	// if the generation has moved on (see workspace_cache.go).
 	promptQueueGen uint64
-	// agentBusyCache / yoloCache memoize the workspace busy and permission
+	// agentBusyCache / modeCache memoize the workspace busy and permission
 	// probes (synchronous HTTP round-trips in client/server mode). Reads
 	// never probe; refreshes happen off-thread (see workspace_cache.go).
-	agentBusyCache    ttlCache
-	yoloCache         ttlCache
+	agentBusyCache    ttlCache[bool]
+	modeCache         ttlCache[permission.PermissionMode]
 	busyFetchInFlight bool
 	// agentReady / agentModel memoize the coordinator readiness and
 	// selected model (AgentIsReady/AgentModel are synchronous HTTP GETs in
@@ -477,11 +477,11 @@ func New(com *common.Common, initialSessionID string, continueLast bool) *UI {
 		ui.themeKey = styles.ThemeKeyForProvider(cfg.Models[config.SelectedModelTypeLarge].Provider)
 	}
 
-	// Seed the yolo cache once at construction; afterwards it is kept
-	// fresh by write-through toggles and off-thread refreshes so Update
-	// and View never probe the workspace synchronously.
-	yolo := com.Workspace.PermissionSkipRequests()
-	ui.yoloCache.set(yolo)
+	// Seed the mode cache once at construction; afterwards it is kept
+	// fresh by write-through mode changes and off-thread refreshes so
+	// Update and View never probe the workspace synchronously.
+	mode := com.Workspace.PermissionMode()
+	ui.modeCache.set(mode)
 
 	// Seed the memoized agent ready/model state the same way so the first
 	// frame renders the model info; the busy probe keeps it fresh
@@ -490,7 +490,7 @@ func New(com *common.Common, initialSessionID string, continueLast bool) *UI {
 		ui.agentReady = true
 		ui.agentModel = com.Workspace.AgentModel()
 	}
-	ui.setEditorPrompt(yolo)
+	ui.setEditorPrompt(mode)
 	ui.randomizePlaceholders()
 	ui.textarea.Placeholder = ui.readyPlaceholder
 	ui.status = status
@@ -1425,8 +1425,15 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.textarea.Placeholder = m.readyPlaceholder
 		}
-		if !m.bangMode && m.yoloModeCached() {
-			m.textarea.Placeholder = "Yolo mode!"
+		if !m.bangMode {
+			switch m.permissionModeCached() {
+			case permission.ModeBypass:
+				m.textarea.Placeholder = "Yolo mode!"
+			case permission.ModePlan:
+				m.textarea.Placeholder = "Plan mode (read-only)"
+			case permission.ModeAutoAcceptEdits:
+				m.textarea.Placeholder = "Auto-accept edits"
+			}
 		}
 	}
 
@@ -1921,6 +1928,10 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	// Command dialog messages.
 	case dialog.ActionToggleYoloMode:
 		m.toggleYoloMode()
+		m.dialog.CloseDialog(dialog.CommandsID)
+	case dialog.ActionCyclePermissionMode:
+		mode := m.cyclePermissionMode()
+		cmds = append(cmds, util.ReportInfo("Permission mode: "+permissionModeLabel(mode)))
 		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionSelectNotificationStyle:
 		cfg := m.com.Config()
@@ -2475,12 +2486,16 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			cmds = append(cmds, tea.Suspend)
 			return true
 		case key.Matches(msg, m.keyMap.ToggleYolo):
-			yolo := m.toggleYoloMode()
+			mode := m.toggleYoloMode()
 			status := "disabled"
-			if yolo {
+			if mode == permission.ModeBypass {
 				status = "enabled"
 			}
 			cmds = append(cmds, util.ReportInfo("Yolo mode "+status))
+			return true
+		case key.Matches(msg, m.keyMap.CyclePermissionMode):
+			mode := m.cyclePermissionMode()
+			cmds = append(cmds, util.ReportInfo("Permission mode: "+permissionModeLabel(mode)))
 			return true
 		}
 		return false
@@ -2621,7 +2636,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 
 				if m.bangMode && value != "" {
 					m.bangMode = false
-					m.setEditorPrompt(m.yoloModeCached())
+					m.setEditorPrompt(m.permissionModeCached())
 					m.randomizePlaceholders()
 					m.historyReset()
 					return tea.Batch(m.runShellCommand(value))
@@ -2717,7 +2732,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				if m.bangMode && m.bangWasEmpty && msg.Code == tea.KeyBackspace {
 					m.bangMode = false
 					m.bangWasEmpty = false
-					m.setEditorPrompt(m.yoloModeCached())
+					m.setEditorPrompt(m.permissionModeCached())
 					break
 				}
 
@@ -2766,7 +2781,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 					m.textarea.SetValue(stripped)
 					m.textarea.SetCursorColumn(max(0, col-(len(newVal)-len(stripped))))
 					_ = line // cursor line doesn't change; prefix removed
-					m.setEditorPrompt(m.yoloModeCached())
+					m.setEditorPrompt(m.permissionModeCached())
 				} else if m.bangMode && newVal == "" && curValue != "" {
 					// Just cleared last character; mark empty, stay in bang mode.
 					m.bangWasEmpty = true
@@ -3297,6 +3312,7 @@ func (m *UI) FullHelp() [][]key.Binding {
 			k.Models,
 			k.Sessions,
 			k.ToggleYolo,
+			k.CyclePermissionMode,
 		)
 		if hasSession {
 			mainBinds = append(mainBinds, k.Chat.NewSession, k.Chat.EndFollow)
@@ -3848,18 +3864,38 @@ func (m *UI) openEditor(value string) tea.Cmd {
 	})
 }
 
-// setEditorPrompt configures the textarea prompt function based on whether
-// yolo mode or bang mode is enabled.
-func (m *UI) setEditorPrompt(yolo bool) {
+// permissionModeLabel returns the human-readable label for a permission
+// mode, used in status messages after a toggle or cycle.
+func permissionModeLabel(mode permission.PermissionMode) string {
+	switch mode {
+	case permission.ModeBypass:
+		return "bypass (yolo)"
+	case permission.ModePlan:
+		return "plan (read-only)"
+	case permission.ModeAutoAcceptEdits:
+		return "auto-accept edits"
+	default:
+		return "manual"
+	}
+}
+
+// setEditorPrompt configures the textarea prompt function based on bang
+// mode or the current permission mode.
+func (m *UI) setEditorPrompt(mode permission.PermissionMode) {
 	if m.bangMode {
 		m.textarea.SetPromptFunc(4, m.bangPromptFunc)
 		return
 	}
-	if yolo {
+	switch mode {
+	case permission.ModeBypass:
 		m.textarea.SetPromptFunc(4, m.yoloPromptFunc)
-		return
+	case permission.ModePlan:
+		m.textarea.SetPromptFunc(4, m.planPromptFunc)
+	case permission.ModeAutoAcceptEdits:
+		m.textarea.SetPromptFunc(4, m.autoAcceptPromptFunc)
+	default:
+		m.textarea.SetPromptFunc(4, m.normalPromptFunc)
 	}
-	m.textarea.SetPromptFunc(4, m.normalPromptFunc)
 }
 
 // normalPromptFunc returns the normal editor prompt style ("  > " on first
@@ -3893,6 +3929,37 @@ func (m *UI) yoloPromptFunc(info textarea.PromptInfo) string {
 		return t.Editor.PromptYoloDotsFocused.Render()
 	}
 	return t.Editor.PromptYoloDotsBlurred.Render()
+}
+
+// planPromptFunc returns the plan mode editor prompt style (read-only).
+func (m *UI) planPromptFunc(info textarea.PromptInfo) string {
+	t := m.com.Styles
+	if info.LineNumber == 0 {
+		if info.Focused {
+			return t.Editor.PromptPlanIconFocused.Render()
+		}
+		return t.Editor.PromptPlanIconBlurred.Render()
+	}
+	if info.Focused {
+		return t.Editor.PromptPlanDotsFocused.Render()
+	}
+	return t.Editor.PromptPlanDotsBlurred.Render()
+}
+
+// autoAcceptPromptFunc returns the auto-accept-edits mode editor prompt
+// style.
+func (m *UI) autoAcceptPromptFunc(info textarea.PromptInfo) string {
+	t := m.com.Styles
+	if info.LineNumber == 0 {
+		if info.Focused {
+			return t.Editor.PromptAutoAcceptIconFocused.Render()
+		}
+		return t.Editor.PromptAutoAcceptIconBlurred.Render()
+	}
+	if info.Focused {
+		return t.Editor.PromptAutoAcceptDotsFocused.Render()
+	}
+	return t.Editor.PromptAutoAcceptDotsBlurred.Render()
 }
 
 // bangPromptFunc returns the bang mode editor prompt style with Turtle-colored
@@ -4830,7 +4897,7 @@ func (m *UI) checkBangModeAfterPaste() {
 	m.textarea.SetValue(stripped)
 	col := m.textarea.Column()
 	m.textarea.SetCursorColumn(max(0, col-(len(val)-len(stripped))))
-	m.setEditorPrompt(m.yoloModeCached())
+	m.setEditorPrompt(m.permissionModeCached())
 }
 
 // handlePasteMsg handles a paste message.

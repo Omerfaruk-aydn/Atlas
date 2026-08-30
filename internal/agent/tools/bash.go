@@ -224,25 +224,28 @@ func NewBashTool(permissions permission.Service, workingDir string, attribution 
 			if sessionID == "" {
 				return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for executing shell command")
 			}
-			if !isSafeReadOnly {
-				p, err := permissions.Request(
-					ctx,
-					permission.CreatePermissionRequest{
-						SessionID:   sessionID,
-						Path:        execWorkingDir,
-						ToolCallID:  call.ID,
-						ToolName:    BashToolName,
-						Action:      "execute",
-						Description: fmt.Sprintf("Execute command: %s", params.Command),
-						Params:      BashPermissionsParams(params),
-					},
-				)
-				if err != nil {
-					return fantasy.ToolResponse{}, err
-				}
-				if !p {
-					return NewPermissionDeniedResponse(), nil
-				}
+			// Always request: the safe-command short-circuit now lives
+			// inside the permission service (Safe: true), so ModePlan can
+			// still deny a nominally-safe command instead of it silently
+			// bypassing the check entirely.
+			p, err := permissions.Request(
+				ctx,
+				permission.CreatePermissionRequest{
+					SessionID:   sessionID,
+					Path:        execWorkingDir,
+					ToolCallID:  call.ID,
+					ToolName:    BashToolName,
+					Action:      "execute",
+					Description: fmt.Sprintf("Execute command: %s", params.Command),
+					Params:      BashPermissionsParams(params),
+					Safe:        isSafeReadOnly,
+				},
+			)
+			if err != nil {
+				return fantasy.ToolResponse{}, err
+			}
+			if !p {
+				return NewPermissionDeniedResponse(permissions), nil
 			}
 
 			// If explicitly requested as background, start immediately with detached context

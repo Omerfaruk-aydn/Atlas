@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"slices"
 	"sync"
-	"sync/atomic"
 
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/pubsub"
@@ -35,6 +34,39 @@ func hookApproved(ctx context.Context, toolCallID string) bool {
 	return v == toolCallID
 }
 
+// PermissionMode is the current session-wide permission policy, cycled by
+// the user at runtime (Ctrl+Y and the mode-cycle keybinding). It sits above
+// the five legacy override layers in Request(): Bypass and Plan are decided
+// before any of them run, so neither a stale sessionPermissions entry nor a
+// crushrc allowlist can leak a mutating call through Plan mode.
+type PermissionMode string
+
+const (
+	// ModeManual is today's default: every mutating/risky tool call goes
+	// through the full allowlist/hook/session-cache/dialog pipeline.
+	ModeManual PermissionMode = "manual"
+	// ModeAutoAcceptEdits silently approves file read/write/edit tool
+	// calls (see agent/tools.CategoryEdit) but still runs the full manual
+	// pipeline for shell, network, and MCP calls.
+	ModeAutoAcceptEdits PermissionMode = "auto_accept_edits"
+	// ModePlan is read-only: any call that isn't in
+	// agent/tools.CategoryReadOnly is denied outright, including shell
+	// commands that would otherwise skip the prompt via the "safe
+	// command" allowlist.
+	ModePlan PermissionMode = "plan"
+	// ModeBypass skips all confirmation. Equivalent to the pre-existing
+	// --yolo / SkipRequests(true) behavior.
+	ModeBypass PermissionMode = "bypass"
+)
+
+// ExitPlanModeToolName is the one tool name ModePlan lets reach the normal
+// confirmation dialog instead of being denied outright. It's how the agent
+// asks the user, from inside the conversation, to leave plan mode and start
+// implementing the plan it just presented — the dialog approval itself is
+// the user's mode switch. See internal/agent/tools/exit_plan_mode.go, whose
+// ExitPlanModeToolName constant must stay equal to this one.
+const ExitPlanModeToolName = "exit_plan_mode"
+
 type CreatePermissionRequest struct {
 	SessionID   string `json:"session_id"`
 	ToolCallID  string `json:"tool_call_id"`
@@ -43,6 +75,12 @@ type CreatePermissionRequest struct {
 	Action      string `json:"action"`
 	Params      any    `json:"params"`
 	Path        string `json:"path"`
+	// Safe marks a call the tool itself considers low-risk (e.g. bash's
+	// read-only command allowlist). ModeManual/ModeAutoAcceptEdits grant
+	// it immediately, same as today's pre-Request short-circuit; ModePlan
+	// still denies it — plan mode's read-only guarantee must hold even
+	// for calls the tool itself thought were harmless.
+	Safe bool `json:"-"`
 }
 
 type PermissionNotification struct {
@@ -81,6 +119,12 @@ type Service interface {
 	AutoApproveSession(sessionID string)
 	SetSkipRequests(skip bool)
 	SkipRequests() bool
+	// Mode returns the current PermissionMode.
+	Mode() PermissionMode
+	// SetMode sets the current PermissionMode. Overwrites whatever
+	// SetSkipRequests previously set (and vice versa) since both act on
+	// the same underlying state.
+	SetMode(mode PermissionMode)
 	SubscribeNotifications(ctx context.Context) <-chan pubsub.Event[PermissionNotification]
 }
 
@@ -101,7 +145,8 @@ type permissionService struct {
 	pendingRequests       *csync.Map[string, chan bool]
 	autoApproveSessions   map[string]bool
 	autoApproveSessionsMu sync.RWMutex
-	skip                  atomic.Bool
+	mode                  PermissionMode
+	modeMu                sync.RWMutex
 	allowedTools          []string
 
 	// used to make sure we only process one request at a time
@@ -179,7 +224,43 @@ func (s *permissionService) Deny(permission PermissionRequest) bool {
 }
 
 func (s *permissionService) Request(ctx context.Context, opts CreatePermissionRequest) (bool, error) {
-	if s.skip.Load() {
+	mode := s.Mode()
+
+	// Bypass and Plan are decided before any of the five legacy override
+	// layers below: Bypass because "skip everything" should mean exactly
+	// that, and Plan because its read-only guarantee must be
+	// unconditional — a stale sessionPermissions grant or a crushrc
+	// allowlist entry recorded before switching into Plan mode must not
+	// be able to leak a mutating call through.
+	switch mode {
+	case ModeBypass:
+		return true, nil
+	case ModePlan:
+		if CategoryForTool(opts.ToolName) == CategoryReadOnly {
+			return true, nil
+		}
+		if opts.ToolName == ExitPlanModeToolName {
+			// The only way out of plan mode from inside the conversation:
+			// let this one reach the normal dialog below instead of being
+			// denied outright.
+			break
+		}
+		// Deny outright: no dialog, no channel wait. opts.Safe (bash's
+		// "this command is read-only") does NOT grant an exception here
+		// — plan mode blocks even nominally-safe commands.
+		return false, nil
+	case ModeAutoAcceptEdits:
+		if CategoryForTool(opts.ToolName) == CategoryEdit {
+			return true, nil
+		}
+		// Non-edit tools (bash, network, MCP) fall through to the full
+		// manual pipeline below, unchanged.
+	}
+
+	// ModeManual (and ModeAutoAcceptEdits for non-edit tools): a call the
+	// tool itself flagged as safe (bash's read-only allowlist) is granted
+	// immediately, matching today's pre-Request short-circuit exactly.
+	if opts.Safe {
 		return true, nil
 	}
 
@@ -287,15 +368,42 @@ func (s *permissionService) SubscribeNotifications(ctx context.Context) <-chan p
 	return s.notificationBroker.Subscribe(ctx)
 }
 
+// SetSkipRequests is a compatibility shim over SetMode: true seeds
+// ModeBypass, false drops back to ModeManual (only if currently bypassed —
+// it never overwrites Plan/AutoAcceptEdits, matching the old bool's
+// "on/off" semantics without clobbering the newer modes).
 func (s *permissionService) SetSkipRequests(skip bool) {
-	s.skip.Store(skip)
+	if skip {
+		s.SetMode(ModeBypass)
+		return
+	}
+	if s.Mode() == ModeBypass {
+		s.SetMode(ModeManual)
+	}
 }
 
+// SkipRequests is a compatibility shim over Mode.
 func (s *permissionService) SkipRequests() bool {
-	return s.skip.Load()
+	return s.Mode() == ModeBypass
+}
+
+func (s *permissionService) Mode() PermissionMode {
+	s.modeMu.RLock()
+	defer s.modeMu.RUnlock()
+	return s.mode
+}
+
+func (s *permissionService) SetMode(mode PermissionMode) {
+	s.modeMu.Lock()
+	s.mode = mode
+	s.modeMu.Unlock()
 }
 
 func NewPermissionService(workingDir string, skip bool, allowedTools []string) Service {
+	mode := ModeManual
+	if skip {
+		mode = ModeBypass
+	}
 	svc := &permissionService{
 		Broker:              pubsub.NewBroker[PermissionRequest](),
 		notificationBroker:  pubsub.NewBroker[PermissionNotification](),
@@ -304,7 +412,7 @@ func NewPermissionService(workingDir string, skip bool, allowedTools []string) S
 		autoApproveSessions: make(map[string]bool),
 		allowedTools:        allowedTools,
 		pendingRequests:     csync.NewMap[string, chan bool](),
+		mode:                mode,
 	}
-	svc.skip.Store(skip)
 	return svc
 }

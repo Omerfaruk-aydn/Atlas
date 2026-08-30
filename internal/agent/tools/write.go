@@ -125,7 +125,7 @@ func NewWriteTool(
 				return fantasy.ToolResponse{}, err
 			}
 			if !p {
-				resp := NewPermissionDeniedResponse()
+				resp := NewPermissionDeniedResponse(permissions)
 				resp = fantasy.WithResponseMetadata(resp, WriteResponseMetadata{
 					Diff:      diff,
 					Additions: additions,

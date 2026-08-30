@@ -613,3 +613,112 @@ func TestPermissionService_ResolveIdempotency(t *testing.T) {
 		}
 	})
 }
+
+// TestPermissionService_Modes pins the four permission-mode behaviors added
+// on top of the legacy skip bool: Bypass grants everything, Plan denies
+// everything mutating (including nominally Safe bash commands) without ever
+// reaching the dialog, AutoAcceptEdits silently grants only CategoryEdit
+// tools, and Manual preserves the pre-existing Safe short-circuit.
+func TestPermissionService_Modes(t *testing.T) {
+	t.Parallel()
+
+	t.Run("bypass grants everything, even non-safe", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		service.SetMode(ModeBypass)
+
+		result, err := service.Request(t.Context(), CreatePermissionRequest{
+			SessionID: "s", ToolName: "bash", Action: "execute", Path: "/tmp",
+		})
+		require.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	t.Run("plan denies a Safe bash command", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		service.SetMode(ModePlan)
+
+		result, err := service.Request(t.Context(), CreatePermissionRequest{
+			SessionID: "s", ToolName: "bash", Action: "execute", Path: "/tmp",
+			Safe: true,
+		})
+		require.NoError(t, err)
+		assert.False(t, result, "plan mode must deny even Safe-flagged calls")
+	})
+
+	t.Run("plan allows a read-only tool", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		service.SetMode(ModePlan)
+
+		result, err := service.Request(t.Context(), CreatePermissionRequest{
+			SessionID: "s", ToolName: "glob", Action: "read", Path: "/tmp",
+		})
+		require.NoError(t, err)
+		assert.True(t, result, "plan mode must still allow read-only tools")
+	})
+
+	t.Run("auto-accept-edits grants edit tools silently", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		service.SetMode(ModeAutoAcceptEdits)
+
+		result, err := service.Request(t.Context(), CreatePermissionRequest{
+			SessionID: "s", ToolName: "edit", Action: "update", Path: "/tmp/f.go",
+		})
+		require.NoError(t, err)
+		assert.True(t, result)
+	})
+
+	t.Run("auto-accept-edits does not silently grant bash", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		service.SetMode(ModeAutoAcceptEdits)
+
+		events := service.Subscribe(t.Context())
+
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			_, _ = service.Request(t.Context(), CreatePermissionRequest{
+				SessionID: "s", ToolCallID: "call-1", ToolName: "bash", Action: "execute", Path: "/tmp",
+			})
+		}()
+
+		select {
+		case ev := <-events:
+			assert.Equal(t, "bash", ev.Payload.ToolName, "non-edit tool must still publish a dialog request")
+			require.True(t, service.Deny(ev.Payload))
+		case <-time.After(time.Second):
+			t.Fatal("expected a permission request to be published for bash under auto-accept-edits")
+		}
+		<-done
+	})
+
+	t.Run("manual mode still grants Safe bash without a dialog", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+
+		result, err := service.Request(t.Context(), CreatePermissionRequest{
+			SessionID: "s", ToolName: "bash", Action: "execute", Path: "/tmp",
+			Safe: true,
+		})
+		require.NoError(t, err)
+		assert.True(t, result, "manual mode must preserve the Safe short-circuit")
+	})
+
+	t.Run("SetSkipRequests/SkipRequests stay in sync with the mode", func(t *testing.T) {
+		t.Parallel()
+		service := NewPermissionService("/tmp", false, nil)
+		assert.False(t, service.SkipRequests())
+
+		service.SetSkipRequests(true)
+		assert.Equal(t, ModeBypass, service.Mode())
+		assert.True(t, service.SkipRequests())
+
+		service.SetSkipRequests(false)
+		assert.Equal(t, ModeManual, service.Mode())
+		assert.False(t, service.SkipRequests())
+	})
+}

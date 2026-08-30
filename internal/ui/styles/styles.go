@@ -144,6 +144,18 @@ type Styles struct {
 		PromptBangDotsFocused lipgloss.Style
 		PromptBangDotsBlurred lipgloss.Style
 
+		// Plan mode prompt (read-only permission mode).
+		PromptPlanIconFocused lipgloss.Style
+		PromptPlanIconBlurred lipgloss.Style
+		PromptPlanDotsFocused lipgloss.Style
+		PromptPlanDotsBlurred lipgloss.Style
+
+		// Auto-accept-edits mode prompt.
+		PromptAutoAcceptIconFocused lipgloss.Style
+		PromptAutoAcceptIconBlurred lipgloss.Style
+		PromptAutoAcceptDotsFocused lipgloss.Style
+		PromptAutoAcceptDotsBlurred lipgloss.Style
+
 		// Question mode prompt (" ? " icon + ":::" dots).
 		PromptQuestionIconFocused lipgloss.Style
 		PromptQuestionIconBlurred lipgloss.Style

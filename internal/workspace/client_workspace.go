@@ -401,6 +401,31 @@ func (w *ClientWorkspace) PermissionSetSkipRequests(skip bool) {
 	_ = w.client.SetPermissionsSkipRequests(context.Background(), w.workspaceID(), skip)
 }
 
+// PermissionMode degrades to the bypass/manual distinction the underlying
+// skip-requests RPC actually carries; a remote Plan or AutoAcceptEdits mode
+// set by another client is indistinguishable from Manual here.
+func (w *ClientWorkspace) PermissionMode() permission.PermissionMode {
+	if w.PermissionSkipRequests() {
+		return permission.ModeBypass
+	}
+	return permission.ModeManual
+}
+
+// PermissionSetMode supports only the bypass/manual toggle remotely (via the
+// existing skip-requests RPC). Plan and AutoAcceptEdits have no remote RPC
+// yet, so selecting them locally is a no-op that just logs a warning rather
+// than silently pretending to succeed.
+func (w *ClientWorkspace) PermissionSetMode(mode permission.PermissionMode) {
+	switch mode {
+	case permission.ModeBypass:
+		w.PermissionSetSkipRequests(true)
+	case permission.ModeManual:
+		w.PermissionSetSkipRequests(false)
+	default:
+		slog.Warn("Permission mode not supported on remote sessions yet", "mode", mode)
+	}
+}
+
 // -- Questions --
 
 // QuestionAnswer submits answers for a question via the client SDK.

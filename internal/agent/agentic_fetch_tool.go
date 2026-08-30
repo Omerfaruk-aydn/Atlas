@@ -96,7 +96,7 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				return fantasy.ToolResponse{}, err
 			}
 			if !p {
-				return tools.NewPermissionDeniedResponse(), nil
+				return tools.NewPermissionDeniedResponse(c.permissions), nil
 			}
 
 			tmpDir, err := os.MkdirTemp(c.cfg.Config().Options.DataDirectory, "crush-fetch-*")
@@ -185,6 +185,7 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				SystemPrompt:         systemPrompt,
 				DisableAutoSummarize: c.cfg.Config().Options.DisableAutoSummarize,
 				IsYolo:               c.permissions.SkipRequests(),
+				Permissions:          c.permissions,
 				Sessions:             c.sessions,
 				Messages:             c.messages,
 				Tools:                fetchTools,

@@ -82,8 +82,9 @@ type KeyMap struct {
 	Models     key.Binding
 	Suspend    key.Binding
 	Sessions   key.Binding
-	Tab        key.Binding
-	ToggleYolo key.Binding
+	Tab                  key.Binding
+	ToggleYolo           key.Binding
+	CyclePermissionMode  key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -119,6 +120,10 @@ func DefaultKeyMap() KeyMap {
 		ToggleYolo: key.NewBinding(
 			key.WithKeys("ctrl+y"),
 			key.WithHelp("ctrl+y", "toggle yolo"),
+		),
+		CyclePermissionMode: key.NewBinding(
+			key.WithKeys("shift+tab", "ctrl+shift+y"),
+			key.WithHelp("shift+tab", "cycle permission mode"),
 		),
 	}
 

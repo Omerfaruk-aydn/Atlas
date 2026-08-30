@@ -39,6 +39,12 @@ func (m *mockBashPermissionService) SkipRequests() bool {
 	return false
 }
 
+func (m *mockBashPermissionService) Mode() permission.PermissionMode {
+	return permission.ModeManual
+}
+
+func (m *mockBashPermissionService) SetMode(mode permission.PermissionMode) {}
+
 func (m *mockBashPermissionService) SubscribeNotifications(ctx context.Context) <-chan pubsub.Event[permission.PermissionNotification] {
 	return make(<-chan pubsub.Event[permission.PermissionNotification])
 }
@@ -86,13 +92,21 @@ func TestBashTool_CustomAutoBackgroundThreshold(t *testing.T) {
 type recordingPermissionService struct {
 	*pubsub.Broker[permission.PermissionRequest]
 	requestCount int
+	lastSafe     bool
 	allow        bool
 }
 
 func (m *recordingPermissionService) Request(ctx context.Context, req permission.CreatePermissionRequest) (bool, error) {
 	m.requestCount++
+	m.lastSafe = req.Safe
 	return m.allow, nil
 }
+
+func (m *recordingPermissionService) Mode() permission.PermissionMode {
+	return permission.ModeManual
+}
+
+func (m *recordingPermissionService) SetMode(mode permission.PermissionMode) {}
 
 func (m *recordingPermissionService) Grant(req permission.PermissionRequest) bool { return true }
 
@@ -142,8 +156,11 @@ func TestBashTool_ChainedCommandsRequirePermission(t *testing.T) {
 
 	require.False(t, resp.IsError)
 	require.Equal(t, 1, perms.requestCount, "chained command should trigger permission request")
+	require.False(t, perms.lastSafe, "chained command is not in the safe allowlist")
 
-	// Plain ls should NOT trigger permission check.
+	// Plain ls still goes through Request (the Safe short-circuit now lives
+	// inside the permission service, not the caller), but is flagged Safe so
+	// ModeManual grants it immediately.
 	perms.requestCount = 0
 	resp = runBashTool(t, tool, ctx, BashParams{
 		Description: "plain ls",
@@ -151,7 +168,8 @@ func TestBashTool_ChainedCommandsRequirePermission(t *testing.T) {
 	})
 
 	require.False(t, resp.IsError)
-	require.Equal(t, 0, perms.requestCount, "plain ls should not trigger permission request")
+	require.Equal(t, 1, perms.requestCount, "plain ls still goes through Request")
+	require.True(t, perms.lastSafe, "plain ls must be flagged Safe")
 }
 
 func TestBashTool_ChainedCommandsDenied(t *testing.T) {

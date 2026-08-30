@@ -232,6 +232,12 @@ func (m *mockViewPermissionService) SkipRequests() bool {
 	return false
 }
 
+func (m *mockViewPermissionService) Mode() permission.PermissionMode {
+	return permission.ModeManual
+}
+
+func (m *mockViewPermissionService) SetMode(mode permission.PermissionMode) {}
+
 func (m *mockViewPermissionService) SubscribeNotifications(ctx context.Context) <-chan pubsub.Event[permission.PermissionNotification] {
 	return make(<-chan pubsub.Event[permission.PermissionNotification])
 }

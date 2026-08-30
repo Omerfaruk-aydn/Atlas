@@ -42,6 +42,7 @@ import (
 	"github.com/charmbracelet/crush/internal/config"
 	"github.com/charmbracelet/crush/internal/csync"
 	"github.com/charmbracelet/crush/internal/message"
+	"github.com/charmbracelet/crush/internal/permission"
 	"github.com/charmbracelet/crush/internal/pubsub"
 	"github.com/charmbracelet/crush/internal/session"
 	"github.com/charmbracelet/crush/internal/stringext"
@@ -178,6 +179,7 @@ type sessionAgent struct {
 	messages             message.Service
 	disableAutoSummarize bool
 	isYolo               bool
+	permissions          permission.Service
 	notify               pubsub.Publisher[notify.Notification]
 	runComplete          pubsub.Publisher[notify.RunComplete]
 
@@ -230,6 +232,7 @@ type SessionAgentOptions struct {
 	IsSubAgent           bool
 	DisableAutoSummarize bool
 	IsYolo               bool
+	Permissions          permission.Service
 	Sessions             session.Service
 	Messages             message.Service
 	Tools                []fantasy.AgentTool
@@ -251,6 +254,7 @@ func NewSessionAgent(
 		disableAutoSummarize: opts.DisableAutoSummarize,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
+		permissions:          opts.Permissions,
 		notify:               opts.Notify,
 		runComplete:          opts.RunComplete,
 		messageQueue:         csync.NewMap[string, []SessionAgentCall](),
@@ -1535,6 +1539,16 @@ If you are working on tasks that would benefit from a todo list please use the "
 If not, please feel free to ignore. Again do not mention this message to the user.`,
 			),
 		))
+		if a.permissions != nil && a.permissions.Mode() == permission.ModePlan {
+			history = append(history, fantasy.NewUserMessage(
+				fmt.Sprintf(
+					"<system_reminder>%s</system_reminder>",
+					`You are currently in PLAN MODE. This is a read-only mode: you may use read-only tools (view, glob, grep, ls, fetch) to research, but any tool call that writes, edits, or executes something (write, edit, multiedit, bash, download, lsp_rename, lsp_replace_symbol, etc.) will be automatically denied by the system, not by the user — retrying it will just get denied again.
+Do NOT attempt those tool calls while this reminder is present. Instead, investigate as needed and respond with a clear, concrete implementation plan as plain text.
+When you're done presenting the plan and believe it's ready to implement, call the "exit_plan_mode" tool with the plan text as its "plan" argument. That call shows the user an approval prompt; if they approve it, plan mode turns off and you can proceed with the real edits/commands on your next turn. If they deny it, stay in plan mode and keep refining the plan as text instead of retrying write/edit/bash. Do not call exit_plan_mode before you've actually shown the plan, and do not call write/edit/bash tools until after exit_plan_mode has been approved.`,
+				),
+			))
+		}
 	}
 	// Collect all tool call IDs present in assistant messages and all tool
 	// result IDs present in tool messages. This lets us detect both orphaned
