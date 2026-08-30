@@ -1,9 +1,0 @@
-/atlas.exe
-/atlas
-*.exe
-*.exe~
-*.test
-/atlas.toml
-.atlas/
-.claude/
-/test.txt
