@@ -10,10 +10,10 @@ import (
 
 // cornersCmd prints a sample box in every available corner style so the user
 // can see which ones their terminal font actually carries. Whether a style
-// renders is a property of the font, not of Crush: a font missing a glyph
-// draws a replacement box in its place. Printing the samples from the binary
-// itself means they go through the same terminal and font as the TUI, which a
-// snippet pasted into a different shell would not guarantee.
+// renders is a property of the font, not of ATLAS-AGENT: a font missing a
+// glyph draws a replacement box in its place. Printing the samples from the
+// binary itself means they go through the same terminal and font as the TUI,
+// which a snippet pasted into a different shell would not guarantee.
 var cornersCmd = &cobra.Command{
 	Use:   "corners",
 	Short: "Preview the box corner styles your terminal font supports",
@@ -41,7 +41,7 @@ var cornersCmd = &cobra.Command{
 
 		detected := styles.DetectCornerStyle()
 		fmt.Fprintf(out, "\n  Corners showing as an empty box are missing from your font.\n")
-		fmt.Fprintf(out, "  Crush picked %q for this terminal. To choose another:\n\n", detected)
+		fmt.Fprintf(out, "  ATLAS-AGENT picked %q for this terminal. To choose another:\n\n", detected)
 		fmt.Fprintf(out, "    { \"options\": { \"tui\": { \"box_corners\": %q } } }\n\n", detected)
 		return nil
 	},

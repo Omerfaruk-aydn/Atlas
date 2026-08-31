@@ -23,17 +23,17 @@ var (
 var logoutCmd = &cobra.Command{
 	Aliases: []string{"signout"},
 	Use:     "logout [platform]",
-	Short:   "Logout Crush from a platform",
-	Long: `Logout Crush from a specified platform, removing stored credentials.
+	Short:   "Logout ATLAS-AGENT from a platform",
+	Long: `Logout ATLAS-AGENT from a specified platform, removing stored credentials.
 The platform should be provided as an argument.
 If no argument is given, a list of logged-in platforms will be shown.
 Available platforms are: hyper, copilot.`,
 	Example: `
 # Sign out from Charm Hyper
-crush logout hyper
+atlas logout hyper
 
 # Sign out from GitHub Copilot
-crush logout copilot
+atlas logout copilot
   `,
 	ValidArgs: []cobra.Completion{
 		"hyper",
