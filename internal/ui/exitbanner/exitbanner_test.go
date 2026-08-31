@@ -40,7 +40,7 @@ func TestRender(t *testing.T) {
 			name:   "compact with a session prints only the resume lines",
 			banner: config.ExitBannerCompact,
 			sess:   testSession(),
-			want:   []string{"Session", "Fix the flaky test", "Continue", "crush -s "},
+			want:   []string{"Session", "Fix the flaky test", "Continue", "atlas -s "},
 			// No logo, and no padding around the two lines.
 			notWant: []string{"Thanks for using ATLAS-AGENT!"},
 		},

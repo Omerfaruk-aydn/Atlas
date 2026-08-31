@@ -4234,7 +4234,7 @@ func (m *UI) openEditor(value string) tea.Cmd {
 		return util.ReportError(err)
 	}
 	cmd, err := editor.Command(
-		"crush",
+		"atlas",
 		tmpPath,
 		editor.AtPosition(
 			m.textarea.Line()+1,

@@ -139,7 +139,7 @@ func DetectCornerStyle() BoxCornerStyle {
 // constants because the style is configurable; see SetBoxCorners.
 //
 // They start out at whatever DetectCornerStyle picks so that code paths which
-// never reach SetBoxCorners — the exit banner, `crush run`, anything built
+// never reach SetBoxCorners — the exit banner, `atlas run`, anything built
 // before the config is known — still get corners suited to the terminal
 // instead of a fixed fallback.
 var BoxTopLeft, BoxTopRight, BoxBottomLeft, BoxBottomRight = detectedCorners()
