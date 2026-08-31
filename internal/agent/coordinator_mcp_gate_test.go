@@ -68,7 +68,7 @@ func newGateTestCoordinator(t *testing.T, interactive bool) *coordinator {
 // message of a session. Tools from late servers simply miss that run's palette
 // and show up on the next one.
 //
-// Non-interactive runs (`crush run`, both local and client/server) get a single
+// Non-interactive runs (`atlas run`, both local and client/server) get a single
 // shot at the palette, so they still wait for initialization to settle.
 func TestRunWaitsForMCPOnlyWhenNonInteractive(t *testing.T) {
 	t.Run("non-interactive waits", func(t *testing.T) {

@@ -1,14 +1,14 @@
 ---
 name: builtin-skills
 description:
-  Use when creating a new builtin skill for Crush, editing an existing builtin
+  Use when creating a new builtin skill for ATLAS-AGENT, editing an existing builtin
   skill (internal/skills/builtin/), or when the user needs to understand how the
   embedded skill system works.
 ---
 
 # Builtin Skills
 
-Crush embeds skills directly into the binary via `internal/skills/builtin/`.
+ATLAS-AGENT embeds skills directly into the binary via `internal/skills/builtin/`.
 These are always available without user configuration.
 
 ## How It Works
@@ -37,6 +37,6 @@ These are always available without user configuration.
 
 | Skill          | Directory               | Description                                |
 | -------------- | ----------------------- | ------------------------------------------ |
-| `crush-config` | `builtin/crush-config/` | Crush configuration help                   |
-| `crush-hooks`  | `builtin/crush-hooks/`  | Authoring, configuring and debugging hooks |
+| `atlas-config` | `builtin/atlas-config/` | ATLAS-AGENT configuration help               |
+| `atlas-hooks`  | `builtin/atlas-hooks/`  | Authoring, configuring and debugging hooks |
 | `jq`           | `builtin/jq/`           | jq JSON processor usage guide              |

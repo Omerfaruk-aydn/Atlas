@@ -3,7 +3,7 @@
 
 "area: ci":
   - "/^ci: /i"
-"area: crush run":
+"area: atlas run":
   - "/crush run/i"
   - "/headless/i"
   - "/non-interactive/i"
