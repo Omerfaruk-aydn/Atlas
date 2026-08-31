@@ -41,7 +41,7 @@ func LoadShellConfig(ctx context.Context, path string, src []byte) ([]byte, erro
 
 	cwd := filepath.Dir(path)
 
-	// Expose the running Crush version so scripts can feature-detect, e.g.
+	// Expose the running ATLAS-AGENT version so scripts can feature-detect, e.g.
 	// [[ "$CRUSH_VERSION" == "devel" ]] or branch on the release.
 	env := append(os.Environ(), "CRUSH_VERSION="+version.Version)
 

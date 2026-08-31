@@ -716,8 +716,8 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 	allTools = append(
 		allTools,
 		tools.NewBashTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Options.Attribution, modelID),
-		tools.NewCrushInfoTool(c.cfg, c.lspManager, c.allSkills, c.activeSkills, c.skillTracker),
-		tools.NewCrushLogsTool(logFile),
+		tools.NewAtlasInfoTool(c.cfg, c.lspManager, c.allSkills, c.activeSkills, c.skillTracker),
+		tools.NewAtlasLogsTool(logFile),
 		tools.NewJobOutputTool(),
 		tools.NewJobKillTool(),
 		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil),
@@ -880,16 +880,16 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 	}
 
 	return Model{
-			Model:      largeModel,
-			CatwalkCfg: *largeCatwalkModel,
-			ModelCfg:   largeModelCfg,
-			FlatRate:   largeProviderCfg.FlatRate,
-		}, Model{
-			Model:      smallModel,
-			CatwalkCfg: *smallCatwalkModel,
-			ModelCfg:   smallModelCfg,
-			FlatRate:   smallProviderCfg.FlatRate,
-		}, nil
+		Model:      largeModel,
+		CatwalkCfg: *largeCatwalkModel,
+		ModelCfg:   largeModelCfg,
+		FlatRate:   largeProviderCfg.FlatRate,
+	}, Model{
+		Model:      smallModel,
+		CatwalkCfg: *smallCatwalkModel,
+		ModelCfg:   smallModelCfg,
+		FlatRate:   smallProviderCfg.FlatRate,
+	}, nil
 }
 
 func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {
@@ -1147,7 +1147,7 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 		switch providerCfg.ID {
 		case hyper.Name:
 			baseURL = hyper.BaseURL() + "/v1"
-			headers["x-crush-id"] = event.GetID()
+			headers["x-atlas-id"] = event.GetID()
 		case string(catwalk.InferenceProviderZAI):
 			if providerCfg.ExtraBody == nil {
 				providerCfg.ExtraBody = map[string]any{}

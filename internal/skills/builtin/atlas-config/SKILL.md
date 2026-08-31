@@ -1,13 +1,13 @@
 ---
-name: crush-config
-description: Use when the user needs help configuring Crush — writing crushrc (the Bash config format) or crush.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing Crush behavior.
+name: atlas-config
+description: Use when the user needs help configuring ATLAS-AGENT — writing crushrc (the Bash config format) or crush.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
 ---
 
-# Crush Configuration
+# ATLAS-AGENT Configuration
 
-Crush supports two config formats:
+ATLAS-AGENT supports two config formats:
 
-- **`crushrc`** — a Bash script that builds config by calling Crush builtins.
+- **`crushrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
   **Preferred.** Because it is real Bash you get includes, secrets,
   conditionals, and variables for free.
 - **`crush.json`** — static JSON. Fully supported; see
@@ -22,11 +22,11 @@ Both are discovered together and deep-merged. Priority (highest to lowest):
    `%USERPROFILE%\.config\crush\crushrc` on Windows)
 
 Data directories (`~/.local/share/crush` and `%LOCALAPPDATA%\crush`) contain
-machine-owned JSON state only; Crush does not discover or execute a `crushrc`
+machine-owned JSON state only; ATLAS-AGENT does not discover or execute a `crushrc`
 from those locations.
 
 If a directory has both `crushrc` and `crush.json`, they merge (`crushrc` wins
-on conflicts) and Crush logs a warning.
+on conflicts) and ATLAS-AGENT logs a warning.
 
 ## crushrc at a glance
 
@@ -54,7 +54,7 @@ Values are ordinary Bash — quote and expand normally (`"$VAR"`, `$(cmd)`,
 `${VAR:?required}`). A failing `$(command)` aborts the load.
 
 `CRUSH_VERSION` is exported into the script so you can feature-detect the
-running Crush (it is the literal `devel` for local builds):
+running ATLAS-AGENT (it is the literal `devel` for local builds):
 
 ```bash
 [[ "$CRUSH_VERSION" != devel ]] && lsp add gopls --command gopls
@@ -196,7 +196,7 @@ option reset <list-key>    # clear a list option back to empty
 ```bash
 option progress false
 option skill-path ./skills
-option disable-skill crush-config
+option disable-skill atlas-config
 option attribution-trailer-style assisted-by
 option attribution-generated-with true
 option ui compact true
@@ -275,7 +275,7 @@ Event names are case-insensitive and accept snake_case: `PreToolUse`,
 
 ### Claude Code compatibility
 
-Crush also accepts the Claude Code hook output format, so existing hooks work
+ATLAS-AGENT also accepts the Claude Code hook output format, so existing hooks work
 unchanged:
 
 ```json
@@ -308,7 +308,7 @@ user-invocable: true
 
 ## Environment variables
 
-- `CRUSH_VERSION` — exported into `crushrc` at load; the running version (or
+- `CRUSH_VERSION` — exported into `crushrc` at load; the running ATLAS-AGENT version (or
   `devel` for local builds).
 - `CRUSH_GLOBAL_CONFIG` — override global config location.
 - `CRUSH_GLOBAL_DATA` — override data directory location.
@@ -373,5 +373,5 @@ the request.
 
 Both formats are trusted code. `crushrc` runs entirely, and any `$(...)` in
 `crush.json` runs at load time, with the invoking user's shell privileges,
-before the UI appears. Don't launch Crush in a directory whose config you
+before the UI appears. Don't launch ATLAS-AGENT in a directory whose config you
 haven't reviewed.

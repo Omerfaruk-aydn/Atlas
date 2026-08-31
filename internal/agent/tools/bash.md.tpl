@@ -94,14 +94,14 @@ When user asks to create git commit:
 Commit message here.
 
 {{ if .Attribution.GeneratedWith }}
-💘 Generated with Crush
+💘 Generated with ATLAS-AGENT
 {{ end}}
 {{if eq .Attribution.TrailerStyle "assisted-by" }}
 
-Assisted-by: Crush:{{ .ModelID }}
+Assisted-by: ATLAS-AGENT:{{ .ModelID }}
 {{ else if eq .Attribution.TrailerStyle "co-authored-by" }}
 
-Co-Authored-By: Crush <crush@charm.land>
+Co-Authored-By: ATLAS-AGENT <noreply@atlas-agent.local>
 {{ end }}
 EOF
 )"
@@ -155,7 +155,7 @@ When user asks you to create or update a PR:
 <summary>
 
 {{ if .Attribution.GeneratedWith -}}
-💘 Generated with Crush
+💘 Generated with ATLAS-AGENT
 {{- end }}
 
 EOF

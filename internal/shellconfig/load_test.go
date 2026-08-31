@@ -309,7 +309,7 @@ fi`
 }
 
 // TestLoadShellConfig_CrushVersionEnv verifies that CRUSH_VERSION is exposed
-// to the script so it can feature-detect the running Crush version.
+// to the script so it can feature-detect the running ATLAS-AGENT version.
 func TestLoadShellConfig_CrushVersionEnv(t *testing.T) {
 	dir := t.TempDir()
 	script := `provider add openai --api-key "$CRUSH_VERSION"`

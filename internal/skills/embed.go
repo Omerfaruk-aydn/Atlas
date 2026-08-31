@@ -56,7 +56,7 @@ func DiscoverBuiltinWithStates() ([]*Skill, []*SkillState) {
 
 		// Set paths using the crush prefix. Strip the leading "builtin/"
 		// so the path is relative to the embedded root
-		// (e.g., "crush://skills/crush-config/SKILL.md").
+		// (e.g., "crush://skills/atlas-config/SKILL.md").
 		relPath, _ := filepath.Rel("builtin", path)
 		relPath = filepath.ToSlash(relPath)
 		skill.SkillFilePath = BuiltinPrefix + relPath

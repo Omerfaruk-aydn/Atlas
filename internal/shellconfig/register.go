@@ -1,4 +1,4 @@
-// Package shellconfig implements the Bash-powered config format for Crush.
+// Package shellconfig implements the Bash-powered config format for ATLAS-AGENT.
 //
 // It provides shell builtins (provider, model, mcp, lsp, permissions, hook,
 // option) that populate config by mutating a ConfigBuilder
