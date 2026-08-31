@@ -87,8 +87,9 @@ const sessionDetailsMaxHeight = 20
 const TextareaMaxHeight = 15
 
 // editorHeightMargin is the vertical margin added to the textarea height to
-// account for the attachments row (top) and bottom margin.
-const editorHeightMargin = 2
+// account for the attachments row (top), the composer frame's top and bottom
+// edges, and the bottom margin.
+const editorHeightMargin = 2 + composerBorderRows
 
 // TextareaMinHeight is the minimum height of the prompt textarea.
 const TextareaMinHeight = 3
@@ -348,6 +349,13 @@ type UI struct {
 	// sidebarLogo keeps a cached version of the sidebar sidebarLogo.
 	sidebarLogo string
 
+	// Banner animation state: bannerFrame advances the wide wordmark's
+	// rainbow sweep, and bannerGen/bannerTicking keep a single tick chain
+	// armed (see startBannerAnim).
+	bannerFrame   int
+	bannerGen     int64
+	bannerTicking bool
+
 	// Sidebar scroll state for virtual scrolling.
 	sidebarOffset           int  // current scroll offset in lines
 	sidebarScrollable       bool // true when sidebar content exceeds available height
@@ -359,6 +367,15 @@ type UI struct {
 	sidebarContentHeight    int    // available height for sidebar content
 	sidebarContentWidth     int    // available width for sidebar content
 	sidebarDrawLogo         string // logo to render (may differ from sidebarLogo for short heights)
+
+	// Sidebar scrollbar drag state. The hit geometry is recorded in absolute
+	// screen coordinates by drawSidebar, since sidebar mouse events are not
+	// translated the way the chat's are.
+	sidebarScrollbarRect image.Rectangle
+	sidebarScrollbarGeom common.ScrollbarGeometry
+	sidebarScrollbarOK   bool
+	sidebarScrollbarDrag bool
+	sidebarScrollbarGrab int // row within the thumb where the drag started
 
 	// Notification state
 	notifyBackend       notification.Backend
@@ -436,6 +453,10 @@ type UI struct {
 
 // New creates a new instance of the [UI] model.
 func New(com *common.Common, initialSessionID string, continueLast bool) *UI {
+	// The corner style for every framed surface is settled in
+	// common.DefaultCommon, which has to do it before it builds the theme;
+	// see styles.SetBoxCorners.
+
 	// Editor components
 	ta := textarea.New()
 	ta.SetStyles(com.Styles.Editor.Textarea)
@@ -596,6 +617,9 @@ func (m *UI) Init() tea.Cmd {
 		cmds = append(cmds, cmd)
 	}
 	cmds = append(cmds, m.checkPendingMCPAuth())
+	if cmd := m.startBannerAnim(); cmd != nil {
+		cmds = append(cmds, cmd)
+	}
 	return tea.Batch(cmds...)
 }
 
@@ -1193,7 +1217,20 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Adjust for chat area position
 			x -= m.layout.main.Min.X
 			y -= m.layout.main.Min.Y
-			if !image.Pt(msg.X, msg.Y).In(m.layout.sidebar) {
+			if image.Pt(msg.X, msg.Y).In(m.layout.sidebar) {
+				if cmd := m.sidebarScrollbarDown(msg.X, msg.Y); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			} else {
+				// The scrollbar column comes first: it overlaps the chat
+				// area, and a press there is a scroll gesture, not the
+				// start of a text selection.
+				if handled, cmd := m.chat.HandleScrollbarDown(x, y); handled {
+					if cmd != nil {
+						cmds = append(cmds, cmd)
+					}
+					return m, tea.Batch(cmds...)
+				}
 				if handled, cmd := m.chat.HandleMouseDown(x, y); handled {
 					m.lastClickTime = time.Now()
 					if cmd != nil {
@@ -1232,6 +1269,22 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.state {
 		case uiChat:
+			// A scrollbar drag owns the pointer until the button comes
+			// back up: no edge scrolling, no text selection, and the
+			// cursor is free to wander outside the track.
+			if m.chat.ScrollbarDragging() {
+				if _, cmd := m.chat.HandleScrollbarDrag(msg.Y - m.layout.main.Min.Y); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+				return m, tea.Batch(cmds...)
+			}
+			if m.sidebarScrollbarDrag {
+				if cmd := m.sidebarScrollbarMove(msg.Y); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+				return m, tea.Batch(cmds...)
+			}
+
 			// Skip chat edge-scrolling when an inline editor is
 			// active to prevent accidental scrolling while hovering
 			// over question forms or other inline components.
@@ -1285,6 +1338,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch m.state {
 		case uiChat:
+			m.sidebarScrollbarDrag = false
+			if m.chat.EndScrollbarDrag() {
+				return m, tea.Batch(cmds...)
+			}
+
 			x, y := msg.X, msg.Y
 			// Adjust for chat area position
 			x -= m.layout.main.Min.X
@@ -1355,6 +1413,16 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+	case bannerFrameMsg:
+		// Drop ticks from a superseded chain.
+		if msg.gen == m.bannerGen {
+			delay := bannerIdleDelay
+			if m.bannerAnimating() {
+				m.bannerFrame++
+				delay = time.Second / bannerFPS
+			}
+			cmds = append(cmds, bannerTick(m.bannerGen, delay))
+		}
 	case anim.StepMsg:
 		if m.state == uiChat {
 			if cmd := m.chat.Animate(msg); cmd != nil {
@@ -1384,7 +1452,8 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 	case sidebarScrollbarHideMsg:
-		if msg.seq == m.sidebarScrollbarSeq && m.focus != uiFocusSidebar {
+		// Never pull the bar out from under a drag that is holding it.
+		if msg.seq == m.sidebarScrollbarSeq && m.focus != uiFocusSidebar && !m.sidebarScrollbarDrag {
 			m.sidebarScrollbarVisible = false
 		}
 	case spinner.TickMsg:
@@ -2872,8 +2941,8 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 
 			switch {
 			case key.Matches(msg, m.keyMap.Editor.AddImage):
-				if !m.currentModelSupportsImages() {
-					cmds = append(cmds, util.ReportWarn("Current model doesn't support images"))
+				if reason := m.imageSupportRefusal(); reason != "" {
+					cmds = append(cmds, util.ReportWarn(reason))
 					break
 				}
 				if cmd := m.openFilesDialog(); cmd != nil {
@@ -2881,8 +2950,8 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				}
 
 			case key.Matches(msg, m.keyMap.Editor.PasteImage):
-				if !m.currentModelSupportsImages() {
-					cmds = append(cmds, util.ReportWarn("Current model doesn't support images"))
+				if reason := m.imageSupportRefusal(); reason != "" {
+					cmds = append(cmds, util.ReportWarn(reason))
 					break
 				}
 				cmds = append(cmds, m.pasteImageFromClipboard)
@@ -3247,6 +3316,7 @@ func (m *UI) drawHeader(scr uv.Screen, area uv.Rectangle) {
 		area.Dx(),
 		m.lspErrorCount(),
 		m.hyperCredits,
+		m.bannerFrame,
 	)
 }
 
@@ -3411,8 +3481,10 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 		if m.textarea.Focused() {
 			cur := m.textarea.Cursor()
-			cur.X++                            // Adjust for app margins
-			cur.Y += m.layout.editor.Min.Y + 1 // Offset for attachments row
+			// App margin, plus the composer frame's left border and padding.
+			cur.X += 1 + composerPadX
+			// Attachments row, plus the frame's top edge.
+			cur.Y += m.layout.editor.Min.Y + 1 + composerPadY
 			return cur
 		}
 	}
@@ -3727,16 +3799,35 @@ func (m *UI) FullHelp() [][]key.Binding {
 }
 
 func (m *UI) currentModelSupportsImages() bool {
+	return m.imageSupportRefusal() == ""
+}
+
+// imageSupportRefusal explains why image attachments are refused, or returns
+// the empty string when they are allowed.
+//
+// The check is three lookups deep — the coder agent, the model it selects,
+// and that model's catalog entry — and any of them can be the one that fails.
+// A flat "model doesn't support images" names the wrong culprit for two of the
+// three, so it says which lookup actually refused: that is the difference
+// between editing the right line of the config and guessing.
+func (m *UI) imageSupportRefusal() string {
 	cfg := m.com.Config()
 	if cfg == nil {
-		return false
+		return "No configuration loaded, so images can't be attached"
 	}
 	agentCfg, ok := cfg.Agents[config.AgentCoder]
 	if !ok {
-		return false
+		return "No coder agent is configured, so images can't be attached"
 	}
 	model := cfg.GetModelByType(agentCfg.Model)
-	return model != nil && model.SupportsImages
+	if model == nil {
+		sel := cfg.Models[agentCfg.Model]
+		return fmt.Sprintf("Model %q isn't in provider %q's catalog", sel.Model, sel.Provider)
+	}
+	if !model.SupportsImages {
+		return fmt.Sprintf("%s doesn't support images (set supports_attachments on it to override)", model.Name)
+	}
+	return ""
 }
 
 // toggleCompactMode toggles compact mode between uiChat and uiChatCompact states.
@@ -3809,12 +3900,16 @@ func (m *UI) forwardMouseToTextarea(msg tea.MouseMsg) (bool, tea.Cmd) {
 	// The textarea is rendered inside layout.editor below the attachments
 	// row. renderEditorView always reserves the first row for attachments
 	// (an empty line when there are none), so the textarea always starts
-	// one row below the editor top.
+	// one row below the editor top, then one more for the composer frame's
+	// top edge and composerPadX columns in for its left border and padding.
 	const attachmentsRow = 1
-	origin := image.Pt(m.layout.editor.Min.X, m.layout.editor.Min.Y+attachmentsRow)
+	origin := image.Pt(
+		m.layout.editor.Min.X+composerPadX,
+		m.layout.editor.Min.Y+attachmentsRow+composerPadY,
+	)
 
 	// The textarea occupies its own height starting at the origin.
-	area := image.Rectangle{Min: origin, Max: origin.Add(image.Pt(m.layout.editor.Dx(), m.textarea.Height()))}
+	area := image.Rectangle{Min: origin, Max: origin.Add(image.Pt(m.layout.editor.Dx()-composerChrome, m.textarea.Height()))}
 	if !image.Pt(mouse.X, mouse.Y).In(area) {
 		return false, nil
 	}
@@ -3870,7 +3965,7 @@ func (m *UI) updateSize() {
 
 	m.chat.SetSize(m.layout.main.Dx(), m.layout.main.Dy())
 	m.textarea.MaxHeight = TextareaMaxHeight
-	m.textarea.SetWidth(m.layout.editor.Dx())
+	m.textarea.SetWidth(m.layout.editor.Dx() - composerChrome)
 	m.renderPills()
 
 	// Handle different app states
@@ -3909,8 +4004,16 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 	}
 	// The sidebar width
 	sidebarWidth := 32
-	// The header height
-	const landingHeaderHeight = 4
+	// The header height: enough for the compact lettering by default, grown
+	// to fit the pixel-art wordmark when it fits without starving the main
+	// content area.
+	landingHeaderHeight := 4
+	if _, bannerRows, ok := logo.BannerSize(w - 4); ok {
+		const mainAreaReserve = 14
+		if h-bannerRows >= mainAreaReserve {
+			landingHeaderHeight = bannerRows + 1
+		}
+	}
 
 	var helpKeyMap help.KeyMap = m
 	if m.status != nil && m.status.ShowingAll() {
@@ -4483,14 +4586,17 @@ func (m *UI) renderEditorView(width int) string {
 	}
 	return strings.Join([]string{
 		attachmentsView,
-		m.textarea.View(),
+		// Framed at the editor rect's width, which is also what the
+		// textarea was sized from (minus the frame's chrome), so the
+		// border always lines up with the text inside it.
+		m.composerFrame(m.textarea.View(), m.layout.editor.Dx()),
 		"", // margin at bottom of editor
 	}, "\n")
 }
 
 // cacheSidebarLogo renders and caches the sidebar logo at the specified width.
 func (m *UI) cacheSidebarLogo(width int) {
-	m.sidebarLogo = renderLogo(m.com.Styles, true, m.com.IsHyper(), width)
+	m.sidebarLogo = renderLogo(m.com.Styles, true, m.com.IsHyper(), width, 0)
 }
 
 // applyThemeForProvider swaps the active theme to the one associated with
@@ -5373,6 +5479,17 @@ func (m *UI) handlePasteMsg(msg tea.PasteMsg) tea.Cmd {
 		return nil
 	}
 
+	// A terminal that binds paste itself (Windows Terminal does, by default)
+	// consumes the keystroke and hands over the clipboard's *text*. When the
+	// clipboard holds files copied from a file manager there is no text, so
+	// the paste arrives empty and the image would be lost with no sign. Treat
+	// an empty paste as the request it was and go look for the files.
+	if strings.TrimSpace(msg.Content) == "" {
+		if paths, err := clipboard.ReadFiles(); err == nil && len(paths) > 0 {
+			return func() tea.Msg { return attachImageFile(paths[0]) }
+		}
+	}
+
 	if hasPasteExceededThreshold(msg) {
 		return func() tea.Msg {
 			content := []byte(msg.Content)
@@ -5492,19 +5609,37 @@ func (m *UI) pasteTextFromClipboard() tea.Msg {
 	return tea.PasteMsg{Content: string(textData)}
 }
 
+// pasteExcerptWidth caps how much clipboard text a notification will quote
+// back. Long enough to recognise a path, short enough that a copied paragraph
+// does not become the notification.
+const pasteExcerptWidth = 60
+
+// pasteExcerpt reduces clipboard text to a single short line fit to appear
+// inside a notification.
+func pasteExcerpt(s string) string {
+	if i := strings.IndexAny(s, "\r\n"); i >= 0 {
+		s = s[:i]
+	}
+	r := []rune(s)
+	if len(r) > pasteExcerptWidth {
+		return string(r[:pasteExcerptWidth]) + "…"
+	}
+	return s
+}
+
 // pasteImageFromClipboard reads image data from the system clipboard and
 // creates an attachment. If no image data is found, it falls back to
 // interpreting clipboard text as a file path.
 func (m *UI) pasteImageFromClipboard() tea.Msg {
 	imageData, err := clipboard.Read(clipboard.FormatImage)
-	if int64(len(imageData)) > common.MaxAttachmentSize {
-		return util.InfoMsg{
-			Type: util.InfoTypeError,
-			Msg:  "File too large, max 5MB",
-		}
-	}
-	name := fmt.Sprintf("paste_%d.png", m.pasteIdx())
 	if err == nil {
+		if int64(len(imageData)) > common.MaxAttachmentSize {
+			return util.InfoMsg{
+				Type: util.InfoTypeError,
+				Msg:  "File too large, max 5MB",
+			}
+		}
+		name := fmt.Sprintf("paste_%d.png", m.pasteIdx())
 		return message.Attachment{
 			FilePath: name,
 			FileName: name,
@@ -5513,17 +5648,40 @@ func (m *UI) pasteImageFromClipboard() tea.Msg {
 		}
 	}
 
+	// A file manager's copy transfers a reference, not pixels, so the image
+	// read above finds nothing even though the user did copy an image. Only
+	// the first path is taken: the composer attaches one image per paste.
+	if paths, filesErr := clipboard.ReadFiles(); filesErr == nil && len(paths) > 0 {
+		return attachImageFile(paths[0])
+	}
+
 	textData, textErr := clipboard.Read(clipboard.FormatText)
 	if textErr != nil || len(textData) == 0 {
-		return nil // Clipboard is empty or does not contain an image
+		// Nothing the clipboard holds is usable. Saying so matters more than
+		// it looks: a paste that returns silently is indistinguishable from a
+		// dead keybinding, and that ambiguity has already cost a debugging
+		// session.
+		return util.NewInfoMsg("Clipboard holds no image. Copy an image, or the path to an image file.")
 	}
 
 	path := strings.TrimSpace(string(textData))
 	path = strings.ReplaceAll(path, "\\ ", " ")
 	if _, statErr := os.Stat(path); statErr != nil {
-		return nil // Clipboard does not contain an image or valid file path
+		// The clipboard held text, but not a path to anything that exists.
+		// Echoing a short excerpt tells the user which of the two it was
+		// without spilling a whole copied paragraph into the notification.
+		return util.NewInfoMsg(fmt.Sprintf(
+			"Clipboard holds text, not an image: %q", pasteExcerpt(path)))
 	}
 
+	return attachImageFile(path)
+}
+
+// attachImageFile turns a path on disk into an attachment, or into the message
+// explaining why it cannot be one. Both clipboard routes — a file manager's
+// file list and a copied path in plain text — end here, so the rules about
+// what may be attached are stated once.
+func attachImageFile(path string) tea.Msg {
 	lowerPath := strings.ToLower(path)
 	isAllowed := false
 	for _, ext := range common.AllowedImageTypes {
@@ -5533,7 +5691,8 @@ func (m *UI) pasteImageFromClipboard() tea.Msg {
 		}
 	}
 	if !isAllowed {
-		return util.NewInfoMsg("File type is not a supported image format")
+		return util.NewInfoMsg(fmt.Sprintf(
+			"%q is not a supported image format", pasteExcerpt(filepath.Base(path))))
 	}
 
 	fileInfo, statErr := os.Stat(path)
@@ -5542,6 +5701,10 @@ func (m *UI) pasteImageFromClipboard() tea.Msg {
 			Type: util.InfoTypeError,
 			Msg:  fmt.Sprintf("Unable to read file: %v", statErr),
 		}
+	}
+	if fileInfo.IsDir() {
+		return util.NewInfoMsg(fmt.Sprintf(
+			"%q is a folder, not an image", pasteExcerpt(filepath.Base(path))))
 	}
 	if fileInfo.Size() > common.MaxAttachmentSize {
 		return util.InfoMsg{
@@ -5722,14 +5885,69 @@ func (m *UI) disableDockerMCP() tea.Msg {
 }
 
 // renderLogo renders the Crush logo with the given styles and dimensions.
-func renderLogo(t *styles.Styles, compact, hyper bool, width int) string {
+func renderLogo(t *styles.Styles, compact, hyper bool, width, frame int) string {
 	return logo.Render(t.Logo.GradCanvas, version.Version, compact, logo.Opts{
-		FieldColor:   t.Logo.FieldColor,
 		TitleColorA:  t.Logo.TitleColorA,
 		TitleColorB:  t.Logo.TitleColorB,
 		CharmColor:   t.Logo.CharmColor,
 		VersionColor: t.Logo.VersionColor,
 		Width:        width,
+		Frame:        frame,
 		Hyper:        hyper,
 	})
+}
+
+// Banner animation. The wide wordmark runs a rainbow sweep; the tick chain
+// stays armed at a slow heartbeat while the banner is hidden so it picks the
+// animation back up on its own when a banner-bearing state returns, without
+// having to hook every state transition.
+const (
+	bannerFPS       = 60
+	bannerIdleDelay = 250 * time.Millisecond
+)
+
+// bannerFrameMsg advances the banner's rainbow sweep. Gen identifies the
+// tick chain that produced it so a superseded chain can't drive the
+// animation at double speed.
+type bannerFrameMsg struct{ gen int64 }
+
+func bannerTick(gen int64, d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(time.Time) tea.Msg {
+		return bannerFrameMsg{gen: gen}
+	})
+}
+
+// bannerAnimating reports whether anything driven by the banner tick is on
+// screen: the wordmark itself, or the landing cards, whose borders ride the
+// same frame counter at half rate.
+func (m *UI) bannerAnimating() bool {
+	// Yolo mode's composer border rides the same tick chain, and the
+	// composer is drawn in every state, so it keeps the chain running even
+	// where there is no wordmark.
+	if m.composerRainbow() {
+		return true
+	}
+	switch m.state {
+	case uiOnboarding, uiInitialize:
+		if m.isCompact {
+			return false
+		}
+		_, _, ok := logo.BannerSize(m.width - 4)
+		return ok
+	case uiLanding:
+		// The cards animate whether or not the wordmark fits.
+		return true
+	default:
+		return false
+	}
+}
+
+// startBannerAnim arms the banner tick chain if it isn't already running.
+func (m *UI) startBannerAnim() tea.Cmd {
+	if m.bannerTicking {
+		return nil
+	}
+	m.bannerGen++
+	m.bannerTicking = true
+	return bannerTick(m.bannerGen, bannerIdleDelay)
 }

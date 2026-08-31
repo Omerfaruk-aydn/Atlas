@@ -105,6 +105,13 @@ type Chat struct {
 	mouseDragX    int // Current X in item content
 	mouseDragY    int // Current Y in item
 
+	// Scrollbar drag state. scrollbarHit is refreshed on every Draw so the
+	// hit test always matches what the user is looking at; the rest tracks
+	// an in-progress drag.
+	scrollbarHit  scrollbarHit
+	scrollbarDrag bool
+	scrollbarGrab int // row within the thumb where the drag started
+
 	// Click tracking for double/triple clicks
 	lastClickTime time.Time
 	lastClickX    int
@@ -141,6 +148,32 @@ type Chat struct {
 
 // scrollbarHideDuration is how long the scrollbar remains visible after scroll activity.
 const scrollbarHideDuration = 2 * time.Second
+
+// scrollbarHit is the chat-local geometry the scrollbar mouse handlers test
+// against. It is recorded on every Draw, including frames where the bar is
+// auto-hidden: the column stays grabbable so a user who knows it is there can
+// press it and have it appear under the cursor. Terminals report motion only
+// while a button is held (MouseModeCellMotion), so revealing the bar on hover
+// is not an option.
+type scrollbarHit struct {
+	col    int  // chat-local column the bar occupies
+	height int  // track height in rows, starting at row 0
+	ok     bool // whether there is anything to scroll
+	geom   common.ScrollbarGeometry
+}
+
+// scrollbarGrabSlack widens the grab zone by this many columns to the left of
+// the bar. The bar itself is one cell wide, which is far too small to aim a
+// mouse at — miss by a single column and the press silently does nothing. The
+// zone also runs off the right edge, over the gutter between the chat and the
+// sidebar, so overshooting is forgiven too. The cost is that text selection
+// gives up the last couple of columns of the chat, which is padding.
+const scrollbarGrabSlack = 1
+
+// inGrabZone reports whether a chat-local press belongs to the scrollbar.
+func (h scrollbarHit) inGrabZone(x, y int) bool {
+	return h.ok && x >= h.col-scrollbarGrabSlack && y >= 0 && y < h.height
+}
 
 // chatDrawCache holds the pre-decoded form of the last list.Render output.
 // The cache is keyed by the rendered string and the screen's width method
@@ -221,6 +254,15 @@ func (m *Chat) Draw(scr uv.Screen, area uv.Rectangle) {
 		scrollbarWidth = 1
 	}
 
+	// Record where the bar is so the mouse handlers can hit-test it. Done
+	// for every frame that could scroll, not just the ones that paint the
+	// bar, so the column stays grabbable while the bar is auto-hidden.
+	m.scrollbarHit = scrollbarHit{col: area.Dx() - 1, height: listHeight}
+	if needsScrollbar && m.scrollbarMode != config.ScrollbarNever {
+		m.scrollbarHit.geom, m.scrollbarHit.ok = common.ScrollbarLayout(
+			listHeight, m.list.TotalHeight()-1, listHeight, m.list.Offset())
+	}
+
 	// Adjust list width to reserve space for scrollbar.
 	listArea := area
 	if scrollbarWidth > 0 {
@@ -253,8 +295,8 @@ func (m *Chat) Draw(scr uv.Screen, area uv.Rectangle) {
 	// Draw scrollbar if visible and needed. Only reached when not resizing
 	// (showScrollbar requires it), so TotalHeight is already computed and
 	// cached above.
-	if scrollbarWidth > 0 {
-		scrollbar := common.Scrollbar(m.com.Styles, listHeight, m.list.TotalHeight()-1, listHeight, m.list.Offset())
+	if scrollbarWidth > 0 && m.scrollbarHit.ok {
+		scrollbar := common.ScrollbarFromLayout(m.com.Styles, listHeight, m.scrollbarHit.geom)
 		if scrollbar != "" {
 			scrollbarArea := image.Rectangle{
 				Min: image.Point{X: area.Max.X - scrollbarWidth, Y: area.Min.Y},
@@ -615,6 +657,10 @@ func (m *Chat) HideScrollbar(seq int) {
 	if m.scrollbarMode != config.ScrollbarDefault {
 		return
 	}
+	// Never pull the bar out from under a drag that is holding it.
+	if m.scrollbarDrag {
+		return
+	}
 	if seq == m.scrollbarHideSeq {
 		m.scrollbarVisible = false
 	}
@@ -970,6 +1016,71 @@ func (m *Chat) HandleDelayedClick(msg DelayedClickMsg) bool {
 	return false
 }
 
+// HandleScrollbarDown starts a scrollbar drag when the press landed in the
+// scrollbar column. Pressing the thumb grabs it where it was pressed;
+// pressing anywhere else on the track jumps the thumb to the cursor and grabs
+// it by the middle, so a single click on the track scrolls there rather than
+// paging towards it.
+//
+// The grab zone belongs to the scrollbar whenever the chat can scroll, even
+// on frames where the bar is auto-hidden. Otherwise the bar would only be
+// grabbable during the two seconds after a scroll, which is not something a
+// user can aim at. See [scrollbarGrabSlack] for how wide the zone is.
+func (m *Chat) HandleScrollbarDown(x, y int) (bool, tea.Cmd) {
+	hit := m.scrollbarHit
+	if !hit.inGrabZone(x, y) {
+		return false, nil
+	}
+
+	m.scrollbarDrag = true
+	if y >= hit.geom.ThumbPos && y < hit.geom.ThumbPos+hit.geom.ThumbSize {
+		m.scrollbarGrab = y - hit.geom.ThumbPos
+	} else {
+		m.scrollbarGrab = hit.geom.ThumbSize / 2
+	}
+	return true, m.scrollTo(hit.geom.OffsetForThumbPos(y - m.scrollbarGrab))
+}
+
+// HandleScrollbarDrag moves the thumb to follow the cursor. Rows outside the
+// track are clamped rather than ignored, so dragging past either end pins the
+// view to the top or bottom the way every other scrollbar does.
+func (m *Chat) HandleScrollbarDrag(y int) (bool, tea.Cmd) {
+	if !m.scrollbarDrag {
+		return false, nil
+	}
+	if !m.scrollbarHit.ok {
+		return true, nil
+	}
+	return true, m.scrollTo(m.scrollbarHit.geom.OffsetForThumbPos(y - m.scrollbarGrab))
+}
+
+// ScrollbarDragging reports whether a scrollbar drag is in progress, so the
+// caller can keep motion events away from text selection and edge scrolling.
+func (m *Chat) ScrollbarDragging() bool {
+	return m.scrollbarDrag
+}
+
+// EndScrollbarDrag ends an in-progress scrollbar drag and reports whether
+// there was one.
+func (m *Chat) EndScrollbarDrag() bool {
+	if !m.scrollbarDrag {
+		return false
+	}
+	m.scrollbarDrag = false
+	return true
+}
+
+// scrollTo scrolls so the viewport starts at the given absolute line offset.
+// It goes through ScrollBy rather than setting the offset directly so the
+// list's own clamping and item-boundary bookkeeping stay in charge.
+func (m *Chat) scrollTo(offset int) tea.Cmd {
+	delta := offset - m.list.Offset()
+	if delta == 0 {
+		return m.showScrollbar()
+	}
+	return m.ScrollByAndAnimate(delta)
+}
+
 // HandleMouseUp handles mouse up events for the chat component.
 func (m *Chat) HandleMouseUp(x, y int) bool {
 	if !m.mouseDown {
@@ -1046,6 +1157,7 @@ func (m *Chat) HighlightContent() string {
 // ClearMouse clears the current mouse interaction state.
 func (m *Chat) ClearMouse() {
 	m.mouseDown = false
+	m.scrollbarDrag = false
 	m.mouseDownItem = -1
 	m.mouseDragItem = -1
 	m.lastClickTime = time.Time{}

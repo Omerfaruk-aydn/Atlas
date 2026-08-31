@@ -29,6 +29,7 @@ type header struct {
 
 	com     *common.Common
 	width   int
+	frame   int
 	compact bool
 }
 
@@ -50,9 +51,9 @@ func (h *header) refresh() {
 	if !isHyper {
 		charm = " " + charm
 	}
-	name := "CRUSH"
+	name := "ATLAS-AGENT"
 	if isHyper {
-		name = "HYPERCRUSH"
+		name = "HYPER ATLAS-AGENT"
 	}
 	h.compactLogo = t.Header.Charm.Render(charm) + " " +
 		styles.ApplyBoldForegroundGrad(t.Header.LogoGradCanvas, name, t.Header.LogoGradFromColor, t.Header.LogoGradToColor) + " "
@@ -73,13 +74,18 @@ func (h *header) drawHeader(
 	width int,
 	lspErrorCount int,
 	hyperCredits *int,
+	frame int,
 ) {
 	t := h.com.Styles
-	if width != h.width || compact != h.compact {
-		h.logo = renderLogo(h.com.Styles, compact, h.com.IsHyper(), width)
+	// The wide logo animates, so it also has to be re-rendered whenever the
+	// frame advances. The compact logo is static, so frame changes are
+	// ignored there.
+	if width != h.width || compact != h.compact || (!compact && frame != h.frame) {
+		h.logo = renderLogo(h.com.Styles, compact, h.com.IsHyper(), width, frame)
 	}
 
 	h.width = width
+	h.frame = frame
 	h.compact = compact
 
 	if !compact || session == nil {

@@ -388,6 +388,61 @@ func LetterYAlt(stretch bool) string {
 	)
 }
 
+// LetterA renders the letter A in a stylized way.
+func LetterA(bool) string {
+	return heredoc.Doc(`
+		▄▀▄
+		█▀█
+		▀ ▀
+	`)
+}
+
+// LetterT renders the letter T in a stylized way.
+func LetterT(bool) string {
+	return heredoc.Doc(`
+		▀█▀
+		 █
+		 ▀
+	`)
+}
+
+// LetterL renders the letter L in a stylized way.
+func LetterL(bool) string {
+	return heredoc.Doc(`
+		█
+		█
+		▀▀▀
+	`)
+}
+
+// LetterG renders the letter G in a stylized way.
+func LetterG(bool) string {
+	return heredoc.Doc(`
+		▄▀▀▀
+		█ ▀█
+		▀▀▀▀
+	`)
+}
+
+// LetterN renders the letter N in a stylized way.
+func LetterN(bool) string {
+	return heredoc.Doc(`
+		█▄ █
+		█ ▀█
+		▀  ▀
+	`)
+}
+
+// LetterDash renders a dash separator in a stylized way, matching the
+// height of the other letterforms.
+func LetterDash(bool) string {
+	return heredoc.Doc(`
+
+		▀▀
+
+	`)
+}
+
 func joinLetterform(letters ...string) string {
 	return lipgloss.JoinHorizontal(lipgloss.Top, letters...)
 }

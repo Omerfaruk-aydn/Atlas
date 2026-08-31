@@ -42,15 +42,19 @@ func (m *UI) skillsInfo(width, maxItems int, isSection bool) string {
 	if isSection {
 		title = common.Section(t, title, width)
 	}
+	return lipgloss.NewStyle().Width(width).
+		Render(fmt.Sprintf("%s\n\n%s", title, m.skillsListing(width, maxItems)))
+}
 
+// skillsListing renders the skills list on its own, without the section
+// heading. See lspListing.
+func (m *UI) skillsListing(width, maxItems int) string {
+	t := m.com.Styles
 	items := m.skillStatusItems()
 	if len(items) == 0 {
-		list := t.Resource.AdditionalText.Render("None")
-		return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+		return t.Resource.AdditionalText.Render("None")
 	}
-
-	list := skillsList(t, items, width, maxItems)
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	return skillsList(t, items, width, maxItems)
 }
 
 func (m *UI) skillStatusItems() []skillStatusItem {

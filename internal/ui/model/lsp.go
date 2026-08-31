@@ -104,6 +104,19 @@ func (m *UI) lspErrorCount() int {
 // keep the memoized state fresh off-thread; see requestLSPRefresh.
 func (m *UI) lspInfo(width, maxItems int, isSection bool) string {
 	t := m.com.Styles
+	title := t.Resource.Heading.Render("LSPs")
+	if isSection {
+		title = common.Section(t, title, width)
+	}
+	return lipgloss.NewStyle().Width(width).
+		Render(fmt.Sprintf("%s\n\n%s", title, m.lspListing(width, maxItems)))
+}
+
+// lspListing renders the LSP list on its own, without the section heading,
+// for callers that supply their own frame — see the landing cards, which
+// inlay the heading into the box border instead.
+func (m *UI) lspListing(width, maxItems int) string {
+	t := m.com.Styles
 
 	states := slices.SortedFunc(maps.Values(m.lspStates), func(a, b workspace.LSPClientInfo) int {
 		return strings.Compare(a.Name, b.Name)
@@ -120,16 +133,10 @@ func (m *UI) lspInfo(width, maxItems int, isSection bool) string {
 		}})
 	}
 
-	title := t.Resource.Heading.Render("LSPs")
-	if isSection {
-		title = common.Section(t, title, width)
+	if len(lsps) == 0 {
+		return t.Resource.AdditionalText.Render("None")
 	}
-	list := t.Resource.AdditionalText.Render("None")
-	if len(lsps) > 0 {
-		list = lspList(t, lsps, width, maxItems)
-	}
-
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	return lspList(t, lsps, width, maxItems)
 }
 
 // lspDiagnostics formats diagnostic counts with appropriate icons and colors.

@@ -4,6 +4,9 @@ package styles
 import (
 	"fmt"
 	"image/color"
+	"os"
+	"runtime"
+	"sort"
 	"strings"
 
 	"charm.land/bubbles/v2/filepicker"
@@ -38,6 +41,9 @@ const (
 
 	SectionSeparator string = "─"
 
+	BoxHorizontal string = "─"
+	BoxVertical   string = "│"
+
 	TodoCompletedIcon  string = "✓"
 	TodoPendingIcon    string = "•"
 	TodoInProgressIcon string = "→"
@@ -55,6 +61,142 @@ const (
 	LSPInfoIcon    string = "I"
 	LSPHintIcon    string = "H"
 )
+
+// BoxCornerStyle names a corner set for framed surfaces such as the composer
+// and the landing cards. Which of these actually render is a property of the
+// terminal font, not of the terminal: a font missing a glyph draws a
+// replacement box ("tofu") in its place. They are offered as a choice because
+// no single set is universally available — notably the rounded set lives at
+// U+256D–U+2570, which plenty of fonts omit.
+type BoxCornerStyle = string
+
+const (
+	// CornerSharp is in the basic Box Drawing block and renders essentially
+	// everywhere, which is why it is the default.
+	CornerSharp BoxCornerStyle = "sharp"
+	// CornerRounded is the true rounded set (U+256D–U+2570).
+	CornerRounded BoxCornerStyle = "rounded"
+	// CornerArc approximates rounded corners with quadrant arcs from the
+	// Geometric Shapes block (U+25DC–U+25DF), which some fonts carry even
+	// when they lack the rounded box-drawing set.
+	CornerArc BoxCornerStyle = "arc"
+	// CornerBold and CornerDouble are heavier variants from the same Box
+	// Drawing block as CornerSharp, so they travel about as well.
+	CornerBold   BoxCornerStyle = "bold"
+	CornerDouble BoxCornerStyle = "double"
+	// CornerBevel chamfers the corners with plain ASCII slashes. It is the
+	// only non-square style that cannot fail to render: every other curved
+	// or rounded set depends on glyphs a font may simply not carry, while
+	// "/" and "\" are ASCII and therefore always present.
+	CornerBevel BoxCornerStyle = "bevel"
+)
+
+// boxCorners maps each style to its glyphs, in the order
+// top-left, top-right, bottom-left, bottom-right.
+var boxCorners = map[BoxCornerStyle][4]string{
+	CornerSharp:   {"┌", "┐", "└", "┘"},
+	CornerRounded: {"╭", "╮", "╰", "╯"},
+	CornerArc:     {"◜", "◝", "◟", "◞"},
+	CornerBold:    {"┏", "┓", "┗", "┛"},
+	CornerDouble:  {"╔", "╗", "╚", "╝"},
+	CornerBevel:   {"/", `\`, `\`, "/"},
+}
+
+// DetectCornerStyle picks the corner style to use when the config doesn't
+// name one, so users don't have to know what a codepoint is to get a
+// good-looking frame.
+//
+// There is no way to ask a terminal whether its font carries a glyph: a
+// missing glyph is drawn as a replacement box but still reports the same
+// cursor advance as a real one, so it can't be probed. What can be checked is
+// which terminal is hosting us, which is a good proxy: every mainstream
+// terminal but the legacy Windows console ships with a font carrying the
+// rounded box-drawing set, and the legacy console is the case that renders
+// them as boxes. So rounded is the default, and the legacy console falls back
+// to the ASCII bevel, which cannot fail to render anywhere.
+func DetectCornerStyle() BoxCornerStyle {
+	if runtime.GOOS != "windows" {
+		return CornerRounded
+	}
+	// Any modern host on Windows announces itself in the environment. The
+	// legacy console announces nothing, which is exactly what identifies it.
+	for _, key := range []string{
+		"WT_SESSION",         // Windows Terminal
+		"ConEmuPID",          // ConEmu / Cmder
+		"WEZTERM_EXECUTABLE", // WezTerm
+		"ALACRITTY_LOG",      // Alacritty
+		"TERM_PROGRAM",       // VS Code, Ghostty, Hyper, Tabby, …
+		"MSYSTEM",            // Git Bash / MSYS2
+	} {
+		if os.Getenv(key) != "" {
+			return CornerRounded
+		}
+	}
+	return CornerBevel
+}
+
+// Corner glyphs for framed surfaces. These are variables rather than
+// constants because the style is configurable; see SetBoxCorners.
+//
+// They start out at whatever DetectCornerStyle picks so that code paths which
+// never reach SetBoxCorners — the exit banner, `crush run`, anything built
+// before the config is known — still get corners suited to the terminal
+// instead of a fixed fallback.
+var BoxTopLeft, BoxTopRight, BoxBottomLeft, BoxBottomRight = detectedCorners()
+
+func detectedCorners() (string, string, string, string) {
+	c := boxCorners[DetectCornerStyle()]
+	return c[0], c[1], c[2], c[3]
+}
+
+// SetBoxCorners selects the corner style used by every framed surface. An
+// empty or unknown style defers to DetectCornerStyle, so an unset config
+// means "pick something sensible for this terminal" rather than a fixed
+// choice. It is called once during startup, before the UI draws anything, so
+// the glyphs are effectively read-only afterwards.
+func SetBoxCorners(style BoxCornerStyle) {
+	c, ok := boxCorners[style]
+	if !ok {
+		c = boxCorners[DetectCornerStyle()]
+	}
+	BoxTopLeft, BoxTopRight, BoxBottomLeft, BoxBottomRight = c[0], c[1], c[2], c[3]
+}
+
+// Border returns the single-line border used by every framed surface that
+// draws through lipgloss — dialogs, pills, the compact details panel. The
+// edges are always the thin Box Drawing pair; only the corners follow the
+// active style. Call it at style-build time rather than caching a package
+// value, so a theme rebuilt after SetBoxCorners picks up the new corners.
+//
+// This exists so those surfaces cannot drift from the ones that draw their
+// frames by hand (the composer, the landing cards): a user whose font lacks
+// the rounded set would otherwise get a clean composer and boxed-out dialogs.
+func Border() lipgloss.Border {
+	b := lipgloss.RoundedBorder()
+	b.TopLeft, b.TopRight = BoxTopLeft, BoxTopRight
+	b.BottomLeft, b.BottomRight = BoxBottomLeft, BoxBottomRight
+	return b
+}
+
+// UVBorder is [Border] for surfaces drawn through Ultraviolet, such as the
+// question-form tabs.
+func UVBorder() uv.Border {
+	b := uv.RoundedBorder()
+	b.TopLeft.Content, b.TopRight.Content = BoxTopLeft, BoxTopRight
+	b.BottomLeft.Content, b.BottomRight.Content = BoxBottomLeft, BoxBottomRight
+	return b
+}
+
+// BoxCornerStyles returns the available corner style names, sorted, for
+// callers that need to present or validate the choice.
+func BoxCornerStyles() []string {
+	names := make([]string, 0, len(boxCorners))
+	for name := range boxCorners {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
 
 const (
 	defaultMargin     = 2
@@ -127,6 +269,13 @@ type Styles struct {
 	// Editor
 	Editor struct {
 		Textarea textarea.Styles
+
+		// ComposerAccent is the composer frame's color in the default
+		// (manual) permission mode. The other modes borrow the color of
+		// their prompt dots, which carries their signal; manual has no
+		// such signal of its own, so it takes the theme's frame color —
+		// the same one the dialogs are bordered with.
+		ComposerAccent color.Color
 
 		// Normal mode prompt (default "::: ").
 		PromptNormalFocused lipgloss.Style

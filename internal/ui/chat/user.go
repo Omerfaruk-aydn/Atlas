@@ -42,11 +42,11 @@ type UserMessageItem struct {
 
 	// imgEnc/cellSize pick how (and at what fidelity) attached images
 	// render inline below the attachment chips. imgEnc defaults to
-	// EncodingBlocks (a colored Unicode block-character mosaic — works
-	// on any terminal with basic ANSI color, including legacy Windows
-	// consoles) and upgrades to a true pixel image (EncodingKitty, or
-	// EncodingSixel where only that's advertised) when the terminal
-	// supports one.
+	// EncodingBlocks (half-block glyphs carrying two pixels per cell —
+	// works on any terminal with SGR color) and upgrades to a true pixel
+	// image (EncodingKitty) where the terminal speaks that protocol.
+	// Sixel is deliberately not offered: it paints at the cursor rather
+	// than into cells, so it cannot survive a diff-based cell renderer.
 	imgEnc   fimage.Encoding
 	cellSize fimage.CellSize
 	isTmux   bool
@@ -196,8 +196,8 @@ const (
 )
 
 // renderAttachments renders the attachment chips, followed by an inline
-// preview for any image attachment (a colored block-character mosaic by
-// default, sharp Kitty graphics on supporting terminals — see imgEnc).
+// preview for any image attachment (a half-block mosaic by default, sharp
+// Kitty graphics on supporting terminals — see imgEnc).
 func (m *UserMessageItem) renderAttachments(width int) string {
 	var atts []message.Attachment
 	for _, at := range m.message.BinaryContent() {

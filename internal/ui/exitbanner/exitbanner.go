@@ -55,11 +55,11 @@ func Render(banner config.ExitBanner, sess *session.Session, width int) string {
 func logoSection(contentWidth int) string {
 	t := styles.ThemeForProvider("")
 	crushLogo := logo.Render(t.Logo.GradCanvas, version.Version, true, logo.Opts{
-		FieldColor:   t.Logo.FieldColor,
 		TitleColorA:  t.Logo.TitleColorA,
 		TitleColorB:  t.Logo.TitleColorB,
 		CharmColor:   t.Logo.CharmColor,
 		VersionColor: t.Logo.VersionColor,
+		Width:        contentWidth,
 		Hyper:        false,
 	})
 	// Wrap the greeting and the message together: wrapping only the message

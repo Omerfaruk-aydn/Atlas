@@ -203,7 +203,13 @@ func DefaultKeyMap() KeyMap {
 		key.WithHelp("ctrl+f", "add image"),
 	)
 	km.Editor.PasteImage = key.NewBinding(
-		key.WithKeys("ctrl+v"),
+		// Terminals commonly bind ctrl+v to their own paste and consume the
+		// key before an application ever sees it — Windows Terminal ships
+		// that binding by default. When they do, ctrl+v pastes the
+		// clipboard's text and an image on the clipboard simply never
+		// arrives. ctrl+alt+v is the escape hatch: no terminal claims it, so
+		// it reaches here whatever the host is configured to do.
+		key.WithKeys("ctrl+v", "ctrl+alt+v"),
 		key.WithHelp("ctrl+v", "paste image from clipboard"),
 	)
 	km.Editor.PasteText = key.NewBinding(

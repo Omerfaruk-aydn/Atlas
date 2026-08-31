@@ -6,6 +6,7 @@ import (
 	"image"
 	"strings"
 
+	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	mcp "github.com/charmbracelet/crush/internal/agent/tools/mcp"
 	"github.com/charmbracelet/crush/internal/config"
@@ -218,17 +219,68 @@ func (m *UI) drawSidebar(scr uv.Screen, area uv.Rectangle) {
 			Render(visibleStr),
 	).Draw(scr, contentRect)
 
+	// Record where the scrollbar is before deciding whether to paint it: the
+	// column stays grabbable while the bar is auto-hidden, the same as the
+	// chat's. See the scrollbarHit type for why hover cannot reveal it.
+	m.sidebarScrollbarRect = image.Rectangle{
+		Min: image.Point{X: area.Max.X - 1, Y: contentRect.Min.Y},
+		Max: image.Point{X: area.Max.X, Y: contentRect.Min.Y + contentHeight},
+	}
+	m.sidebarScrollbarGeom, m.sidebarScrollbarOK = common.ScrollbarLayout(
+		contentHeight, totalLines, contentHeight, m.sidebarOffset)
+
 	// Draw scrollbar in the reserved column.
-	if scrollbarVisible {
-		scrollbar := common.Scrollbar(m.com.Styles, contentHeight, totalLines, contentHeight, m.sidebarOffset)
+	if scrollbarVisible && m.sidebarScrollbarOK {
+		scrollbar := common.ScrollbarFromLayout(m.com.Styles, contentHeight, m.sidebarScrollbarGeom)
 		if scrollbar != "" {
-			scrollbarArea := image.Rectangle{
-				Min: image.Point{X: area.Max.X - 1, Y: contentRect.Min.Y},
-				Max: image.Point{X: area.Max.X, Y: area.Max.Y},
-			}
-			uv.NewStyledString(scrollbar).Draw(scr, scrollbarArea)
+			uv.NewStyledString(scrollbar).Draw(scr, m.sidebarScrollbarRect)
 		}
 	}
+}
+
+// sidebarScrollbarDown starts a sidebar scrollbar drag when the press landed
+// in its column, mirroring [Chat.HandleScrollbarDown]: the thumb is grabbed
+// where it was pressed, and a press on the bare track jumps the thumb to the
+// cursor rather than paging towards it.
+func (m *UI) sidebarScrollbarDown(x, y int) tea.Cmd {
+	// Widened to the left by the same slack as the chat's; a one-cell target
+	// cannot be aimed at. See scrollbarGrabSlack.
+	grab := m.sidebarScrollbarRect
+	grab.Min.X -= scrollbarGrabSlack
+	if !m.sidebarScrollbarOK || !image.Pt(x, y).In(grab) {
+		return nil
+	}
+
+	row := y - m.sidebarScrollbarRect.Min.Y
+	g := m.sidebarScrollbarGeom
+	m.sidebarScrollbarDrag = true
+	if row >= g.ThumbPos && row < g.ThumbPos+g.ThumbSize {
+		m.sidebarScrollbarGrab = row - g.ThumbPos
+	} else {
+		m.sidebarScrollbarGrab = g.ThumbSize / 2
+	}
+	return m.sidebarScrollbarMove(y)
+}
+
+// sidebarScrollbarMove moves the sidebar thumb to follow the cursor. Rows
+// outside the track are clamped, so dragging past either end pins the sidebar
+// to its top or bottom.
+func (m *UI) sidebarScrollbarMove(y int) tea.Cmd {
+	if !m.sidebarScrollbarDrag || !m.sidebarScrollbarOK {
+		return nil
+	}
+
+	row := y - m.sidebarScrollbarRect.Min.Y - m.sidebarScrollbarGrab
+	offset := m.sidebarScrollbarGeom.OffsetForThumbPos(row)
+	offset = max(0, min(offset, m.sidebarMaxOffsetVal))
+	if offset == m.sidebarOffset {
+		return nil
+	}
+
+	m.sidebarOffset = offset
+	m.sidebarScrollbarSeq++
+	m.sidebarScrollbarVisible = true
+	return sidebarScrollbarHideCmd(m.sidebarScrollbarSeq)
 }
 
 // fileChangeCount returns the number of session files with non-zero additions

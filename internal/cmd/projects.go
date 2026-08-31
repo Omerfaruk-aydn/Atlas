@@ -7,6 +7,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
 	"github.com/charmbracelet/crush/internal/projects"
+	"github.com/charmbracelet/crush/internal/ui/styles"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )
@@ -51,7 +52,7 @@ crush projects --json
 		if term.IsTerminal(os.Stdout.Fd()) {
 			// We're in a TTY: make it fancy.
 			t := table.New().
-				Border(lipgloss.RoundedBorder()).
+				Border(styles.Border()).
 				StyleFunc(func(row, col int) lipgloss.Style {
 					return lipgloss.NewStyle().Padding(0, 2)
 				}).

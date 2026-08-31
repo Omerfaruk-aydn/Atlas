@@ -14,6 +14,18 @@ import (
 // mcpInfo renders the MCP status section showing active MCP clients and their
 // tool/prompt counts.
 func (m *UI) mcpInfo(width, maxItems int, isSection bool) string {
+	t := m.com.Styles
+	title := t.Resource.Heading.Render("MCPs")
+	if isSection {
+		title = common.Section(t, title, width)
+	}
+	return lipgloss.NewStyle().Width(width).
+		Render(fmt.Sprintf("%s\n\n%s", title, m.mcpListing(width, maxItems)))
+}
+
+// mcpListing renders the MCP list on its own, without the section heading.
+// See lspListing.
+func (m *UI) mcpListing(width, maxItems int) string {
 	var mcps []mcp.ClientInfo
 	t := m.com.Styles
 
@@ -23,16 +35,10 @@ func (m *UI) mcpInfo(width, maxItems int, isSection bool) string {
 		}
 	}
 
-	title := t.Resource.Heading.Render("MCPs")
-	if isSection {
-		title = common.Section(t, title, width)
+	if len(mcps) == 0 {
+		return t.Resource.AdditionalText.Render("None")
 	}
-	list := t.Resource.AdditionalText.Render("None")
-	if len(mcps) > 0 {
-		list = mcpList(t, mcps, width, maxItems)
-	}
-
-	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
+	return mcpList(t, mcps, width, maxItems)
 }
 
 // mcpCounts formats tool, prompt, and resource counts for display.

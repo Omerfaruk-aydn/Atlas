@@ -615,7 +615,7 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Header.LogoGradToColor = o.primary
 
 	s.CompactDetails.Title = base
-	s.CompactDetails.View = base.Padding(0, 1, 1, 1).Border(lipgloss.RoundedBorder()).BorderForeground(o.primary)
+	s.CompactDetails.View = base.Padding(0, 1, 1, 1).Border(Border()).BorderForeground(o.primary)
 	s.CompactDetails.Version = lipgloss.NewStyle().Foreground(o.separator)
 
 	// Tool rendering styles
@@ -721,6 +721,7 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Button.Negative = lipgloss.NewStyle().Foreground(o.onPrimary).Background(o.error)
 
 	// Editor
+	s.Editor.ComposerAccent = o.primary
 	s.Editor.PromptNormalFocused = lipgloss.NewStyle().Foreground(o.successMostSubtle).SetString("::: ")
 	s.Editor.PromptNormalBlurred = s.Editor.PromptNormalFocused.Foreground(o.fgMoreSubtle)
 	s.Editor.PromptYoloIconFocused = lipgloss.NewStyle().MarginRight(1).Foreground(o.fgMostSubtle).Background(o.busy).Bold(true).SetString(" Y ")
@@ -761,10 +762,10 @@ func quickStyle(o quickStyleOpts) Styles {
 	// the content area; inactive tabs have a closed bottom. First
 	// tab gets a right-angle bottom-left corner at draw time.
 	borderColor := uv.Style{Fg: o.primary}
-	inactiveBorder := uv.RoundedBorder().Style(borderColor)
+	inactiveBorder := UVBorder().Style(borderColor)
 	inactiveBorder.BottomLeft = uv.Side{Content: "┴", Style: borderColor}
 	inactiveBorder.BottomRight = uv.Side{Content: "┴", Style: borderColor}
-	activeBorder := uv.RoundedBorder().Style(borderColor)
+	activeBorder := UVBorder().Style(borderColor)
 	activeBorder.Bottom = uv.Side{Content: " ", Style: borderColor}
 	activeBorder.BottomLeft = uv.Side{Content: "┘", Style: borderColor}
 	activeBorder.BottomRight = uv.Side{Content: "└", Style: borderColor}
@@ -773,10 +774,10 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Tab.InactiveBorder = inactiveBorder
 
 	blurredBorderColor := uv.Style{Fg: o.fgMoreSubtle}
-	inactiveBorderBlurred := uv.RoundedBorder().Style(blurredBorderColor)
+	inactiveBorderBlurred := UVBorder().Style(blurredBorderColor)
 	inactiveBorderBlurred.BottomLeft = uv.Side{Content: "┴", Style: blurredBorderColor}
 	inactiveBorderBlurred.BottomRight = uv.Side{Content: "┴", Style: blurredBorderColor}
-	activeBorderBlurred := uv.RoundedBorder().Style(blurredBorderColor)
+	activeBorderBlurred := UVBorder().Style(blurredBorderColor)
 	activeBorderBlurred.Bottom = uv.Side{Content: " ", Style: blurredBorderColor}
 	activeBorderBlurred.BottomLeft = uv.Side{Content: "┘", Style: blurredBorderColor}
 	activeBorderBlurred.BottomRight = uv.Side{Content: "└", Style: blurredBorderColor}
@@ -952,8 +953,8 @@ func quickStyle(o quickStyleOpts) Styles {
 	// Dialog.Quit
 	s.Dialog.Quit.Content = lipgloss.NewStyle().Foreground(o.fgBase)
 	s.Dialog.Quit.Hint = lipgloss.NewStyle().Foreground(o.fgMostSubtle)
-	s.Dialog.Quit.Frame = lipgloss.NewStyle().BorderForeground(o.primary).Border(lipgloss.RoundedBorder()).Padding(1, 2)
-	s.Dialog.View = base.Border(lipgloss.RoundedBorder()).BorderForeground(o.primary)
+	s.Dialog.Quit.Frame = lipgloss.NewStyle().BorderForeground(o.primary).Border(Border()).Padding(1, 2)
+	s.Dialog.View = base.Border(Border()).BorderForeground(o.primary)
 	s.Dialog.PrimaryText = base.Padding(0, 1).Foreground(o.primary)
 	s.Dialog.SecondaryText = base.Padding(0, 1).Foreground(o.fgMostSubtle)
 	s.Dialog.HelpView = base.Padding(0, 1).AlignHorizontal(lipgloss.Left)
@@ -1050,7 +1051,7 @@ func quickStyle(o quickStyleOpts) Styles {
 
 	// Pills styles
 	s.Pills.Base = base.Padding(0, 1)
-	s.Pills.Focused = base.Padding(0, 1).BorderStyle(lipgloss.RoundedBorder()).BorderForeground(o.bgMostVisible)
+	s.Pills.Focused = base.Padding(0, 1).BorderStyle(Border()).BorderForeground(o.bgMostVisible)
 	s.Pills.QueueItemPrefix = lipgloss.NewStyle().Foreground(o.fgMoreSubtle).SetString("  •")
 	s.Pills.QueueItemText = lipgloss.NewStyle().Foreground(o.fgMoreSubtle)
 	s.Pills.QueueLabel = lipgloss.NewStyle().Foreground(o.fgBase)

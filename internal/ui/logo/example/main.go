@@ -20,7 +20,6 @@ func main() {
 
 	s := styles.CharmtonePantera()
 	opts := logo.Opts{
-		FieldColor:   s.Logo.FieldColor,
 		TitleColorA:  s.Logo.TitleColorA,
 		TitleColorB:  s.Logo.TitleColorB,
 		CharmColor:   s.Logo.CharmColor,

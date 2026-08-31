@@ -16,7 +16,6 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"github.com/disintegration/imaging"
-	paintbrush "github.com/jordanella/go-ansi-paintbrush"
 )
 
 // TransmittedMsg is a message indicating that an image has been transmitted to
@@ -33,6 +32,12 @@ const (
 	EncodingBlocks Encoding = iota
 	EncodingKitty
 )
+
+// halfBlock is the upper half block glyph. Drawn with a foreground and a
+// background color it paints two stacked pixels in one cell, which is what
+// lets [EncodingBlocks] reach a square pixel: a terminal cell is about twice
+// as tall as it is wide, so half of one is roughly square.
+const halfBlock = "▀"
 
 type imageKey struct {
 	id   string
@@ -203,40 +208,7 @@ func (e Encoding) Render(id string, cols, rows int) string {
 
 	switch e {
 	case EncodingBlocks:
-		canvas := paintbrush.New()
-		canvas.SetImage(img)
-		canvas.SetWidth(cols)
-		canvas.SetHeight(rows)
-		canvas.Weights = map[rune]float64{
-			'': .95,
-			'': .95,
-			'▁': .9,
-			'▂': .9,
-			'▃': .9,
-			'▄': .9,
-			'▅': .9,
-			'▆': .85,
-			'█': .85,
-			'▊': .95,
-			'▋': .95,
-			'▌': .95,
-			'▍': .95,
-			'▎': .95,
-			'▏': .95,
-			'●': .95,
-			'◀': .95,
-			'▲': .95,
-			'▶': .95,
-			'▼': .9,
-			'○': .8,
-			'◉': .95,
-			'◧': .9,
-			'◨': .9,
-			'◩': .9,
-			'◪': .9,
-		}
-		canvas.Paint()
-		return strings.TrimSpace(canvas.GetResult())
+		return renderHalfBlocks(img, cols, rows)
 	case EncodingKitty:
 		// Build Kitty graphics unicode place holders
 		var fg color.Color
@@ -285,4 +257,57 @@ func (e Encoding) Render(id string, cols, rows int) string {
 	default:
 		return ""
 	}
+}
+
+// renderHalfBlocks draws the image out of half-block glyphs: each cell carries
+// two vertically stacked pixels, the upper one as the foreground color and the
+// lower one as the background. That doubles the vertical resolution a cell grid
+// can hold and reproduces the image's own colors, where a shape-matching ASCII
+// renderer only approximates them with glyph outlines.
+//
+// It needs nothing but SGR color, so it is the fallback for every terminal
+// without a graphics protocol — which, Kitty aside, is all of them. Sixel is
+// not an option here: it paints pixels at the cursor rather than into cells,
+// so it cannot survive a diff-based cell renderer.
+//
+// Alpha is ignored. A transparent pixel comes out as whatever its stored RGB
+// is, usually black, because the encoding has no way to leave a cell
+// unpainted while still using its background for the lower pixel.
+func renderHalfBlocks(img image.Image, cols, rows int) string {
+	if img == nil || cols <= 0 || rows <= 0 {
+		return ""
+	}
+
+	// Two pixel rows per cell row. Fit preserves the aspect ratio, so a wide
+	// image simply uses fewer rows than it was offered.
+	fitted := imaging.Fit(img, cols, rows*2, imaging.Lanczos)
+	b := fitted.Bounds()
+	w, h := b.Dx(), b.Dy()
+	if w <= 0 || h <= 0 {
+		return ""
+	}
+
+	var buf strings.Builder
+	for y := 0; y < h; y += 2 {
+		if y > 0 {
+			buf.WriteByte('\n')
+		}
+		for x := range w {
+			top := fitted.At(b.Min.X+x, b.Min.Y+y)
+			// An odd pixel height leaves the last row without a lower
+			// neighbour. Reusing the upper pixel paints the cell as a solid
+			// block instead of half the image sitting on the terminal
+			// background.
+			bottom := top
+			if y+1 < h {
+				bottom = fitted.At(b.Min.X+x, b.Min.Y+y+1)
+			}
+			buf.WriteString(ansi.NewStyle().ForegroundColor(top).BackgroundColor(bottom).String())
+			buf.WriteString(halfBlock)
+		}
+		// Close the run so the row's last background doesn't bleed into
+		// whatever the layout draws to the right of the preview.
+		buf.WriteString(ansi.ResetStyle)
+	}
+	return buf.String()
 }

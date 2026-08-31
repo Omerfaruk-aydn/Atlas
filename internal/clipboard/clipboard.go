@@ -42,3 +42,12 @@ func WriteText(text string) {
 func Read(f Format) ([]byte, error) {
 	return read(f)
 }
+
+// ReadFiles returns the paths of files placed on the clipboard by a file
+// manager. Copying a file in Explorer transfers a reference to it, not its
+// bytes, so neither [FormatImage] nor [FormatText] sees anything — this is the
+// only way to reach it. It returns ErrEmpty when the clipboard holds no file
+// list, which includes every platform that has no such format.
+func ReadFiles() ([]string, error) {
+	return readFiles()
+}

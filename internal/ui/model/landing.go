@@ -2,9 +2,11 @@ package model
 
 import (
 	"image"
+	"strings"
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/crush/internal/ui/common"
+	"github.com/charmbracelet/crush/internal/ui/logo"
 	"github.com/charmbracelet/crush/internal/workspace"
 	"github.com/charmbracelet/ultraviolet/layout"
 )
@@ -42,13 +44,7 @@ func (m *UI) landingView() string {
 		layout.Fill(1),
 	).Split(m.layout.main).Assign(new(image.Rectangle), &remainingHeightArea)
 
-	mcpLspSectionWidth := min(30, (width-2)/3)
-
-	lspSection := m.lspInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
-	mcpSection := m.mcpInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
-	skillsSection := m.skillsInfo(mcpLspSectionWidth, max(1, remainingHeightArea.Dy()), false)
-
-	content := lipgloss.JoinHorizontal(lipgloss.Left, lspSection, " ", mcpSection, " ", skillsSection)
+	content := m.landingCards(width, max(1, remainingHeightArea.Dy()))
 
 	return lipgloss.NewStyle().
 		Width(width).
@@ -57,4 +53,104 @@ func (m *UI) landingView() string {
 		Render(
 			lipgloss.JoinVertical(lipgloss.Left, infoSection, "", content),
 		)
+}
+
+// Landing card layout.
+const (
+	// cardGutter is the blank columns between adjacent cards.
+	cardGutter = 1
+	// cardCount is how many resource cards sit in the row.
+	cardCount = 3
+	// cardChrome is the border and padding a card spends per side pair:
+	// two border glyphs plus two padding columns.
+	cardChrome = 4
+	// cardBorderRows is the top and bottom edge a card spends vertically.
+	cardBorderRows = 2
+	// cardMaxWidth caps a single card so the row doesn't sprawl on very
+	// wide terminals.
+	cardMaxWidth = 34
+	// cardFrameDivisor halves the wordmark's 60fps tick so the card
+	// borders sweep at 30fps.
+	cardFrameDivisor = 2
+)
+
+// landingCards renders the LSP/MCP/Skills panels as a row of rounded cards
+// whose borders carry the same rainbow sweep as the wordmark, at half its
+// frame rate. Card contents keep their theme colors: the sweep frames the
+// data rather than competing with it.
+//
+// The row is sized to the wordmark's width when the wordmark is on screen so
+// the two line up on both edges; otherwise it fills the available width.
+func (m *UI) landingCards(width, availHeight int) string {
+	rowWidth := width
+	if cols, _, ok := logo.BannerSize(width); ok {
+		rowWidth = cols
+	}
+	rowWidth = min(rowWidth, cardCount*cardMaxWidth+(cardCount-1)*cardGutter)
+
+	// Distribute the row width across the cards, giving the leftmost cards
+	// the remainder so the row spans rowWidth exactly.
+	inner := rowWidth - (cardCount-1)*cardGutter
+	base, extra := inner/cardCount, inner%cardCount
+	widths := make([]int, cardCount)
+	for i := range widths {
+		widths[i] = base
+		if i < extra {
+			widths[i]++
+		}
+	}
+	if base <= cardChrome {
+		// Too narrow to frame anything; fall back to the plain sections.
+		return m.landingSectionsPlain(width, availHeight)
+	}
+
+	// Every card is as tall as the tallest, so the row's bottom edge is
+	// straight. maxItems is what each list may render before it elides.
+	maxItems := max(1, availHeight-cardBorderRows)
+	titles := []string{"LSPs", "MCPs", "Skills"}
+	bodies := []string{
+		m.lspListing(widths[0]-cardChrome, maxItems),
+		m.mcpListing(widths[1]-cardChrome, maxItems),
+		m.skillsListing(widths[2]-cardChrome, maxItems),
+	}
+
+	bodyHeight := 0
+	for _, b := range bodies {
+		bodyHeight = max(bodyHeight, lipgloss.Height(b))
+	}
+	bodyHeight = min(bodyHeight, maxItems)
+
+	t := m.com.Styles
+	frame := m.bannerFrame / cardFrameDivisor
+	cards := make([]string, 0, cardCount*2-1)
+	xOffset := 0
+	for i := range cardCount {
+		if i > 0 {
+			cards = append(cards, strings.Repeat(" ", cardGutter))
+			xOffset += cardGutter
+		}
+		cards = append(cards, logo.RainbowBox(
+			t.Resource.Heading.Render(titles[i]),
+			bodies[i],
+			widths[i],
+			bodyHeight,
+			frame,
+			xOffset,
+		))
+		xOffset += widths[i]
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Top, cards...)
+}
+
+// landingSectionsPlain is the unframed fallback for terminals too narrow to
+// fit bordered cards.
+func (m *UI) landingSectionsPlain(width, availHeight int) string {
+	w := min(30, (width-2)/3)
+	h := max(1, availHeight)
+	return lipgloss.JoinHorizontal(
+		lipgloss.Top,
+		m.lspInfo(w, h, false), " ",
+		m.mcpInfo(w, h, false), " ",
+		m.skillsInfo(w, h, false),
+	)
 }

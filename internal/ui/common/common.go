@@ -35,6 +35,15 @@ func (c *Common) Config() *config.Config {
 // workspace has a large model selected, the theme is chosen based on its
 // provider; otherwise the default theme is used.
 func DefaultCommon(ws workspace.Workspace) *Common {
+	// Corner style for every framed surface, settled before the theme is
+	// built. The theme bakes the corners into its border styles, so an
+	// explicit config choice has to land first or the dialogs would keep the
+	// auto-detected corners while the composer used the configured ones.
+	if ws != nil {
+		if cfg := ws.Config(); cfg != nil && cfg.Options != nil && cfg.Options.TUI != nil {
+			styles.SetBoxCorners(cfg.Options.TUI.BoxCorners)
+		}
+	}
 	s := styles.ThemeForProvider(largeModelProviderID(ws))
 	return &Common{
 		Workspace: ws,

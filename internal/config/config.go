@@ -278,6 +278,7 @@ type TUIOptions struct {
 	Completions Completions `json:"completions,omitzero" jsonschema:"description=Completions UI options"`
 	Transparent *bool       `json:"transparent,omitempty" jsonschema:"description=Enable transparent background for the TUI interface,default=false"`
 	Scrollbar   string      `json:"scrollbar,omitempty" jsonschema:"description=Chat scrollbar visibility,enum=default,enum=always,enum=never,default=default"`
+	BoxCorners  string      `json:"box_corners,omitempty" jsonschema:"description=Corner style for framed surfaces such as the composer and the landing cards. Leave unset to let Crush pick based on the terminal it is running in. Which styles render depends on the terminal font: a font missing a glyph draws a replacement box in its place. 'rounded' needs U+256D-U+2570 and 'arc' needs U+25DC-U+25DF\\, both of which some fonts omit; 'sharp'\\, 'bold' and 'double' come from the widely-supported Box Drawing block.,enum=sharp,enum=rounded,enum=arc,enum=bold,enum=double,enum=bevel"`
 	ExitBanner  ExitBanner  `json:"exit_banner,omitempty" jsonschema:"description=Exit banner style after quitting Crush,enum=default,enum=compact,enum=none,default=default"`
 }
 
