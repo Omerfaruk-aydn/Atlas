@@ -47,10 +47,10 @@ Thumbs.db
 
 **/.crush/**
 
-/crush
+/atlas
 /tmp/
 
 manpages/
-completions/crush.*sh
+completions/atlas.*sh
 .prettierignore
 .task

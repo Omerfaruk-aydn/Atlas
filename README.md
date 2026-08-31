@@ -1,7 +1,7 @@
-# Crush
+# Atlas
 
 <p align="center">
-    <a href="https://stuff.charm.sh/crush/charm-crush.png"><img width="450" alt="Charm Crush Logo" src="https://github.com/user-attachments/assets/cf8ca3ce-8b02-43f0-9d0f-5a331488da4b" /></a><br />
+    <a href="https://stuff.charm.sh/crush/charm-crush.png"><img width="450" alt="Atlas Logo" src="https://github.com/user-attachments/assets/cf8ca3ce-8b02-43f0-9d0f-5a331488da4b" /></a><br />
     <a href="https://github.com/charmbracelet/crush/releases"><img src="https://img.shields.io/github/release/charmbracelet/crush" alt="Latest Release"></a>
     <a href="https://github.com/charmbracelet/crush/actions"><img src="https://github.com/charmbracelet/crush/actions/workflows/build.yml/badge.svg" alt="Build Status"></a>
 </p>
@@ -9,14 +9,14 @@
 <p align="center">Your new coding bestie, now available in your favourite terminal.<br />Your tools, your code, and your workflows, wired into your LLM of choice.</p>
 <p align="center">终端里的编程新搭档，<br />无缝接入你的工具、代码与工作流，全面兼容主流 LLM 模型。</p>
 
-<p align="center"><img width="800" alt="Crush Demo" src="https://github.com/user-attachments/assets/58280caf-851b-470a-b6f7-d5c4ea8a1968" /></p>
+<p align="center"><img width="800" alt="Atlas Demo" src="https://github.com/user-attachments/assets/58280caf-851b-470a-b6f7-d5c4ea8a1968" /></p>
 
 ## Features
 
 - **Multi-Model:** choose from a wide range of LLMs or add your own via OpenAI- or Anthropic-compatible APIs
 - **Flexible:** switch LLMs mid-session while preserving context
 - **Session-Based:** maintain multiple work sessions and contexts per project
-- **LSP-Enhanced:** Crush uses LSPs for additional context, just like you do
+- **LSP-Enhanced:** Atlas uses LSPs for additional context, just like you do
 - **Extensible:** add capabilities via MCPs (`http`, `stdio`, and `sse`)
 - **Works Everywhere:** first-class support in every terminal on macOS, Linux, Windows (PowerShell and WSL), Android, FreeBSD, OpenBSD, and NetBSD
 - **Industrial Grade:** built on the Charm ecosystem, powering 25k+ applications, from leading open source projects to business-critical infrastructure
@@ -56,22 +56,22 @@ scoop install crush
 <details>
 <summary><strong>Nix (NUR)</strong></summary>
 
-Crush is available via the official Charm [NUR](https://github.com/nix-community/NUR) in `nur.repos.charmbracelet.crush`, which is the most up-to-date way to get Crush in Nix.
+Atlas is available via the official Charm [NUR](https://github.com/nix-community/NUR) in `nur.repos.charmbracelet.crush`, which is the most up-to-date way to get Atlas in Nix.
 
-You can also try out Crush via the NUR with `nix-shell`:
+You can also try out Atlas via the NUR with `nix-shell`:
 
 ```bash
 # Add the NUR channel.
 nix-channel --add https://github.com/nix-community/NUR/archive/main.tar.gz nur
 nix-channel --update
 
-# Get Crush in a Nix shell.
+# Get Atlas in a Nix shell.
 nix-shell -p '(import <nur> { pkgs = import <nixpkgs> {}; }).repos.charmbracelet.crush'
 ```
 
 ### NixOS & Home Manager Module Usage via NUR
 
-Crush provides NixOS and Home Manager modules via NUR.
+Atlas provides NixOS and Home Manager modules via NUR.
 You can use these modules directly in your flake by importing them from NUR. Since it auto detects whether its a home manager or nixos context you can use the import the exact same way :)
 
 ```nix
@@ -176,7 +176,7 @@ go install -tags sqlite3_dotlk github.com/charmbracelet/crush@latest
 ```
 
 > [!WARNING]
-> Productivity may increase when using Crush and you may find yourself nerd
+> Productivity may increase when using Atlas and you may find yourself nerd
 > sniped when first using the application. If the symptoms persist, join the
 > [Slack][slack] or [Discord][discord] and nerd snipe the rest of us.
 
@@ -185,15 +185,15 @@ go install -tags sqlite3_dotlk github.com/charmbracelet/crush@latest
 The quickest way to get started is to choose a [Hyper][hyper] model from model
 picker. Follow the steps to authenticate and you'll be good to go.
 
-[Hyper], from Charm, is the official Crush provider. It’s subscription-based,
-with a free tier, and optimized for Crush. It’s privacy focused, with zero data
+[Hyper], from Charm, is the official Atlas provider. It’s subscription-based,
+with a free tier, and optimized for Atlas. It’s privacy focused, with zero data
 retention (ZDR) is and designed to comply with GDPR. [More on Hyper][hyper].
 
 <p><a href="https://hyper.charm.land"><img width="340" height="200" alt="Charm Hyper" src="https://github.com/user-attachments/assets/50875289-7992-454d-9f14-9f790413fb5e" /></a></p>
 
 ## API Keys
 
-You can also use Crush with many other providers such as Anthopic, OpenAI,
+You can also use Atlas with many other providers such as Anthopic, OpenAI,
 Gemini, OpenRouter and so on. Press <kbd>ctrl+l</kbd> to open the model picker,
 choose the provider of your choice, and paste your API key.
 
@@ -232,29 +232,29 @@ That said, you can also set environment variables for preferred providers:
 
 [hyper]: https://hyper.charm.land
 
-Also note that Crush can support nearly any provider, including
+Also note that Atlas can support nearly any provider, including
 [Local Models](#local-models). For more info see
 [Custom Providers](#custom-providers) below.
 
 ### By the Way
 
-Is there a provider you’d like to see in Crush? Is there an existing model that needs an update?
+Is there a provider you’d like to see in Atlas? Is there an existing model that needs an update?
 
-Crush’s default model listing is managed in [Catwalk](https://github.com/charmbracelet/catwalk), a community-supported, open source repository of Crush-compatible models, and you’re welcome to contribute.
+Atlas’s default model listing is managed in [Catwalk](https://github.com/charmbracelet/catwalk), a community-supported, open source repository of Atlas-compatible models, and you’re welcome to contribute.
 
 <a href="https://github.com/charmbracelet/catwalk"><img width="174" height="174" alt="Catwalk Badge" src="https://github.com/user-attachments/assets/95b49515-fe82-4409-b10d-5beb0873787d" /></a>
 
 ## Configuration
 
 > [!TIP]
-> Crush ships with a builtin skill for configuring itself. Most of the time
+> Atlas ships with a builtin skill for configuring itself. Most of the time
 > you can just tell what you want it to configure and it will get the job done.
 
-Crush runs great with no configuration. That said, if you do need or want to
-customize Crush, you can, with a `crushrc`.
+Atlas runs great with no configuration. That said, if you do need or want to
+customize Atlas, you can, with an `atlasrc`.
 
-A `crushrc` is just Bash with some Crush-specific builtins. It’s a lot like
-a `.bashrc`, just for your Crush. Because Crush has a native, built-in Bash
+An `atlasrc` is just Bash with some Atlas-specific builtins. It’s a lot like
+a `.bashrc`, just for your Atlas. Because Atlas has a native, built-in Bash
 interpreter, Bash-based config works identically across all platforms, including
 Windows.
 
@@ -287,14 +287,14 @@ with the following priority:
 
 | Priority | Unix-like                 | Windows                               |
 | -------- | ------------------------- | ------------------------------------- |
-| 1        | `./.crushrc`              | `.\.crushrc`                          |
-| 2        | `./crushrc`               | `.\crushrc`                           |
-| 3        | `~/.config/crush/crushrc` | `%USERPROFILE%\.config\crush\crushrc` |
+| 1        | `./.atlasrc`              | `.\.atlasrc`                          |
+| 2        | `./atlasrc`               | `.\atlasrc`                           |
+| 3        | `~/.config/atlas/atlasrc` | `%USERPROFILE%\.config\atlas\atlasrc` |
 
-(Crush respects the [XDG Base Directory Specification][xdg], so your paths
+(Atlas respects the [XDG Base Directory Specification][xdg], so your paths
 may differ depending on your `XDG_CONFIG_HOME` value. Data directories such as
-`~/.local/share/crush` and `%LOCALAPPDATA%\crush` contain JSON state only; Crush
-does not execute a `crushrc` from them.)
+`~/.local/share/atlas` and `%LOCALAPPDATA%\atlas` contain JSON state only; Atlas
+does not execute an `atlasrc` from them.)
 
 [xdg]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
@@ -304,25 +304,25 @@ consdiered deprecated. See: [the config docs](./docs/config/) for details.
 > [!TIP]
 > You can override the user and data config locations by setting:
 >
-> - `CRUSH_GLOBAL_CONFIG`
-> - `CRUSH_GLOBAL_DATA`
+> - `ATLAS_GLOBAL_CONFIG`
+> - `ATLAS_GLOBAL_DATA`
 
-As an additional note, Crush also stores ephemeral data, such as application
+As an additional note, Atlas also stores ephemeral data, such as application
 state, in one additional location. This is state and should not be edited by
 hand, nor should it be considered configuration.
 
 ```bash
 # Unix
-$HOME/.local/share/crush/crush.json
+$HOME/.local/share/atlas/atlas.json
 
 # Windows
-%LOCALAPPDATA%\crush\crush.json
+%LOCALAPPDATA%\atlas\atlas.json
 ```
 
 #### A note on security
 
-Both `crushrc` and `crush.json` are trusted code; `crushrc` runs in a full
-shell, and any `$(...)` in `crush.json` runs at load time. Don't launch Crush
+Both `atlasrc` and `atlas.json` are trusted code; `atlasrc` runs in a full
+shell, and any `$(...)` in `atlas.json` runs at load time. Don't launch Atlas
 in a directory whose config you haven't reviewed, and don't randomly `source`
 files from the internet into your config.
 
@@ -331,7 +331,7 @@ files from the internet into your config.
 The top-level `env` field sets environment variables at startup, before
 providers are configured. This is useful for variables that affect provider
 authentication (e.g. the AWS SDK credential chain) without wrapping the
-`crush` command in a shell script or exporting them in your shell profile:
+`atlas` command in a shell script or exporting them in your shell profile:
 
 ```json
 {
@@ -348,11 +348,11 @@ a value.
 
 ### LSPs
 
-Crush can use LSPs for additional context to help inform its decisions, just
+Atlas can use LSPs for additional context to help inform its decisions, just
 like you would. LSPs can be added manually like so:
 
 ```bash
-# crushrc
+# atlasrc
 
 lsp add go --command "gopls" --env "GOTOOLCHAIN go1.24.5"
 lsp add typescript --command "typescript-language-server" --args --stdio
@@ -361,12 +361,12 @@ lsp add nix --command "nil"
 
 ### MCPs
 
-Crush also supports Model Context Protocol (MCP) servers through three transport
+Atlas also supports Model Context Protocol (MCP) servers through three transport
 types: `stdio` for command-line servers, `http` for HTTP endpoints, and `sse`
 for Server-Sent Events.
 
 ```bash
-# crushrc
+# atlasrc
 
 # Add a local MCP server that runs a Node.js script.
 mcp add filesystem --command node --args /path/to/mcp-server.js \
@@ -384,7 +384,7 @@ mcp add streaming-service --type sse --url "https://example.com/mcp/sse" \
 
 #### MCP OAuth
 
-HTTP and SSE MCP servers that require OAuth can use Crush's built-in
+HTTP and SSE MCP servers that require OAuth can use Atlas's built-in
 authorization-code flow instead of a static `Authorization` header. Set
 `"oauth": true` to enable it:
 
@@ -421,34 +421,34 @@ credentials directly. All values support shell expansion:
 }
 ```
 
-When `oauth_client_id` is set, Crush skips dynamic client registration
-and authenticates as the specified client. When omitted, Crush attempts
+When `oauth_client_id` is set, Atlas skips dynamic client registration
+and authenticates as the specified client. When omitted, Atlas attempts
 dynamic registration automatically (works with Linear, Notion, and other
 servers that support RFC 7591).
 
 #### Sessionless servers
 
 Some HTTP MCP servers are sessionless — they never issue a
-`Mcp-Session-Id` and reject the `subscriptions/listen` stream Crush opens
+`Mcp-Session-Id` and reject the `subscriptions/listen` stream Atlas opens
 for list-changed notifications, which would otherwise break the
-connection. Crush auto-detects known sessionless servers (GitHub MCP,
+connection. Atlas auto-detects known sessionless servers (GitHub MCP,
 `api.githubcopilot.com/mcp`), so those need no extra configuration.
 
 For other sessionless servers, mark them explicitly with
-`"sessionless": true` (or `--sessionless true` in `crushrc`); set it to
+`"sessionless": true` (or `--sessionless true` in `atlasrc`); set it to
 `false` to force the default behavior for an auto-detected URL. The
 tradeoff is that a sessionless server won't push live
 tool/prompt/resource list-changed notifications.
 
 ### Hooks
 
-Crush has preliminary support for hooks. For details, see
+Atlas has preliminary support for hooks. For details, see
 [the hook guide](./docs/hooks/).
 
 ### Sharing a workspace across clients
 
-When Crush is run against a shared backend (for example two TUIs talking to
-the same `crush serve`), clients are grouped into **workspaces** keyed by
+When Atlas is run against a shared backend (for example two TUIs talking to
+the same `atlas serve`), clients are grouped into **workspaces** keyed by
 their resolved `--cwd`. Two clients with the same `--cwd` join the same
 underlying workspace, so they share the session list, message history,
 permission queue, LSP, and MCP state.
@@ -481,14 +481,14 @@ does not get reaped before it can attach.
 
 ### Global context files
 
-Crush automatically includes two files for cross-project instructions. Think of
+Atlas automatically includes two files for cross-project instructions. Think of
 these are personal additions to the system prompt.
 
-- `~/.config/crush/CRUSH.md`: Crush-specific rules that would confuse other
-  agentic coding tools. If you only use Crush, this is the only one you need to
+- `~/.config/atlas/ATLAS.md`: Atlas-specific rules that would confuse other
+  agentic coding tools. If you only use Atlas, this is the only one you need to
   edit.
 - `~/.config/AGENTS.md`: generic instructions that other coding tools might
-  read. Avoid referring to Crush-specific features or workflows here. You
+  read. Avoid referring to Atlas-specific features or workflows here. You
   probably only care about this if you use multiple agentic coding tools and
   want to share instructions between them.
 
@@ -505,17 +505,17 @@ option global-context-path "/full/path/to/folder/of/files/"
 
 ### Ignoring Files
 
-Crush respects `.gitignore` files by default, but you can also create a
-`.crushignore` file to specify additional files and directories that Crush
+Atlas respects `.gitignore` files by default, but you can also create a
+`.atlasignore` file to specify additional files and directories that Atlas
 should ignore. This is useful for excluding files that you want in version
-control but don't want Crush to consider when providing context.
+control but don't want Atlas to consider when providing context.
 
-The `.crushignore` file uses the same syntax as `.gitignore` and can be placed
+The `.atlasignore` file uses the same syntax as `.gitignore` and can be placed
 in the root of your project or in subdirectories.
 
 ### Allowing Tools
 
-By default, Crush will ask you for permission before running tool calls. If
+By default, Atlas will ask you for permission before running tool calls. If
 you'd like, you can allow tools to be executed without prompting you for
 permissions. Use this with care.
 
@@ -535,43 +535,43 @@ To disable tools from MCP servers, see the [MCP config section](#mcps).
 
 ### You only live once
 
-You can also skip all permission prompts completely by running Crush with the
+You can also skip all permission prompts completely by running Atlas with the
 `--yolo` flag. Be very, very careful with this feature.
 
 ### Disabling Skills
 
-You can prevent Crush from using certain skills entirely. Disabled skills are
+You can prevent Atlas from using certain skills entirely. Disabled skills are
 hidden from the agent, including builtin skills and skills discovered from
 disk.
 
 ```bash
-option disable-skill crush-config
+option disable-skill atlas-config
 ```
 
 ### Agent Skills
 
-Crush supports the [Agent Skills](https://agentskills.io) open standard for
+Atlas supports the [Agent Skills](https://agentskills.io) open standard for
 extending agent capabilities with reusable skill packages. Skills are folders
-containing a `SKILL.md` file with instructions that Crush can discover and
+containing a `SKILL.md` file with instructions that Atlas can discover and
 activate on demand.
 
 The global paths we looks for skills are:
 
-- `$CRUSH_SKILLS_DIR`
+- `$ATLAS_SKILLS_DIR`
 - `$XDG_CONFIG_HOME/agents/skills` or `~/.config/agents/skills/`
-- `$XDG_CONFIG_HOME/crush/skills` or `~/.config/crush/skills/`
+- `$XDG_CONFIG_HOME/atlas/skills` or `~/.config/atlas/skills/`
 - `~/.agents/skills/`
 - `~/.claude/skills/`
 - On Windows, we _also_ look at
   - `%LOCALAPPDATA%\agents\skills\` or `%USERPROFILE%\AppData\Local\agents\skills\`
-  - `%LOCALAPPDATA%\crush\skills\` or `%USERPROFILE%\AppData\Local\crush\skills\`
+  - `%LOCALAPPDATA%\atlas\skills\` or `%USERPROFILE%\AppData\Local\atlas\skills\`
 - Additional paths configured via `options.skills_paths`
 
 On top of that, we _also_ load skills in your project from the following
 relative paths:
 
 - `.agents/skills`
-- `.crush/skills`
+- `.atlas/skills`
 - `.claude/skills`
 - `.cursor/skills`
 
@@ -585,16 +585,16 @@ You can get started with example skills from [anthropics/skills](https://github.
 
 ```bash
 # Unix
-mkdir -p ~/.config/crush/skills
-cd ~/.config/crush/skills
+mkdir -p ~/.config/atlas/skills
+cd ~/.config/atlas/skills
 git clone https://github.com/anthropics/skills.git _temp
 mv _temp/skills/* . && rm -rf _temp
 ```
 
 ```powershell
 # Windows (PowerShell)
-mkdir -Force "$env:LOCALAPPDATA\crush\skills"
-cd "$env:LOCALAPPDATA\crush\skills"
+mkdir -Force "$env:LOCALAPPDATA\atlas\skills"
+cd "$env:LOCALAPPDATA\atlas\skills"
 git clone https://github.com/anthropics/skills.git _temp
 mv _temp/skills/* . ; rm -r -force _temp
 ```
@@ -635,7 +635,7 @@ Skills with `disable-model-invocation` won't appear in the model's available ski
 
 ### Desktop notifications
 
-Crush sends desktop notifications when a tool call requires permission and when
+Atlas sends desktop notifications when a tool call requires permission and when
 the agent finishes its turn. They're only sent when the terminal window isn't
 focused _and_ your terminal supports reporting the focus state.
 
@@ -649,24 +649,24 @@ supported.
 
 ### Initialization
 
-When you initialize a project, Crush analyzes your codebase and creates
+When you initialize a project, Atlas analyzes your codebase and creates
 a context file that helps it work more effectively in future sessions. By
 default, this file is named `AGENTS.md`, but you can customize the name and
 location with the `initialize-as` option:
 
 ```bash
-# crushrc
+# atlasrc
 option initialize-as AGENTS.md
 ```
 
 This is useful if you prefer a different naming convention or want to place the
-file in a specific directory (e.g., `CRUSH.md` or `docs/LLMs.md`). Crush will
+file in a specific directory (e.g., `ATLAS.md` or `docs/LLMs.md`). Atlas will
 fill the file with project-specific context like build commands, code patterns,
 and conventions it discovered during initialization.
 
 ### Attribution Settings
 
-By default, Crush adds attribution information to Git commits and pull requests
+By default, Atlas adds attribution information to Git commits and pull requests
 it creates. You can customize this behavior with `option` commands:
 
 ```bash
@@ -676,15 +676,15 @@ option attribution-generated-with true
 
 - `trailer_style`: Controls the attribution trailer added to commit messages
   (default: `assisted-by`)
-  - `assisted-by`: Adds `Assisted-by: Crush:[ModelID]` as specified in [the convention](https://docs.kernel.org/process/coding-assistants.html#attribution)
-  - `co-authored-by`: Adds `Co-Authored-By: Crush <crush@charm.land>`
+  - `assisted-by`: Adds `Assisted-by: Atlas:[ModelID]` as specified in [the convention](https://docs.kernel.org/process/coding-assistants.html#attribution)
+  - `co-authored-by`: Adds `Co-Authored-By: Atlas <atlas@charm.land>`
   - `none`: No attribution trailer
-- `generated_with`: When true (default), adds `💘 Generated with Crush` line to
+- `generated_with`: When true (default), adds `💘 Generated with Atlas` line to
   commit messages and PR descriptions
 
 ### Custom Providers
 
-Crush supports custom provider configurations for both OpenAI-compatible and
+Atlas supports custom provider configurations for both OpenAI-compatible and
 Anthropic-compatible APIs.
 
 > [!NOTE]
@@ -739,24 +739,24 @@ model add custom-anthropic/claude-sonnet-4-20250514 \
 
 ### Amazon Bedrock
 
-Crush currently supports running Anthropic models through Bedrock, with caching disabled.
+Atlas currently supports running Anthropic models through Bedrock, with caching disabled.
 
-A Bedrock provider appears once Crush can find AWS credentials. You can
+A Bedrock provider appears once Atlas can find AWS credentials. You can
 authenticate in one of two ways:
 
 **API key.** Set `AWS_BEARER_TOKEN_BEDROCK` to a Bedrock API key. This is the
 simplest option and never expires mid-session.
 
 **AWS credential chain (SSO, profiles, access keys).** Configure AWS the usual
-way with `aws configure` or `aws configure sso`. Crush picks up whatever the
+way with `aws configure` or `aws configure sso`. Atlas picks up whatever the
 AWS SDK credential chain resolves, including `AWS_PROFILE`, `AWS_ACCESS_KEY_ID`
 / `AWS_SECRET_ACCESS_KEY`, or an SSO session. To select a specific profile,
-set `AWS_PROFILE` in your shell (`AWS_PROFILE=myprofile crush`) or in the
+set `AWS_PROFILE` in your shell (`AWS_PROFILE=myprofile atlas`) or in the
 top-level [`env`](#environment-variables) config.
 
 If you authenticate via AWS SSO, your session expires periodically. Set
 `aws_auth_refresh` to a command that refreshes it. When Bedrock returns a
-credential error, Crush runs the command, then retries the request in place
+credential error, Atlas runs the command, then retries the request in place
 (no duplicate messages, no manual restart):
 
 ```json
@@ -789,7 +789,7 @@ $ gcloud auth application-default login
 To add specific models to the configuration, configure as such:
 
 ```bash
-# crushrc — authentication still comes from gcloud and the VERTEXAI_* env vars.
+# atlasrc — authentication still comes from gcloud and the VERTEXAI_* env vars.
 provider add vertexai --type google-vertex
 
 model add vertexai/claude-sonnet-4@20250514 \
@@ -806,9 +806,9 @@ model add vertexai/claude-sonnet-4@20250514 \
 
 ### Local Models
 
-Crush can auto-discovers models from local providers. Add a custom provider
+Atlas can auto-discovers models from local providers. Add a custom provider
 with `type` set to `llamacpp`, `omlx`, `lmstudio`, `litellm`, or `ollama`
-and leave out the models list. Crush will populate the model list
+and leave out the models list. Atlas will populate the model list
 automatically.
 
 ```bash
@@ -837,7 +837,7 @@ by auto-discovery. Auto discovery will run if the model list is empty for any
 the found models with your hand configured ones.
 
 ```bash
-# crushrc
+# atlasrc
 provider add ollama \
   --name Ollama \
   --type ollama \
@@ -855,37 +855,37 @@ your explicit model fields win on conflicts.
 
 ## Logging
 
-Sometimes you need to look at logs. Luckily, Crush logs all sorts of
-stuff. Logs are stored in `./.crush/logs/crush.log` relative to the project.
+Sometimes you need to look at logs. Luckily, Atlas logs all sorts of
+stuff. Logs are stored in `./.atlas/logs/atlas.log` relative to the project.
 
 The CLI also contains some helper commands to make perusing recent logs easier:
 
 ```bash
 # Print the last 1000 lines
-crush logs
+atlas logs
 
 # Print the last 500 lines
-crush logs --tail 500
+atlas logs --tail 500
 
 # Follow logs in real time
-crush logs --follow
+atlas logs --follow
 ```
 
-Want more logging? Run `crush` with the `--debug` flag, or enable it in your
-`crushrc`:
+Want more logging? Run `atlas` with the `--debug` flag, or enable it in your
+`atlasrc`:
 
 ```bash
-# crushrc
+# atlasrc
 option debug true
 option debug-lsp true
 ```
 
 ## Provider Auto-Updates
 
-By default, Crush automatically checks for the latest and greatest list of
+By default, Atlas automatically checks for the latest and greatest list of
 providers and models from [Catwalk](https://github.com/charmbracelet/catwalk),
-the open source Crush provider database. This means that when new providers and
-models are available, or when model metadata changes, Crush automatically
+the open source Atlas provider database. This means that when new providers and
+models are available, or when model metadata changes, Atlas automatically
 updates your local configuration.
 
 ### Custom provider catalog
@@ -900,43 +900,43 @@ For those with restricted internet access, or those who prefer to work in
 air-gapped environments, this might not be want you want, and this feature can
 be disabled.
 
-To disable automatic provider updates in your `crushrc`:
+To disable automatic provider updates in your `atlasrc`:
 
 ```bash
 option provider-auto-update false
 ```
 
-Or set the `CRUSH_DISABLE_PROVIDER_AUTO_UPDATE` environment variable:
+Or set the `ATLAS_DISABLE_PROVIDER_AUTO_UPDATE` environment variable:
 
 ```bash
-export CRUSH_DISABLE_PROVIDER_AUTO_UPDATE=1
+export ATLAS_DISABLE_PROVIDER_AUTO_UPDATE=1
 ```
 
 ### Manually updating providers
 
-Manually updating providers is possible with the `crush update-providers`
+Manually updating providers is possible with the `atlas update-providers`
 command:
 
 ```bash
 # Update providers remotely from Catwalk.
-crush update-providers
+atlas update-providers
 
 # Update providers from a custom Catwalk base URL.
-crush update-providers https://example.com/
+atlas update-providers https://example.com/
 
 # Update providers from a local file.
-crush update-providers /path/to/local-providers.json
+atlas update-providers /path/to/local-providers.json
 
-# Reset providers to the embedded version, embedded at crush at build time.
-crush update-providers embedded
+# Reset providers to the embedded version, embedded at atlas at build time.
+atlas update-providers embedded
 
 # For more info:
-crush update-providers --help
+atlas update-providers --help
 ```
 
 ## Metrics
 
-Crush records pseudonymous usage metrics (tied to a device-specific hash),
+Atlas records pseudonymous usage metrics (tied to a device-specific hash),
 which maintainers rely on to inform development and support priorities. The
 metrics include solely usage metadata; prompts and responses are NEVER
 collected.
@@ -948,10 +948,10 @@ You can opt out of metrics collection at any time by setting the environment
 variable by setting the following in your environment:
 
 ```bash
-export CRUSH_DISABLE_METRICS=1
+export ATLAS_DISABLE_METRICS=1
 ```
 
-Crush also respects the [`DO_NOT_TRACK`](https://donottrack.sh/) convention
+Atlas also respects the [`DO_NOT_TRACK`](https://donottrack.sh/) convention
 which can be enabled via `export DO_NOT_TRACK=1`.
 
 ## Q&A

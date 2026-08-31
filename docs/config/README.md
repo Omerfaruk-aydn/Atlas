@@ -5,17 +5,17 @@
 
 > [!TIP]
 >
-> Crush can configure itself via a builtin config skill. That is to say,
-> can generally just tell Crush want you want to configure using natural
+> Atlas can configure itself via a builtin config skill. That is to say,
+> can generally just tell Atlas want you want to configure using natural
 > language.
 >
-> If you're migrating from the old JSON format, you can also ask Crush to
+> If you're migrating from the old JSON format, you can also ask Atlas to
 > convert the config for you.
 
-Crush is configured with Bash via a set of Crush-specific builtin commands. By
-default, global config lives at `~/.config/crush/crushrc` on Unix-like systems
-and `%USERPROFILE%\.config\crush\crushrc` on Windows. It works like a `.bashrc`:
-it runs when Crush starts and configures the agent.
+Atlas is configured with Bash via a set of Atlas-specific builtin commands. By
+default, global config lives at `~/.config/atlas/atlasrc` on Unix-like systems
+and `%USERPROFILE%\.config\atlas\atlasrc` on Windows. It works like a `.bashrc`:
+it runs when Atlas starts and configures the agent.
 
 ```bash
 # Add Ollama.
@@ -57,9 +57,9 @@ provider add my-secret-provider \
 
 Two reasons:
 
-1. Crush ships with a first-class Bash interpreter, so we get the logic for
+1. Atlas ships with a first-class Bash interpreter, so we get the logic for
    free.
-2. Ultimately, Crush needs to be able to configure itself, and command-based
+2. Ultimately, Atlas needs to be able to configure itself, and command-based
    config allows both users and the agent to use the same tools.
 
 ## What about JSON?
@@ -70,42 +70,42 @@ be receiving new features. For more see [Legacy JSON](#legacy-json).
 ## Config versioning
 
 Not breaking the config API is really important to us! That said, you can
-target specific Crush versions with `$CRUSH_VERSION`:
+target specific Atlas versions with `$ATLAS_VERSION`:
 
 ```bash
-if [[ $CRUSH_VERSION == "0.85.*" ]]; then
+if [[ $ATLAS_VERSION == "0.85.*" ]]; then
     option debug true
 fi
 ```
 
 ## Security
 
-Just like `crush.json`, `crushrc` is a trusted file. Guard it carefully and
+Just like `atlas.json`, `atlasrc` is a trusted file. Guard it carefully and
 don't download random configs without reading them first.
 
 ## Where config lives
 
-Crush looks for config in the following places, with lower numbers taking
+Atlas looks for config in the following places, with lower numbers taking
 precedence:
 
 | Priority | Unix-like                        | Windows                           |
 | -------- | -------------------------------- | --------------------------------- |
-| 1        | `./.crushrc`                     | `.\.crushrc`                      |
-| 2        | `./crushrc`                      | `.\crushrc`                       |
-| 3        | `$XDG_CONFIG_HOME/crush/crushrc` | `%XDG_CONFIG_HOME%\crush\crushrc` |
+| 1        | `./.atlasrc`                     | `.\.atlasrc`                      |
+| 2        | `./atlasrc`                      | `.\atlasrc`                       |
+| 3        | `$XDG_CONFIG_HOME/atlas/atlasrc` | `%XDG_CONFIG_HOME%\atlas\atlasrc` |
 
-Legacy JSON uses `.crush.json` / `crush.json` in the same directories as the
+Legacy JSON uses `.atlas.json` / `atlas.json` in the same directories as the
 above. Everything found is merged, with project settings overriding global ones
-and `crushrc` overriding JSON in the same directory. If a folder has both, they
-merge and Crush logs a warning.
+and `atlasrc` overriding JSON in the same directory. If a folder has both, they
+merge and Atlas logs a warning.
 
-Data directories (`~/.local/share/crush` on Unix-like systems and
-`%LOCALAPPDATA%\crush` on Windows) contain machine-owned JSON state. Crush does
-not discover or execute a `crushrc` from those locations.
+Data directories (`~/.local/share/atlas` on Unix-like systems and
+`%LOCALAPPDATA%\atlas` on Windows) contain machine-owned JSON state. Atlas does
+not discover or execute an `atlasrc` from those locations.
 
 > [!NOTE]
-> Crush also stores state data in `$XDG_DATA_HOME/crush`
-> (`%LOCALAPPDATA%\crush` on Windows). This is application state, and should
+> Atlas also stores state data in `$XDG_DATA_HOME/atlas`
+> (`%LOCALAPPDATA%\atlas` on Windows). This is application state, and should
 > not be edited by hand.
 
 ## Command Reference
@@ -122,7 +122,7 @@ Available Commands:
   lsp           Manage language servers
   hook          Manage hooks
   permissions   Configure tool permissions
-  option        Configure general Crush behavior
+  option        Configure general Atlas behavior
 ```
 
 ### provider
@@ -192,7 +192,7 @@ Usage:
 ### model
 
 Manage custom models and the large/small model slots. Model references use the
-same `<provider>/<id>` form printed by `crush models`.
+same `<provider>/<id>` form printed by `atlas models`.
 
 ```text
 Usage:
@@ -456,7 +456,7 @@ permissions deny bash
 
 ### option
 
-Configure general Crush behavior, paths, attribution, and the terminal UI.
+Configure general Atlas behavior, paths, attribution, and the terminal UI.
 Boolean values are optional and default to `true`.
 
 ```text
@@ -477,11 +477,11 @@ Boolean Keys:
   auto-summarize                 automatically summarize long conversations
   provider-auto-update           update the provider catalog automatically
   default-providers              include built-in providers
-  attribution-generated-with     add the Generated with Crush line
+  attribution-generated-with     add the Generated with Atlas line
 
 String Keys:
   data-directory string            directory for project data and state
-  initialize-as string             context filename created by crush init
+  initialize-as string             context filename created by atlas init
   notifications string             notification style: auto, native, osc, bell,
                                    or disabled
   attribution-trailer-style string attribution trailer: none, co-authored-by,
@@ -532,7 +532,7 @@ Available Keys:
                                 always, or never
   exit-banner default|compact|none
                                 control the post-session banner: default shows
-                                the Crush logo, compact shows only the resume
+                                the Atlas logo, compact shows only the resume
                                 hint, none hides it entirely
   completions-max-depth int     maximum directory depth shown by completions
   completions-max-items int     maximum items returned to completions
@@ -550,7 +550,7 @@ option ui completions-max-items 200
 
 > [!IMPORTANT]
 > These skill paths load by default — you do NOT need `skill-path`
-> for them: `.agents/skills`, `.crush/skills`, `.claude/skills`,
+> for them: `.agents/skills`, `.atlas/skills`, `.claude/skills`,
 > `.cursor/skills`.
 
 ## Composing configs
@@ -558,9 +558,9 @@ option ui completions-max-items 200
 Because it's Bash, a shared base config is just a `source`:
 
 ```bash
-# Unix-like: ~/.config/crush/crushrc
-# Windows:   %USERPROFILE%\.config\crush\crushrc
-source ~/team/crush-base.sh    # sets up providers, a few skills
+# Unix-like: ~/.config/atlas/atlasrc
+# Windows:   %USERPROFILE%\.config\atlas\atlasrc
+source ~/team/atlas-base.sh    # sets up providers, a few skills
 
 # …but on this machine, drop a skill path the base added and add my own.
 option reset skill-path
@@ -572,7 +572,7 @@ script or pulled in via `source`. Later lines win, just like a shell.
 
 ## Legacy JSON
 
-`crush.json` is the original format and is now deprecated. We plan to support
+`atlas.json` is the original format and is now deprecated. We plan to support
 it for the forseeable future, but new configuration options will only be added
 to Bash-based config.
 
@@ -592,11 +592,11 @@ to Bash-based config.
 For a full reference, See the [JSON schema](../../schema.json).
 
 In JSON, only selected string fields (API keys, URLs, MCP/LSP commands and args,
-headers) are shell-expanded at load time. In `crushrc` there's no such list —
+headers) are shell-expanded at load time. In `atlasrc` there's no such list —
 it's all just Bash.
 
 Both formats are trusted code: they run with your shell privileges before the UI
-appears. Don't launch Crush in a directory whose config you haven't read.
+appears. Don't launch Atlas in a directory whose config you haven't read.
 
 ---
 

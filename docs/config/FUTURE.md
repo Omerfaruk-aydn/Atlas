@@ -13,7 +13,7 @@ it as a scratchpad for what's next, not as documentation of current behavior.
 
 ### Motivation
 
-Right now `crushrc` runs once, at startup. If you want to change something
+Right now `atlasrc` runs once, at startup. If you want to change something
 mid-session — swap the large model, allow a tool, add an MCP server — you edit
 the file and restart.
 
@@ -23,16 +23,16 @@ session**. The mental model is exactly a shell and its `.bashrc`:
 
 - Running a config command changes the **current session only** — like typing
   `export` or `alias` at a live prompt.
-- To make it stick, you edit your `crushrc` — like editing `.bashrc`.
+- To make it stick, you edit your `atlasrc` — like editing `.bashrc`.
 
-So you could say "Crush, switch to the small model for a bit" and it just
+So you could say "Atlas, switch to the small model for a bit" and it just
 runs `model small …`, live, no restart.
 
 > [!IMPORTANT]
 > **Persistence is a non-goal.** The bash tool never writes config files.
 > This is deliberate: a script can't be round-tripped. You don't regenerate
 > your `.bashrc` from the live shell's state, and we won't regenerate
-> `crushrc` from live config state. Want it permanent? Edit `crushrc`.
+> `atlasrc` from live config state. Want it permanent? Edit `atlasrc`.
 
 ### Why it's mostly wiring
 
@@ -114,26 +114,26 @@ larger, later increment.
 
 ### Motivation
 
-Crush currently uses JSON files in data directories as both persisted machine
+Atlas currently uses JSON files in data directories as both persisted machine
 state and high-priority configuration:
 
 ```text
-~/.local/share/crush/crush.json
-.crush/crush.json
+~/.local/share/atlas/atlas.json
+.atlas/atlas.json
 ```
 
 These files hold mutable choices such as preferred/recent models, UI settings,
 workspace overrides, and some credentials. Treating them as ordinary config
 means state enters the same generic JSON merge/reload path as user-authored
-`crushrc` and legacy `crush.json` files.
+`atlasrc` and legacy `atlas.json` files.
 
 The goal is to make the roles explicit:
 
 | Role | Format |
 |---|---|
-| User-authored executable configuration | `crushrc` / `.crushrc` |
-| Legacy user-authored static configuration | `crush.json` / `.crush.json` |
-| Crush-owned persistent preferences and history | versioned `state.json` |
+| User-authored executable configuration | `atlasrc` / `.atlasrc` |
+| Legacy user-authored static configuration | `atlas.json` / `.atlas.json` |
+| Atlas-owned persistent preferences and history | versioned `state.json` |
 | Session-only changes | memory |
 | Credentials/OAuth tokens | dedicated secure storage |
 
@@ -145,10 +145,10 @@ config and being deep-merged through the config pipeline.
 ### Proposed files
 
 ```text
-~/.config/crush/crushrc             global user config
-~/.local/share/crush/state.json     global machine state
-./crushrc / ./.crushrc              project user config
-.crush/state.json                   workspace machine state
+~/.config/atlas/atlasrc             global user config
+~/.local/share/atlas/state.json     global machine state
+./atlasrc / ./.atlasrc              project user config
+.atlas/state.json                   workspace machine state
 ```
 
 State files should be machine-owned, written with `0600`, protected by the
@@ -184,12 +184,12 @@ Explicit user configuration should beat remembered state:
 built-in defaults
 → global state defaults
 → workspace state defaults
-→ global legacy crush.json
-→ global crushrc
-→ project legacy crush.json
-→ project crushrc
-→ project .crush.json
-→ project .crushrc
+→ global legacy atlas.json
+→ global atlasrc
+→ project legacy atlas.json
+→ project atlasrc
+→ project .atlas.json
+→ project .atlasrc
 → runtime-only overrides
 ```
 
@@ -201,9 +201,9 @@ building without participating in precedence.
 User-authored JSON remains a supported config input during this work:
 
 ```text
-~/.config/crush/crush.json
-./crush.json
-./.crush.json
+~/.config/atlas/atlas.json
+./atlas.json
+./.atlas.json
 ```
 
 It must be decoded as configuration, never migrated as state. Only the
@@ -215,7 +215,7 @@ If user JSON is retired later:
 1. Keep reading it for a compatibility period.
 2. Warn only when a user-authored JSON config is loaded.
 3. Provide an explicit conversion command (for example,
-   `crush config convert crush.json > crushrc`).
+   `atlas config convert atlas.json > atlasrc`).
 4. Never rewrite user config automatically.
 
 Using JSON internally for state is independent of deprecating JSON as a user
@@ -255,22 +255,22 @@ func (s *ConfigStore) SetCompactMode(scope Scope, enabled bool) error {
 Real-time commands run through the Bash tool remain session-only and do not
 write state, preserving the shell/`.bashrc` mental model.
 
-### Typed crushrc builder
+### Typed atlasrc builder
 
 This is related but separate. Today the Bash path is:
 
 ```text
-crushrc → map[string]any → JSON → Config
+atlasrc → map[string]any → JSON → Config
 ```
 
 A later typed-builder phase should become:
 
 ```text
-crushrc → typed ConfigBuilder → Config
+atlasrc → typed ConfigBuilder → Config
 state.json → typed StateStore ───────┘
 ```
 
-Legacy `crush.json` would decode into a typed config patch and apply to the same
+Legacy `atlas.json` would decode into a typed config patch and apply to the same
 builder. This may require moving pure config data types into a dependency-neutral
 package to avoid import cycles.
 
@@ -282,11 +282,11 @@ package to avoid import cycles.
 4. Stop merging global/workspace data JSON as config.
 5. Move provider credentials and OAuth tokens to dedicated secure storage.
 6. Remove generic state callers of `SetConfigField` / dotted JSON paths.
-7. Replace the `crushrc` map/JSON bridge with a typed config builder.
+7. Replace the `atlasrc` map/JSON bridge with a typed config builder.
 
 Migration must preserve unknown legacy fields or warn and leave the original
 file untouched. Successfully migrated files can be renamed to
-`crush.json.migrated`; corrupt files should be quarantined as timestamped
+`atlas.json.migrated`; corrupt files should be quarantined as timestamped
 `state.json.corrupt-*` files and replaced with defaults.
 
 ## Permission-level hard deny
@@ -294,9 +294,9 @@ file untouched. Successfully migrated files can be renamed to
 **Status:** not implemented; probably unnecessary until a real use case
 appears.
 
-Crush currently has three useful tool states across both config formats:
+Atlas currently has three useful tool states across both config formats:
 
-| State | `crushrc` | `crush.json` | Behavior |
+| State | `atlasrc` | `atlas.json` | Behavior |
 |---|---|---|---|
 | Auto-approved | `permissions allow bash` | `permissions.allowed_tools` | Visible; runs without prompting |
 | Prompted | neither list | neither list | Visible; asks the user before running |
@@ -306,7 +306,7 @@ Crush currently has three useful tool states across both config formats:
 block: because the tool is absent from the agent's tool list, the model cannot
 attempt to use it.
 
-The one state Crush does **not** have is "visible but always rejected": the
+The one state Atlas does **not** have is "visible but always rejected": the
 model can see and choose the tool, but the permission engine denies every
 request without prompting. Supporting that would require a separate
 permission-level deny list in both the config schema and permission engine.

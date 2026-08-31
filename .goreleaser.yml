@@ -2,7 +2,7 @@
 # vim: set ts=2 sw=2 tw=0 fo=jcroql
 version: 2
 
-project_name: crush
+project_name: atlas
 
 includes:
   - from_url:
@@ -33,10 +33,10 @@ before:
     - mkdir completions
     - rm -rf manpages
     - mkdir manpages
-    - sh -c 'go run . completion bash >./completions/crush.bash'
-    - sh -c 'go run . completion zsh >./completions/crush.zsh'
-    - sh -c 'go run . completion fish >./completions/crush.fish'
-    - sh -c 'go run . man | gzip -c >./manpages/crush.1.gz'
+    - sh -c 'go run . completion bash >./completions/atlas.bash'
+    - sh -c 'go run . completion zsh >./completions/atlas.zsh'
+    - sh -c 'go run . completion fish >./completions/atlas.fish'
+    - sh -c 'go run . man | gzip -c >./manpages/atlas.1.gz'
 
 # gomod:
 #   proxy: true
@@ -76,7 +76,7 @@ builds:
 
 archives:
   - name_template: >-
-      crush_
+      atlas_
       {{- .Version }}_
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
@@ -99,7 +99,7 @@ checksum:
 aur_sources:
   - private_key: "{{ .Env.AUR_KEY }}"
     disable: "{{ with .Prerelease }}true{{ end }}"
-    git_url: "ssh://aur@aur.archlinux.org/crush.git"
+    git_url: "ssh://aur@aur.archlinux.org/atlas.git"
     commit_author:
       name: "Charm"
       email: "charmcli@users.noreply.github.com"
@@ -117,66 +117,66 @@ aur_sources:
       export CGO_LDFLAGS="${LDFLAGS}"
       export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
       go build -ldflags="-w -s -buildid='' -linkmode=external -X github.com/charmbracelet/crush/internal/version.Version=v${pkgver}" .
-      ./crush completion bash >./completions/crush.bash
-      ./crush completion zsh >./completions/crush.zsh
-      ./crush completion fish >./completions/crush.fish
-      ./crush man | gzip -c >./manpages/crush.1.gz
+      ./atlas completion bash >./completions/atlas.bash
+      ./atlas completion zsh >./completions/atlas.zsh
+      ./atlas completion fish >./completions/atlas.fish
+      ./atlas man | gzip -c >./manpages/atlas.1.gz
     package: |-
       # bin
-      install -Dm755 "./crush" "${pkgdir}/usr/bin/crush"
+      install -Dm755 "./atlas" "${pkgdir}/usr/bin/atlas"
       # license
-      mkdir -p "${pkgdir}/usr/share/licenses/crush/"
-      install -Dm644 ./LICENSE* "${pkgdir}/usr/share/licenses/crush/"
+      mkdir -p "${pkgdir}/usr/share/licenses/atlas/"
+      install -Dm644 ./LICENSE* "${pkgdir}/usr/share/licenses/atlas/"
       # completions
       mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
       mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
       mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
-      install -Dm644 "./completions/crush.bash" "${pkgdir}/usr/share/bash-completion/completions/crush"
-      install -Dm644 "./completions/crush.zsh" "${pkgdir}/usr/share/zsh/site-functions/_crush"
-      install -Dm644 "./completions/crush.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/crush.fish"
+      install -Dm644 "./completions/atlas.bash" "${pkgdir}/usr/share/bash-completion/completions/atlas"
+      install -Dm644 "./completions/atlas.zsh" "${pkgdir}/usr/share/zsh/site-functions/_atlas"
+      install -Dm644 "./completions/atlas.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/atlas.fish"
       # man pages
-      install -Dm644 "./manpages/crush.1.gz" "${pkgdir}/usr/share/man/man1/crush.1.gz"
+      install -Dm644 "./manpages/atlas.1.gz" "${pkgdir}/usr/share/man/man1/atlas.1.gz"
       # readme
-      mkdir -pv "${pkgdir}/usr/share/doc/crush/"
-      install -Dm644 README* "${pkgdir}/usr/share/doc/crush/"
+      mkdir -pv "${pkgdir}/usr/share/doc/atlas/"
+      install -Dm644 README* "${pkgdir}/usr/share/doc/atlas/"
 
 aurs:
   - private_key: "{{ .Env.AUR_KEY }}"
     disable: "{{ with .Prerelease }}true{{ end }}"
-    git_url: "ssh://aur@aur.archlinux.org/crush-bin.git"
+    git_url: "ssh://aur@aur.archlinux.org/atlas-bin.git"
     commit_author:
       name: "Charm"
       email: "charmcli@users.noreply.github.com"
     provides:
-      - crush
+      - atlas
     conflicts:
-      - crush
+      - atlas
     package: |-
       case "$CARCH" in
         aarch64)
-          cd "${srcdir}/crush_${pkgver}_Linux_arm64"
+          cd "${srcdir}/atlas_${pkgver}_Linux_arm64"
           ;;
         *)
-          cd "${srcdir}/crush_${pkgver}_Linux_${CARCH}"
+          cd "${srcdir}/atlas_${pkgver}_Linux_${CARCH}"
           ;;
       esac
       # bin
-      install -Dm755 "./crush" "${pkgdir}/usr/bin/crush"
+      install -Dm755 "./atlas" "${pkgdir}/usr/bin/atlas"
       # license
-      mkdir -p "${pkgdir}/usr/share/licenses/crush/"
-      install -Dm644 ./LICENSE* "${pkgdir}/usr/share/licenses/crush/"
+      mkdir -p "${pkgdir}/usr/share/licenses/atlas/"
+      install -Dm644 ./LICENSE* "${pkgdir}/usr/share/licenses/atlas/"
       # completions
       mkdir -p "${pkgdir}/usr/share/bash-completion/completions/"
       mkdir -p "${pkgdir}/usr/share/zsh/site-functions/"
       mkdir -p "${pkgdir}/usr/share/fish/vendor_completions.d/"
-      install -Dm644 "./completions/crush.bash" "${pkgdir}/usr/share/bash-completion/completions/crush"
-      install -Dm644 "./completions/crush.zsh" "${pkgdir}/usr/share/zsh/site-functions/_crush"
-      install -Dm644 "./completions/crush.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/crush.fish"
+      install -Dm644 "./completions/atlas.bash" "${pkgdir}/usr/share/bash-completion/completions/atlas"
+      install -Dm644 "./completions/atlas.zsh" "${pkgdir}/usr/share/zsh/site-functions/_atlas"
+      install -Dm644 "./completions/atlas.fish" "${pkgdir}/usr/share/fish/vendor_completions.d/atlas.fish"
       # man pages
-      install -Dm644 "./manpages/crush.1.gz" "${pkgdir}/usr/share/man/man1/crush.1.gz"
+      install -Dm644 "./manpages/atlas.1.gz" "${pkgdir}/usr/share/man/man1/atlas.1.gz"
       # readme
-      mkdir -pv "${pkgdir}/usr/share/doc/crush/"
-      install -Dm644 README* "${pkgdir}/usr/share/doc/crush/"
+      mkdir -pv "${pkgdir}/usr/share/doc/atlas/"
+      install -Dm644 README* "${pkgdir}/usr/share/doc/atlas/"
 
 furies:
   - disable: "{{ if (or .Prerelease .IsNightly) }}true{{ end }}"
@@ -224,14 +224,14 @@ nfpms:
       - archlinux
     file_name_template: "{{ .ConventionalFileName }}"
     contents:
-      - src: ./completions/crush.bash
-        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files/usr{{ end }}/etc/bash_completion.d/crush'
-      - src: ./completions/crush.fish
-        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/fish/vendor_completions.d/crush.fish'
-      - src: ./completions/crush.zsh
-        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/zsh/site-functions/_crush'
-      - src: ./manpages/crush.1.gz
-        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/man/man1/crush.1.gz'
+      - src: ./completions/atlas.bash
+        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files/usr{{ end }}/etc/bash_completion.d/atlas'
+      - src: ./completions/atlas.fish
+        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/fish/vendor_completions.d/atlas.fish'
+      - src: ./completions/atlas.zsh
+        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/zsh/site-functions/_atlas'
+      - src: ./manpages/atlas.1.gz
+        dst: '{{ if eq .Format "termux.deb" }}/data/data/com.termux/files{{ end }}/usr/share/man/man1/atlas.1.gz'
     rpm:
       signature:
         key_file: '{{ if ne (index .Env "GPG_KEY_PATH") "" }}{{ .Env.GPG_KEY_PATH }}{{ else }}{{ end }}'
@@ -270,7 +270,7 @@ nix:
     formatter: nixfmt
     skip_upload: "{{ with .Prerelease }}true{{ end }}"
     extra_install: |-
-      installManPage ./manpages/crush.1.gz
+      installManPage ./manpages/atlas.1.gz
       installShellCompletion ./completions/*
 
 winget:

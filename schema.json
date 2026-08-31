@@ -22,7 +22,7 @@
         },
         "generated_with": {
           "type": "boolean",
-          "description": "Add Generated with Crush line to commit messages and issues and PRs",
+          "description": "Add Generated with Atlas line to commit messages and issues and PRs",
           "default": true
         }
       },
@@ -297,7 +297,7 @@
         },
         "sessionless": {
           "type": "boolean",
-          "description": "Mark a sessionless MCP server (no Mcp-Session-Id) so Crush skips the subscriptions/listen stream it would otherwise reject. Leave unset to auto-detect known sessionless servers (e.g. GitHub MCP)",
+          "description": "Mark a sessionless MCP server (no Mcp-Session-Id) so Atlas skips the subscriptions/listen stream it would otherwise reject. Leave unset to auto-detect known sessionless servers (e.g. GitHub MCP)",
           "default": false
         },
         "headers": {
@@ -826,7 +826,7 @@
             "double",
             "bevel"
           ],
-          "description": "Corner style for framed surfaces such as the composer and the landing cards. Leave unset to let Crush pick based on the terminal it is running in. Which styles render depends on the terminal font: a font missing a glyph draws a replacement box in its place. 'rounded' needs U+256D-U+2570 and 'arc' needs U+25DC-U+25DF, both of which some fonts omit; 'sharp', 'bold' and 'double' come from the widely-supported Box Drawing block."
+          "description": "Corner style for framed surfaces such as the composer and the landing cards. Leave unset to let Atlas pick based on the terminal it is running in. Which styles render depends on the terminal font: a font missing a glyph draws a replacement box in its place. 'rounded' needs U+256D-U+2570 and 'arc' needs U+25DC-U+25DF, both of which some fonts omit; 'sharp', 'bold' and 'double' come from the widely-supported Box Drawing block."
         },
         "exit_banner": {
           "type": "string",
@@ -835,7 +835,7 @@
             "compact",
             "none"
           ],
-          "description": "Exit banner style after quitting Crush",
+          "description": "Exit banner style after quitting Atlas",
           "default": "default"
         }
       },
