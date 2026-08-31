@@ -36,6 +36,15 @@ type Animatable interface {
 	Animate(msg anim.StepMsg) tea.Cmd
 }
 
+// Freshenable is an interface for items that support a brief "just arrived"
+// entrance pulse. Only call MarkJustArrived for items backing a message
+// that actually just arrived live (e.g. a pubsub.CreatedEvent) — not for
+// items constructed while replaying a session's existing history, which
+// should render at rest immediately.
+type Freshenable interface {
+	MarkJustArrived()
+}
+
 // Expandable is an interface for items that can be expanded or collapsed.
 type Expandable interface {
 	// ToggleExpanded toggles the expanded state of the item. It returns
@@ -364,7 +373,7 @@ func cappedMessageWidth(availableWidth int) int {
 //
 // For assistant messages with tool calls, pass a toolResults map to link results.
 // Use BuildToolResultMap to create this map from all messages in a session.
-func ExtractMessageItems(sty *styles.Styles, msg *message.Message, toolResults map[string]message.ToolResult, workingDir string) []MessageItem {
+func ExtractMessageItems(sty *styles.Styles, msg *message.Message, toolResults map[string]message.ToolResult, workingDir string, caps common.Capabilities) []MessageItem {
 	switch msg.Role {
 	case message.User:
 		// Reconstruct shell command items from ShellCommand parts.
@@ -385,7 +394,7 @@ func ExtractMessageItems(sty *styles.Styles, msg *message.Message, toolResults m
 			sty.Attachments.Skill,
 			sty.Attachments.Remove,
 		)
-		return []MessageItem{NewUserMessageItem(sty, msg, r)}
+		return []MessageItem{NewUserMessageItem(sty, msg, r, caps)}
 	case message.Assistant:
 		var items []MessageItem
 		if ShouldRenderAssistantMessage(msg) {

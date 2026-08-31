@@ -508,6 +508,36 @@ func (c *controllerV1) handleGetWorkspaceSessions(w http.ResponseWriter, r *http
 	jsonEncode(w, result)
 }
 
+// handleGetWorkspaceSessionsSearch searches sessions by message content.
+//
+//	@Summary		Search sessions by message content
+//	@Tags			sessions
+//	@Produce		json
+//	@Param			id	path		string	true	"Workspace ID"
+//	@Param			q	query		string	true	"Search query"
+//	@Success		200	{array}		proto.Session
+//	@Failure		400	{object}	proto.Error
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/sessions/search [get]
+func (c *controllerV1) handleGetWorkspaceSessionsSearch(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	query := r.URL.Query().Get("q")
+	sessions, err := c.backend.SearchSessions(r.Context(), id, query)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	ws, _ := c.backend.GetWorkspace(id)
+	result := make([]proto.Session, len(sessions))
+	for i, s := range sessions {
+		result[i] = sessionToProto(s)
+		result[i].IsBusy = isSessionBusy(ws, s.ID)
+		result[i].AttachedClients = attachedClients(ws, s.ID)
+	}
+	jsonEncode(w, result)
+}
+
 // handlePostWorkspaceSessions creates a new session in a workspace.
 //
 //	@Summary		Create session

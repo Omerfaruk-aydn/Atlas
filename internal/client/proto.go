@@ -656,6 +656,23 @@ func (c *Client) CreateSession(ctx context.Context, id string, title string) (*p
 }
 
 // ListSessions lists all sessions in a workspace as proto types.
+func (c *Client) SearchSessions(ctx context.Context, id, query string) ([]proto.Session, error) {
+	q := url.Values{"q": {query}}
+	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/search", id), q, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search sessions: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to search sessions: status code %d", rsp.StatusCode)
+	}
+	var sessions []proto.Session
+	if err := json.NewDecoder(rsp.Body).Decode(&sessions); err != nil {
+		return nil, fmt.Errorf("failed to decode sessions: %w", err)
+	}
+	return sessions, nil
+}
+
 func (c *Client) ListSessions(ctx context.Context, id string) ([]proto.Session, error) {
 	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions", id), nil, nil)
 	if err != nil {

@@ -57,6 +57,24 @@ func (w *AppWorkspace) ListSessions(ctx context.Context) ([]session.Session, err
 	return w.app.Sessions.List(ctx)
 }
 
+func (w *AppWorkspace) SearchSessions(ctx context.Context, query string) ([]session.Session, error) {
+	ids, err := w.app.Messages.SearchSessionIDs(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	sessions := make([]session.Session, 0, len(ids))
+	for _, id := range ids {
+		s, err := w.app.Sessions.Get(ctx, id)
+		if err != nil {
+			// A session may have been deleted after its message matched;
+			// skip it rather than failing the whole search.
+			continue
+		}
+		sessions = append(sessions, s)
+	}
+	return sessions, nil
+}
+
 func (w *AppWorkspace) SaveSession(ctx context.Context, sess session.Session) (session.Session, error) {
 	return w.app.Sessions.Save(ctx, sess)
 }

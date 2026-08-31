@@ -37,7 +37,31 @@ func TestMouseClickExecutesDialogActionCommand(t *testing.T) {
 
 	_, cmd := m.Update(tea.MouseClickMsg(tea.Mouse{Button: tea.MouseLeft}))
 	require.NotNil(t, cmd)
-	require.IsType(t, dialogMouseActionMsg{}, cmd())
+	requireBatchContains(t, cmd(), dialogMouseActionMsg{})
+}
+
+// requireBatchContains asserts that msg is either directly of the wanted
+// type, or (since opening a dialog also schedules its backdrop dim-in tick,
+// batching multiple commands together) a tea.BatchMsg containing a command
+// that produces it.
+func requireBatchContains(t *testing.T, msg tea.Msg, want any) {
+	t.Helper()
+	batch, ok := msg.(tea.BatchMsg)
+	if !ok {
+		require.IsType(t, want, msg)
+		return
+	}
+	for _, cmd := range batch {
+		if cmd == nil {
+			continue
+		}
+		if got := cmd(); got != nil {
+			if _, matches := got.(dialogMouseActionMsg); matches {
+				return
+			}
+		}
+	}
+	t.Fatalf("expected batch to contain a command producing %T, got %#v", want, batch)
 }
 
 var _ dialog.Dialog = (*mouseActionDialog)(nil)

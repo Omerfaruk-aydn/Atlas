@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/crush/internal/db"
 	"github.com/charmbracelet/crush/internal/message"
+	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/list"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 )
@@ -55,7 +56,7 @@ func BenchmarkResizeSession(b *testing.B) {
 	sty := styles.CharmtonePantera()
 	var items []list.Item
 	for _, m := range ptrs {
-		for _, it := range ExtractMessageItems(&sty, m, toolResults, "") {
+		for _, it := range ExtractMessageItems(&sty, m, toolResults, "", common.Capabilities{}) {
 			items = append(items, it)
 		}
 	}

@@ -1,14 +1,22 @@
 package chat
 
 import (
+	"bytes"
 	"encoding/xml"
+	stdimage "image"
+	_ "image/gif"  // register GIF format
+	_ "image/jpeg" // register JPEG format
+	_ "image/png"  // register PNG format
+	"strconv"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/crush/internal/message"
+	"github.com/charmbracelet/crush/internal/ui/anim"
 	"github.com/charmbracelet/crush/internal/ui/attachments"
 	"github.com/charmbracelet/crush/internal/ui/common"
+	fimage "github.com/charmbracelet/crush/internal/ui/image"
 	"github.com/charmbracelet/crush/internal/ui/list"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 )
@@ -31,11 +39,29 @@ type UserMessageItem struct {
 	attachments *attachments.Renderer
 	message     *message.Message
 	sty         *styles.Styles
+
+	// imgEnc/cellSize pick how (and at what fidelity) attached images
+	// render inline below the attachment chips. imgEnc defaults to
+	// EncodingBlocks (a colored Unicode block-character mosaic — works
+	// on any terminal with basic ANSI color, including legacy Windows
+	// consoles) and upgrades to a true pixel image (EncodingKitty, or
+	// EncodingSixel where only that's advertised) when the terminal
+	// supports one.
+	imgEnc   fimage.Encoding
+	cellSize fimage.CellSize
+	isTmux   bool
 }
 
-// NewUserMessageItem creates a new UserMessageItem.
-func NewUserMessageItem(sty *styles.Styles, message *message.Message, attachments *attachments.Renderer) MessageItem {
+// NewUserMessageItem creates a new UserMessageItem. caps determines how
+// attached images are rendered inline (see imgEnc).
+func NewUserMessageItem(sty *styles.Styles, message *message.Message, attachments *attachments.Renderer, caps common.Capabilities) MessageItem {
 	v := list.NewVersioned()
+	imgEnc := fimage.EncodingBlocks
+	if caps.SupportsKittyGraphics() {
+		imgEnc = fimage.EncodingKitty
+	}
+	cellW, cellH := caps.CellSize()
+	_, isTmux := caps.Env.LookupEnv("TMUX")
 	return &UserMessageItem{
 		Versioned:                v,
 		highlightableMessageItem: defaultHighlighter(sty, v),
@@ -44,6 +70,9 @@ func NewUserMessageItem(sty *styles.Styles, message *message.Message, attachment
 		attachments:              attachments,
 		message:                  message,
 		sty:                      sty,
+		imgEnc:                   imgEnc,
+		cellSize:                 fimage.CellSize{Width: cellW, Height: cellH},
+		isTmux:                   isTmux,
 	}
 }
 
@@ -159,18 +188,110 @@ func (m *UserMessageItem) ID() string {
 	return m.message.ID
 }
 
-// renderAttachments renders attachments.
+// imagePreviewCols/Rows bound the inline preview rendered below an image
+// attachment's chip.
+const (
+	imagePreviewCols = 24
+	imagePreviewRows = 12
+)
+
+// renderAttachments renders the attachment chips, followed by an inline
+// preview for any image attachment (a colored block-character mosaic by
+// default, sharp Kitty graphics on supporting terminals — see imgEnc).
 func (m *UserMessageItem) renderAttachments(width int) string {
-	var attachments []message.Attachment
+	var atts []message.Attachment
 	for _, at := range m.message.BinaryContent() {
-		attachments = append(attachments, message.Attachment{
+		atts = append(atts, message.Attachment{
 			FileName: at.Path,
 			MimeType: at.MIMEType,
+			Content:  at.Data,
 		})
 	}
 	// This message is already posted, so the attachment can't be removed;
 	// don't render the remove button.
-	return m.attachments.Render(attachments, false, false, width)
+	out := m.attachments.Render(atts, false, false, width)
+	if previews := m.renderImagePreviews(atts); previews != "" {
+		out = strings.Join([]string{out, previews}, "\n")
+	}
+	return out
+}
+
+// imagePreviewID returns the image cache key for the i-th attachment of
+// this message. Scoped by message ID so two attachments that happen to
+// share a filename (e.g. two clipboard pastes both named "paste_1.png")
+// never collide in the package-level image cache.
+func (m *UserMessageItem) imagePreviewID(i int) string {
+	return m.message.ID + ":" + strconv.Itoa(i)
+}
+
+// StartAnimation implements Animatable. It has nothing to do with
+// animation frames — it piggybacks on the same "run once right after the
+// item is added to the list" hook every other message item already gets
+// (see the StartAnimation call sites in model/ui.go) to transmit any image
+// attachments to the terminal exactly once. Transmit's returned command is
+// what actually performs I/O for Kitty graphics (writing the encoded image
+// via a tea.RawMsg) or fills the block-art cache, so it must go through
+// the real Bubbletea command pipeline rather than being invoked directly
+// from Render, which cannot return commands.
+func (m *UserMessageItem) StartAnimation() tea.Cmd {
+	var cmds []tea.Cmd
+	for i, at := range m.message.BinaryContent() {
+		if !strings.HasPrefix(at.MIMEType, "image/") || len(at.Data) == 0 {
+			continue
+		}
+		id := m.imagePreviewID(i)
+		if fimage.HasTransmitted(id, imagePreviewCols, imagePreviewRows) {
+			// Already cached from an earlier StartAnimation call (e.g. the
+			// item scrolled out of view and back in) — skip the decode.
+			continue
+		}
+		img, _, err := stdimage.Decode(bytes.NewReader(at.Data))
+		if err != nil {
+			continue // corrupt or unsupported format; the chip still shows the filename
+		}
+		if cmd := m.imgEnc.Transmit(id, img, m.cellSize, imagePreviewCols, imagePreviewRows, m.isTmux); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
+	if len(cmds) == 0 {
+		return nil
+	}
+	// The first RawRender (drawn before Transmit's async command lands)
+	// cached its output with no preview, keyed only by width — with no
+	// notion of "the image cache just became warm". Clear it and bump
+	// the F6 list-cache version so the next Draw actually recomputes
+	// and picks up the now-available preview instead of serving the
+	// stale cached string.
+	return tea.Sequence(tea.Batch(cmds...), func() tea.Msg {
+		m.clearCache()
+		m.Bump()
+		return nil
+	})
+}
+
+// Animate implements Animatable. Image transmission is one-shot (see
+// StartAnimation) and never establishes an ongoing tick chain, so there is
+// nothing to advance on a spinner step.
+func (m *UserMessageItem) Animate(anim.StepMsg) tea.Cmd {
+	return nil
+}
+
+// renderImagePreviews renders the cached preview for each image attachment
+// that StartAnimation successfully transmitted. Attachments that failed to
+// decode, or haven't been transmitted yet (image cache not warm on the
+// very first frame), are silently skipped — the chip above still shows the
+// filename either way.
+func (m *UserMessageItem) renderImagePreviews(atts []message.Attachment) string {
+	var previews []string
+	for i, at := range atts {
+		if !at.IsImage() {
+			continue
+		}
+		if r := m.imgEnc.Render(m.imagePreviewID(i), imagePreviewCols, imagePreviewRows); r != "" {
+			previews = append(previews, r)
+		}
+	}
+	return strings.Join(previews, "\n\n")
 }
 
 // HandleKeyEvent implements KeyEventHandler.

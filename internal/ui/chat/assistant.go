@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"strings"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -214,7 +215,57 @@ type AssistantMessageItem struct {
 	// thinking text, which burns CPU and starves the terminal emulator
 	// during long reasoning traces.
 	streamingThinking streamingMarkdown
+
+	// bornAt marks when this item was constructed, driving a brief
+	// entrance pulse (the message border tints toward the accent color,
+	// then fades back to normal) so a newly-arrived message doesn't just
+	// silently appear. See isPulsing/pulseProgress.
+	bornAt time.Time
 }
+
+// assistantPulseDuration is how long a freshly-created assistant message
+// stays tinted with the accent color before settling to its resting color.
+const assistantPulseDuration = 500 * time.Millisecond
+
+// MarkJustArrived starts the entrance pulse. Callers must opt in explicitly
+// (rather than the constructor doing it unconditionally) because
+// AssistantMessageItem is also constructed when replaying a session's full
+// history on load — those should render at rest immediately, not pulse.
+// Only a message appended live in response to a just-received event should
+// call this. Implements chat.Freshenable.
+func (a *AssistantMessageItem) MarkJustArrived() {
+	a.bornAt = time.Now()
+}
+
+// isPulsing reports whether this item is still within its entrance pulse
+// window.
+func (a *AssistantMessageItem) isPulsing() bool {
+	return time.Since(a.bornAt) < assistantPulseDuration
+}
+
+// pulseProgress returns 1 right when the item was created, decaying
+// linearly to 0 over assistantPulseDuration.
+func (a *AssistantMessageItem) pulseProgress() float64 {
+	elapsed := time.Since(a.bornAt)
+	if elapsed >= assistantPulseDuration {
+		return 0
+	}
+	return 1 - float64(elapsed)/float64(assistantPulseDuration)
+}
+
+// pulseTickCmd schedules the next redraw for the entrance pulse. It reuses
+// the anim.StepMsg transport (keyed by this item's own ID) so it rides the
+// same routing, visibility-pausing, and dedup machinery as the spinner
+// animation, without needing a separate message type or dispatch path.
+func (a *AssistantMessageItem) pulseTickCmd() tea.Cmd {
+	id := a.message.ID
+	return tea.Tick(pulseTickInterval, func(time.Time) tea.Msg {
+		return anim.StepMsg{ID: id}
+	})
+}
+
+// pulseTickInterval paces the entrance-pulse redraws.
+const pulseTickInterval = 50 * time.Millisecond
 
 var _ Expandable = (*AssistantMessageItem)(nil)
 
@@ -231,12 +282,15 @@ func NewAssistantMessageItem(sty *styles.Styles, message *message.Message) Messa
 	}
 
 	a.anim = anim.New(anim.Settings{
-		ID:          a.ID(),
-		Size:        15,
-		GradColorA:  sty.WorkingGradFromColor,
-		GradColorB:  sty.WorkingGradToColor,
-		LabelColor:  sty.WorkingLabelColor,
-		CycleColors: true,
+		ID:         a.ID(),
+		Size:       15,
+		LabelColor: sty.WorkingLabelColor,
+		// Rainbow + a faster frame rate make "Thinking" visually
+		// distinct from tool-call spinners (which use the plain
+		// two-color gradient), so the two are recognizable at a
+		// glance without reading the label.
+		Rainbow: true,
+		FPS:     30,
 		Suffix: func() string {
 			return common.Elapsed()
 		},
@@ -245,27 +299,46 @@ func NewAssistantMessageItem(sty *styles.Styles, message *message.Message) Messa
 	return a
 }
 
-// StartAnimation starts the assistant message animation if it should be spinning.
+// StartAnimation starts the assistant message animation if it should be
+// spinning, and/or the brief entrance pulse if the item was just created.
+// The two run independently: either, both, or neither may be active.
 func (a *AssistantMessageItem) StartAnimation() tea.Cmd {
-	if !a.isSpinning() {
+	var cmds []tea.Cmd
+	if a.isSpinning() {
+		cmds = append(cmds, a.anim.Start())
+	}
+	if a.isPulsing() {
+		cmds = append(cmds, a.pulseTickCmd())
+	}
+	if len(cmds) == 0 {
 		return nil
 	}
-	return a.anim.Start()
+	return tea.Batch(cmds...)
 }
 
-// Animate progresses the assistant message animation if it should be spinning.
+// Animate progresses the assistant message's spinner and/or entrance pulse.
+// Both share the same anim.StepMsg transport (keyed by this item's ID) but
+// are otherwise independent: the pulse never touches a.anim.
 func (a *AssistantMessageItem) Animate(msg anim.StepMsg) tea.Cmd {
-	if !a.isSpinning() {
+	var cmds []tea.Cmd
+	if a.isSpinning() {
+		// Bump the F6 list-cache version so the next draw re-renders
+		// this item: a spinner tick mutates anim's internal frame
+		// counter, which changes the rendered output but is invisible
+		// to the per-section content hashes. Without the bump the
+		// list cache would serve the previously rendered frame
+		// indefinitely and the spinner would appear frozen.
+		a.Bump()
+		cmds = append(cmds, a.anim.Animate(msg))
+	}
+	if a.isPulsing() {
+		a.Bump()
+		cmds = append(cmds, a.pulseTickCmd())
+	}
+	if len(cmds) == 0 {
 		return nil
 	}
-	// Bump the F6 list-cache version so the next draw re-renders
-	// this item: a spinner tick mutates anim's internal frame
-	// counter, which changes the rendered output but is invisible
-	// to the per-section content hashes. Without the bump the
-	// list cache would serve the previously rendered frame
-	// indefinitely and the spinner would appear frozen.
-	a.Bump()
-	return a.anim.Animate(msg)
+	return tea.Batch(cmds...)
 }
 
 // ID implements MessageItem.
@@ -310,7 +383,7 @@ func (a *AssistantMessageItem) Render(width int) string {
 	// drop. Bypass the cache while spinning (RawRender's spinner
 	// suffix changes every animation frame) or while a highlight
 	// range is active (selection drag).
-	useCache := !a.isSpinning() && !a.isHighlighted()
+	useCache := !a.isSpinning() && !a.isHighlighted() && !a.isPulsing()
 	cappedWidth := cappedMessageWidth(width)
 	key := a.prefixCacheKey(cappedWidth)
 	if useCache {
@@ -320,6 +393,25 @@ func (a *AssistantMessageItem) Render(width int) string {
 	}
 	focused := a.sty.Messages.AssistantFocused.Render()
 	blurred := a.sty.Messages.AssistantBlurred.Render()
+	if a.isPulsing() {
+		// Entrance pulse: tint the message's left border toward the
+		// accent color, fading back to its resting color. Blurred
+		// messages normally have no border at all, so borrow the
+		// focused style's border-left structure for the duration of
+		// the pulse — same 2-column footprint as blurred's plain
+		// padding, so nothing shifts once the pulse ends.
+		progress := a.pulseProgress()
+		accent := a.sty.Logo.FieldColor
+		if a.focused {
+			target := a.sty.Messages.AssistantFocused.GetBorderLeftForeground()
+			focused = a.sty.Messages.AssistantFocused.
+				BorderForeground(common.BlendColor(target, accent, progress)).Render()
+		} else {
+			target := a.sty.Messages.NoContent.GetForeground()
+			blurred = a.sty.Messages.AssistantFocused.
+				BorderForeground(common.BlendColor(target, accent, progress)).Render()
+		}
+	}
 	rendered := a.RawRender(width)
 	lines := strings.Split(rendered, "\n")
 	for i, line := range lines {

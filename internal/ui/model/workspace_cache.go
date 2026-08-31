@@ -303,6 +303,11 @@ func (m *UI) staleWorkspaceRefreshCmds() []tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 	}
+	if time.Since(m.gitCheckedAt) >= gitStatusTTL {
+		if cmd := m.dispatchGitStatusRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
 	return cmds
 }
 

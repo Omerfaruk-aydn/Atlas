@@ -540,6 +540,12 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.com.Styles, "cycle_permission_mode", "Cycle Permission Mode", "ctrl+shift+y", ActionCyclePermissionMode{}),
 		NewCommandItem(c.com.Styles, "rewind", "Rewind to Checkpoint", "ctrl+shift+r", ActionOpenDialog{DialogID: RewindID}),
 		NewCommandItem(c.com.Styles, "jobs", "Background Jobs", "p", ActionOpenDialog{DialogID: JobsID}),
+		NewCommandItem(c.com.Styles, "search", "Search Chat", "f5", ActionOpenDialog{DialogID: ChatSearchID}),
+		NewCommandItem(c.com.Styles, "files", "Modified Files", "f", ActionOpenDialog{DialogID: FilesID}),
+		NewCommandItem(c.com.Styles, "usage", "Usage & Cost", "f6", ActionOpenDialog{DialogID: UsageID}),
+		NewCommandItem(c.com.Styles, "snippets", "Snippets", "f7", ActionOpenDialog{DialogID: SnippetsID}),
+		NewCommandItem(c.com.Styles, "history", "Search Prompt History", "f8", ActionOpenDialog{DialogID: PromptHistoryID}),
+		NewCommandItem(c.com.Styles, "search-sessions", "Search All Sessions", "f9", ActionOpenDialog{DialogID: SessionSearchID}),
 		NewCommandItem(c.com.Styles, "toggle_help", "Toggle Help", "ctrl+g", ActionToggleHelp{}),
 		NewCommandItem(c.com.Styles, "init", "Initialize Project", "", ActionInitializeProject{}),
 	)

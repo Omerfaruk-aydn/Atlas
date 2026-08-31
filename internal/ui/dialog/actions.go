@@ -44,6 +44,12 @@ type ActionViewSession struct {
 	SessionID string
 }
 
+// ActionOpenFileDiff is emitted from the Files dialog when the user picks a
+// modified file to view its cumulative session diff.
+type ActionOpenFileDiff struct {
+	Entry FileDiffEntry
+}
+
 // ActionRewindApplied is a message indicating a rewind was applied
 // successfully: a new forked session was created and the working
 // directory's files were restored to their state as of the chosen

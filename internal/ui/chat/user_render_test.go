@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/crush/internal/message"
+	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func newTestUserItem(t *testing.T, text string) *UserMessageItem {
 		Role:  message.User,
 		Parts: []message.ContentPart{message.TextContent{Text: text}},
 	}
-	item := NewUserMessageItem(&sty, msg, nil)
+	item := NewUserMessageItem(&sty, msg, nil, common.Capabilities{})
 	userItem, ok := item.(*UserMessageItem)
 	require.True(t, ok, "NewUserMessageItem must return *UserMessageItem")
 	return userItem

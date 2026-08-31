@@ -61,6 +61,10 @@ const (
 	graceMaxDelay = 1500 * time.Millisecond
 )
 
+// DialogOpenTransition is how long the backdrop takes to dim in behind a
+// newly opened dialog. See [Overlay.OpenProgress].
+const DialogOpenTransition = 150 * time.Millisecond
+
 // Overlay manages multiple dialogs as an overlay.
 type Overlay struct {
 	dialogs []Dialog
@@ -76,6 +80,12 @@ type Overlay struct {
 	// each eating a keystroke.
 	lastClosedID string
 	lastClosedAt time.Time
+
+	// frontOpenedAt marks when the most recently opened dialog appeared,
+	// driving the backdrop dim-in transition. It is set only by
+	// OpenDialog/OpenDialogWithGrace, not by closing a dialog and
+	// revealing one underneath (that one already settled).
+	frontOpenedAt time.Time
 }
 
 // NewOverlay creates a new [Overlay] instance.
@@ -105,6 +115,7 @@ func (d *Overlay) OpenDialog(dialog Dialog) {
 	d.dialogs = append(d.dialogs, dialog)
 	d.graceOpenedAt = time.Time{}
 	d.graceLastInputAt = time.Time{}
+	d.frontOpenedAt = time.Now()
 }
 
 // OpenDialogWithGrace opens a dialog with an input grace period. All
@@ -120,6 +131,7 @@ func (d *Overlay) OpenDialog(dialog Dialog) {
 func (d *Overlay) OpenDialogWithGrace(dialog Dialog) {
 	now := time.Now()
 	d.dialogs = append(d.dialogs, dialog)
+	d.frontOpenedAt = now
 
 	// Skip grace when reopening the same dialog type immediately.
 	if dialog.ID() == d.lastClosedID && now.Sub(d.lastClosedAt) < reopenGraceWindow {
@@ -130,6 +142,20 @@ func (d *Overlay) OpenDialogWithGrace(dialog Dialog) {
 
 	d.graceOpenedAt = now
 	d.graceLastInputAt = now
+}
+
+// OpenProgress reports how far along the backdrop dim-in transition is for
+// the frontmost dialog: 0 right when it opened, ramping linearly to 1 over
+// DialogOpenTransition. Returns 1 (settled) when there are no dialogs.
+func (d *Overlay) OpenProgress() float64 {
+	if len(d.dialogs) == 0 || d.frontOpenedAt.IsZero() {
+		return 1
+	}
+	elapsed := time.Since(d.frontOpenedAt)
+	if elapsed >= DialogOpenTransition {
+		return 1
+	}
+	return float64(elapsed) / float64(DialogOpenTransition)
 }
 
 // inGracePeriod reports whether the front dialog is still within its

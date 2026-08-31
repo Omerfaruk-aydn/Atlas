@@ -15,6 +15,31 @@ import (
 	"github.com/charmbracelet/ultraviolet/layout"
 )
 
+// gitStatusLine renders the branch/ahead-behind/changed-file readout shown
+// under the working directory path. Returns "" when the workspace isn't a
+// git repo (or the probe hasn't landed yet), so the sidebar layout simply
+// omits the line rather than showing an empty one.
+func (m *UI) gitStatusLine(width int) string {
+	st := m.gitStatus
+	if !st.isRepo || st.branch == "" {
+		return ""
+	}
+	t := m.com.Styles
+	var b strings.Builder
+	b.WriteString(st.branch)
+	if st.ahead > 0 {
+		fmt.Fprintf(&b, " ↑%d", st.ahead)
+	}
+	if st.behind > 0 {
+		fmt.Fprintf(&b, " ↓%d", st.behind)
+	}
+	line := t.Sidebar.WorkingDir.Render(b.String())
+	if st.changed > 0 {
+		line += " " + t.Files.Additions.Render(fmt.Sprintf("+%d", st.changed))
+	}
+	return lipgloss.NewStyle().Width(width).Render(line)
+}
+
 // modelInfo renders the current model information including reasoning
 // settings and context usage/cost for the sidebar.
 func (m *UI) modelInfo(width int) string {
@@ -78,6 +103,7 @@ func (m *UI) updateSidebarScrollState() {
 
 	title := t.Sidebar.SessionTitle.Width(contentWidth).MaxHeight(2).Render(m.session.Title)
 	cwd := common.PrettyPath(t, m.com.Workspace.WorkingDir(), contentWidth)
+	gitLine := m.gitStatusLine(contentWidth)
 	sidebarLogo := m.sidebarLogo
 	if height < logoHeightBreakpoint {
 		sidebarLogo = lipgloss.JoinVertical(lipgloss.Left, logo.SmallRender(m.com.Styles, contentWidth, logo.Opts{
@@ -100,12 +126,17 @@ func (m *UI) updateSidebarScrollState() {
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), contentWidth, fileChangeCount(m.sessionFiles), true)
 	jobsSection := m.jobsInfo(contentWidth, m.runningJobsCount(), true)
 
+	pathBlock := cwd
+	if gitLine != "" {
+		pathBlock = lipgloss.JoinVertical(lipgloss.Left, cwd, gitLine)
+	}
+
 	// Build the scrollable content.
 	content := lipgloss.JoinVertical(
 		lipgloss.Left,
 		title,
 		"",
-		cwd,
+		pathBlock,
 		"",
 		m.modelInfo(contentWidth),
 		"",

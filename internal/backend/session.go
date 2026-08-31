@@ -39,6 +39,29 @@ func (b *Backend) ListSessions(ctx context.Context, workspaceID string) ([]sessi
 	return ws.Sessions.List(ctx)
 }
 
+// SearchSessions returns sessions in the given workspace with at least one
+// message matching query, most recently matching first.
+func (b *Backend) SearchSessions(ctx context.Context, workspaceID, query string) ([]session.Session, error) {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	ids, err := ws.Messages.SearchSessionIDs(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	sessions := make([]session.Session, 0, len(ids))
+	for _, id := range ids {
+		s, err := ws.Sessions.Get(ctx, id)
+		if err != nil {
+			continue
+		}
+		sessions = append(sessions, s)
+	}
+	return sessions, nil
+}
+
 // GetAgentSession returns session metadata with the agent's busy
 // status.
 func (b *Backend) GetAgentSession(ctx context.Context, workspaceID, sessionID string) (proto.AgentSession, error) {

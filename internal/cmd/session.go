@@ -23,6 +23,7 @@ import (
 	"github.com/charmbracelet/crush/internal/message"
 	"github.com/charmbracelet/crush/internal/session"
 	"github.com/charmbracelet/crush/internal/ui/chat"
+	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/exp/charmtone"
@@ -485,7 +486,7 @@ func outputSessionHuman(ctx context.Context, cfg *config.ConfigStore, sess sessi
 
 	first := true
 	for _, msg := range msgs {
-		items := chat.ExtractMessageItems(&styles, msg, toolResults, "")
+		items := chat.ExtractMessageItems(&styles, msg, toolResults, "", common.Capabilities{})
 		for _, item := range items {
 			if !first {
 				fmt.Fprintln(&buf)
@@ -560,12 +561,12 @@ func sessionWriter(ctx context.Context, contentHeight int) (io.Writer, func(), b
 	}
 
 	return &colorprofile.Writer{
-			Forward: pipe,
-			Profile: profile,
-		}, func() {
-			pipe.Close()
-			_ = cmd.Wait()
-		}, true
+		Forward: pipe,
+		Profile: profile,
+	}, func() {
+		pipe.Close()
+		_ = cmd.Wait()
+	}, true
 }
 
 type sessionShowMeta struct {

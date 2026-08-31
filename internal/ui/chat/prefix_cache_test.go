@@ -7,6 +7,7 @@ import (
 
 	"github.com/charmbracelet/crush/internal/message"
 	"github.com/charmbracelet/crush/internal/ui/attachments"
+	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
@@ -119,7 +120,7 @@ func TestUserMessageItemRender_PrefixCacheFocusBlur(t *testing.T) {
 		sty.Attachments.Skill,
 		sty.Attachments.Remove,
 	)
-	item := NewUserMessageItem(&sty, msg, r).(*UserMessageItem)
+	item := NewUserMessageItem(&sty, msg, r, common.Capabilities{}).(*UserMessageItem)
 
 	const width = 60
 

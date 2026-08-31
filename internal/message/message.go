@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -54,6 +55,13 @@ type Service interface {
 	GetLastAssistantMessage(ctx context.Context, sessionID string) (Message, error)
 	Delete(ctx context.Context, id string) error
 	DeleteSessionMessages(ctx context.Context, sessionID string) error
+
+	// SearchSessionIDs returns the IDs of sessions with at least one
+	// message whose content contains query (case-sensitive substring,
+	// since it runs as a SQL LIKE over the stored parts JSON), most
+	// recently matching first. Used for content-based session search, as
+	// opposed to the title-only filter in the sessions dialog.
+	SearchSessionIDs(ctx context.Context, query string) ([]string, error)
 
 	// Flush synchronously drains any pending debounced state for the
 	// given message ID, performs the SQL write, and publishes the
@@ -210,6 +218,27 @@ func (s *service) DeleteSessionMessages(ctx context.Context, sessionID string) e
 		}
 	}
 	return nil
+}
+
+// SearchSessionIDs implements [Service].
+func (s *service) SearchSessionIDs(ctx context.Context, query string) ([]string, error) {
+	rows, err := s.q.SearchSessionIDsByMessageContent(ctx, likeContains(query))
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]string, len(rows))
+	for i, row := range rows {
+		ids[i] = row.SessionID
+	}
+	return ids, nil
+}
+
+// likeContains escapes SQL LIKE metacharacters in query and wraps it for a
+// "contains" match, so a literal % or _ in the user's search text is
+// matched literally instead of acting as a wildcard.
+func likeContains(query string) string {
+	escaped := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(query)
+	return "%" + escaped + "%"
 }
 
 // Update accepts a new state for a message and either flushes

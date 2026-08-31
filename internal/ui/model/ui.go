@@ -304,6 +304,33 @@ type UI struct {
 	jobsFetchInFlight bool
 	jobsRefreshQueued bool
 	jobsCheckedAt     time.Time
+	jobsHighlight     highlightTracker
+
+	// gitStatus memoizes the sidebar's branch/ahead-behind/changed-file
+	// readout; refreshed on file-save events with a TTL backstop. See
+	// git_status.go.
+	gitStatus        gitStatus
+	gitFetchInFlight bool
+	gitRefreshQueued bool
+	gitCheckedAt     time.Time
+
+	// sessionMessages mirrors the raw messages behind the current chat
+	// list (kept in session order), used by chat search since MessageItem
+	// doesn't expose plain text content for matching. See chat_search.go.
+	sessionMessages   []message.Message
+	chatSearchQuery   string
+	chatSearchMatches []string
+	chatSearchIdx     int
+
+	// dialogWasOpen tracks the dialog stack's previous non-empty state so
+	// Update can detect the empty-to-non-empty transition that starts the
+	// backdrop dim-in animation exactly once per dialog opened.
+	dialogWasOpen bool
+
+	// focusMode hides the sidebar and gives the chat its full width when
+	// the sidebar's own space isn't needed. See keys.go's FocusMode
+	// binding.
+	focusMode bool
 
 	// previousSessionID holds the session the user was on before jumping
 	// into another session's view (e.g. a running sub-agent, via the jobs
@@ -726,6 +753,17 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 	// Update terminal capabilities
 	m.caps.Update(msg)
+
+	// Kick off the backdrop dim-in transition the moment a dialog first
+	// appears (i.e. the dialog stack goes from empty to non-empty). The
+	// tick loop stops itself once dialog.Overlay.OpenProgress reaches 1.
+	if dialogOpen := m.dialog.HasDialogs(); dialogOpen && !m.dialogWasOpen {
+		cmds = append(cmds, dialogFadeTickCmd())
+		m.dialogWasOpen = dialogOpen
+	} else {
+		m.dialogWasOpen = dialogOpen
+	}
+
 	switch msg := msg.(type) {
 	case tea.EnvMsg:
 		// Is this Windows Terminal?
@@ -756,6 +794,18 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case jobStatesMsg:
 		if cmd := m.applyJobStates(msg); cmd != nil {
 			cmds = append(cmds, cmd)
+		}
+	case highlightTickMsg:
+		// Redraw so the sidebar's fade-in progresses, and keep ticking
+		// while any tracked item is still mid-fade.
+		m.updateSidebarScrollState()
+		if m.jobsHighlight.sync(m.jobsHighlightKeys()) {
+			cmds = append(cmds, highlightTickCmd())
+		}
+	case dialogFadeTickMsg:
+		// Just triggers a redraw; Draw recomputes OpenProgress itself.
+		if m.dialog.HasDialogs() && m.dialog.OpenProgress() < 1 {
+			cmds = append(cmds, dialogFadeTickCmd())
 		}
 	case agentModelChangedMsg:
 		// The coordinator model changed (selection, thinking, reasoning):
@@ -804,6 +854,13 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// session instead of showing the previous session's runs.
 		if cmd := m.requestJobsRefresh(); cmd != nil {
 			cmds = append(cmds, cmd)
+		}
+		if m.gitStatus == (gitStatus{}) {
+			// Only probe once per process lifetime here; file-save events
+			// and the TTL backstop keep it fresh afterward.
+			if cmd := m.requestGitStatusRefresh(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		}
 		msgs, err := m.com.Workspace.ListMessages(context.Background(), m.session.ID)
 		if err != nil {
@@ -974,6 +1031,17 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.renderPills()
 	case pubsub.Event[history.File]:
 		cmds = append(cmds, m.handleFileEvent(msg.Payload))
+		if cmd := m.requestGitStatusRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case gitStatusMsg:
+		if cmd := m.applyGitStatus(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case openUsageDialogMsg:
+		m.dialog.OpenDialog(dialog.NewUsage(m.com, msg.stats))
+	case sessionSearchResultsMsg:
+		m.dialog.OpenDialog(dialog.NewSessionSearchResults(m.com, msg.query, msg.sessions))
 	case pubsub.Event[app.LSPEvent]:
 		// Refresh the memoized LSP state off-thread: LSPGetStates is a
 		// synchronous HTTP round-trip in client/server mode and diagnostics
@@ -1500,6 +1568,8 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // setSessionMessages sets the messages for the current session in the chat
 func (m *UI) setSessionMessages(msgs []message.Message) tea.Cmd {
+	m.sessionMessages = msgs
+	m.resetChatSearch()
 	var cmds []tea.Cmd
 	// Build tool result map to link tool calls with their results
 	msgPtrs := make([]*message.Message, len(msgs))
@@ -1517,15 +1587,15 @@ func (m *UI) setSessionMessages(msgs []message.Message) tea.Cmd {
 		switch msg.Role {
 		case message.User:
 			m.lastUserMessageTime = msg.CreatedAt
-			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir())...)
+			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir(), m.caps)...)
 		case message.Assistant:
-			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir())...)
+			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir(), m.caps)...)
 			if msg.FinishPart() != nil && msg.FinishPart().Reason == message.FinishReasonEndTurn {
 				infoItem := chat.NewAssistantInfoItem(m.com.Styles, msg, m.com.Config(), time.Unix(m.lastUserMessageTime, 0))
 				items = append(items, infoItem)
 			}
 		default:
-			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir())...)
+			items = append(items, chat.ExtractMessageItems(m.com.Styles, msg, toolResultMap, m.com.Workspace.WorkingDir(), m.caps)...)
 		}
 	}
 
@@ -1626,7 +1696,7 @@ func (m *UI) loadNestedToolCalls(items []chat.MessageItem) {
 		// Extract nested tool items.
 		var nestedTools []chat.ToolMessageItem
 		for _, nestedMsg := range nestedMsgPtrs {
-			nestedItems := chat.ExtractMessageItems(m.com.Styles, nestedMsg, nestedToolResultMap, m.com.Workspace.WorkingDir())
+			nestedItems := chat.ExtractMessageItems(m.com.Styles, nestedMsg, nestedToolResultMap, m.com.Workspace.WorkingDir(), m.caps)
 			for _, nestedItem := range nestedItems {
 				if nestedToolItem, ok := nestedItem.(chat.ToolMessageItem); ok {
 					// Mark nested tools as simple (compact) rendering.
@@ -1660,6 +1730,7 @@ func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
 		// message already exists, skip
 		return nil
 	}
+	m.sessionMessages = append(m.sessionMessages, msg)
 
 	switch msg.Role {
 	case message.User:
@@ -1676,7 +1747,7 @@ func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
 			return nil
 		}
 		m.lastUserMessageTime = msg.CreatedAt
-		items := chat.ExtractMessageItems(m.com.Styles, &msg, nil, m.com.Workspace.WorkingDir())
+		items := chat.ExtractMessageItems(m.com.Styles, &msg, nil, m.com.Workspace.WorkingDir(), m.caps)
 		for _, item := range items {
 			if animatable, ok := item.(chat.Animatable); ok {
 				if cmd := animatable.StartAnimation(); cmd != nil {
@@ -1689,8 +1760,15 @@ func (m *UI) appendSessionMessage(msg message.Message) tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 	case message.Assistant:
-		items := chat.ExtractMessageItems(m.com.Styles, &msg, nil, m.com.Workspace.WorkingDir())
+		items := chat.ExtractMessageItems(m.com.Styles, &msg, nil, m.com.Workspace.WorkingDir(), m.caps)
 		for _, item := range items {
+			// This message just arrived live (as opposed to being
+			// replayed from history on session load) — start its
+			// entrance pulse before StartAnimation so the pulse tick
+			// chain kicks off immediately.
+			if fresh, ok := item.(chat.Freshenable); ok {
+				fresh.MarkJustArrived()
+			}
 			if animatable, ok := item.(chat.Animatable); ok {
 				if cmd := animatable.StartAnimation(); cmd != nil {
 					cmds = append(cmds, cmd)
@@ -1764,6 +1842,13 @@ func (m *UI) handleClickFocus(msg tea.MouseClickMsg) (cmd tea.Cmd) {
 // calls as well that is why we need to handle creating/updating each tool call
 // message too.
 func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
+	for i := range m.sessionMessages {
+		if m.sessionMessages[i].ID == msg.ID {
+			m.sessionMessages[i] = msg
+			break
+		}
+	}
+
 	var cmds []tea.Cmd
 	existingItem := m.chat.MessageItem(msg.ID)
 
@@ -1968,6 +2053,81 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		m.dialog.CloseDialog(dialog.SessionsID)
 		m.previousSessionID = ""
 		cmds = append(cmds, m.loadSession(msg.Session.ID))
+
+	// Session search dialog: run the content search off-thread, then open
+	// the results dialog.
+	case dialog.ActionSearchSessions:
+		m.dialog.CloseDialog(dialog.SessionSearchID)
+		ws := m.com.Workspace
+		query := msg.Query
+		cmds = append(cmds, func() tea.Msg {
+			sessions, err := ws.SearchSessions(context.Background(), query)
+			if err != nil {
+				return util.ReportError(err)()
+			}
+			return sessionSearchResultsMsg{query: query, sessions: sessions}
+		})
+
+	// Prompt history dialog.
+	case dialog.ActionSelectPromptHistory:
+		m.dialog.CloseDialog(dialog.PromptHistoryID)
+		m.textarea.SetValue(msg.Text)
+		if m.focus != uiFocusEditor {
+			m.focus = uiFocusEditor
+			cmds = append(cmds, m.textarea.Focus())
+		}
+
+	// Snippets dialog.
+	case dialog.ActionInsertSnippet:
+		m.dialog.CloseDialog(dialog.SnippetsID)
+		m.textarea.SetValue(msg.Text)
+		if m.focus != uiFocusEditor {
+			m.focus = uiFocusEditor
+			cmds = append(cmds, m.textarea.Focus())
+		}
+	case dialog.ActionSaveSnippet:
+		snippets, err := loadSnippets()
+		if err != nil {
+			cmds = append(cmds, util.ReportError(err))
+			break
+		}
+		snippets = append(snippets, dialog.Snippet{Name: msg.Name, Text: msg.Text})
+		if err := saveSnippetsFile(snippets); err != nil {
+			cmds = append(cmds, util.ReportError(err))
+			break
+		}
+		m.dialog.CloseDialog(dialog.SnippetsID)
+		cmds = append(cmds, util.ReportInfo("Snippet saved: "+msg.Name))
+	case dialog.ActionDeleteSnippet:
+		snippets, err := loadSnippets()
+		if err != nil {
+			cmds = append(cmds, util.ReportError(err))
+			break
+		}
+		if msg.Index < 0 || msg.Index >= len(snippets) {
+			break
+		}
+		removed := snippets[msg.Index].Name
+		snippets = append(snippets[:msg.Index], snippets[msg.Index+1:]...)
+		if err := saveSnippetsFile(snippets); err != nil {
+			cmds = append(cmds, util.ReportError(err))
+			break
+		}
+		m.dialog.CloseDialog(dialog.SnippetsID)
+		m.dialog.OpenDialog(dialog.NewSnippets(m.com, snippets, m.textarea.Value()))
+		cmds = append(cmds, util.ReportInfo("Snippet deleted: "+removed))
+
+	// Files dialog: open the picked file's cumulative session diff.
+	case dialog.ActionOpenFileDiff:
+		m.dialog.CloseDialog(dialog.FilesID)
+		m.dialog.OpenDialog(dialog.NewFileDiff(m.com, msg.Entry.Path, msg.Entry.Before, msg.Entry.After, msg.Entry.Additions, msg.Entry.Deletions))
+
+	// Chat search dialog: run the query and jump to a match.
+	case dialog.ActionChatSearch:
+		m.dialog.CloseDialog(dialog.ChatSearchID)
+		if cmd := m.runChatSearch(msg.Query); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 
 	// Jobs dialog: jump into a running sub-agent's session to watch it live.
 	case dialog.ActionViewSession:
@@ -2578,6 +2738,41 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			m.previousSessionID = ""
 			cmds = append(cmds, m.loadSession(target))
 			return true
+		case key.Matches(msg, m.keyMap.FocusMode):
+			if m.state != uiChat || m.isCompact {
+				return true
+			}
+			m.focusMode = !m.focusMode
+			m.updateLayoutAndSize()
+			status := "off"
+			if m.focusMode {
+				status = "on"
+			}
+			cmds = append(cmds, util.ReportInfo("Focus mode "+status))
+			return true
+		case key.Matches(msg, m.keyMap.ChatSearch):
+			if cmd := m.openChatSearchDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return true
+		case key.Matches(msg, m.keyMap.Usage):
+			if cmd := m.openUsageDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return true
+		case key.Matches(msg, m.keyMap.Snippets):
+			if cmd := m.openSnippetsDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return true
+		case key.Matches(msg, m.keyMap.PromptHistorySearch):
+			if cmd := m.openPromptHistoryDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return true
+		case key.Matches(msg, m.keyMap.SessionSearch):
+			m.dialog.OpenDialog(dialog.NewSessionSearch(m.com))
+			return true
 		}
 		return false
 	}
@@ -2678,6 +2873,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			switch {
 			case key.Matches(msg, m.keyMap.Editor.AddImage):
 				if !m.currentModelSupportsImages() {
+					cmds = append(cmds, util.ReportWarn("Current model doesn't support images"))
 					break
 				}
 				if cmd := m.openFilesDialog(); cmd != nil {
@@ -2686,6 +2882,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 
 			case key.Matches(msg, m.keyMap.Editor.PasteImage):
 				if !m.currentModelSupportsImages() {
+					cmds = append(cmds, util.ReportWarn("Current model doesn't support images"))
 					break
 				}
 				cmds = append(cmds, m.pasteImageFromClipboard)
@@ -3022,6 +3219,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				if cmd := m.openJobsDialog(); cmd != nil {
 					cmds = append(cmds, cmd)
 				}
+			case key.Matches(msg, m.keyMap.Files):
+				if cmd := m.openModifiedFilesDialog(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 			default:
 				handleGlobalKeys(msg)
 			}
@@ -3109,7 +3310,7 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	case uiChat:
 		if m.isCompact {
 			m.drawHeader(scr, layout.header)
-		} else {
+		} else if !m.focusMode {
 			m.drawSidebar(scr, layout.sidebar)
 		}
 
@@ -3184,6 +3385,7 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	// the full screen bounds because the dialogs will position themselves
 	// accordingly.
 	if m.dialog.HasDialogs() {
+		dimScreen(scr, dialogDimTarget*m.dialog.OpenProgress())
 		return m.dialog.Draw(scr, scr.Bounds())
 	}
 
@@ -3399,9 +3601,10 @@ func (m *UI) FullHelp() [][]key.Binding {
 			k.ToggleYolo,
 			k.CyclePermissionMode,
 			k.Rewind,
+			k.FocusMode,
 		)
 		if hasSession {
-			mainBinds = append(mainBinds, k.Chat.NewSession, k.Chat.EndFollow)
+			mainBinds = append(mainBinds, k.Chat.NewSession, k.Chat.EndFollow, k.ChatSearch)
 		}
 		if m.previousSessionID != "" {
 			mainBinds = append(mainBinds, k.BackToSession)
@@ -3845,9 +4048,15 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 			// ----------
 			// help
 
+			effectiveSidebarWidth := sidebarWidth
+			if m.focusMode {
+				// Focus mode: give the chat the sidebar's width back
+				// instead of drawing it.
+				effectiveSidebarWidth = 0
+			}
 			var mainRect, sideRect image.Rectangle
 			layout.Horizontal(
-				layout.Len(appRect.Dx()-sidebarWidth),
+				layout.Len(appRect.Dx()-effectiveSidebarWidth),
 				layout.Fill(1),
 			).Split(appRect).Assign(&mainRect, &sideRect)
 			// Add padding left
@@ -4611,6 +4820,28 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		if cmd := m.openJobsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.ChatSearchID:
+		if cmd := m.openChatSearchDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.FilesID:
+		if cmd := m.openModifiedFilesDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.UsageID:
+		if cmd := m.openUsageDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.SnippetsID:
+		if cmd := m.openSnippetsDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.PromptHistoryID:
+		if cmd := m.openPromptHistoryDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.SessionSearchID:
+		m.dialog.OpenDialog(dialog.NewSessionSearch(m.com))
 	default:
 		// Unknown dialog
 		break
@@ -4757,6 +4988,106 @@ func (m *UI) openJobsDialog() tea.Cmd {
 		return nil
 	}
 	m.dialog.OpenDialog(dialog.NewJobs(m.com, m.jobStates, m.subAgentRuns))
+	return nil
+}
+
+// openModifiedFilesDialog opens the sidebar's "Modified Files" list as a
+// dialog; picking a file opens its cumulative session diff.
+func (m *UI) openModifiedFilesDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.FilesID) {
+		m.dialog.BringToFront(dialog.FilesID)
+		return nil
+	}
+	entries := make([]dialog.FileDiffEntry, 0, len(m.sessionFiles))
+	for _, f := range m.sessionFiles {
+		if f.Additions == 0 && f.Deletions == 0 {
+			continue
+		}
+		entries = append(entries, dialog.FileDiffEntry{
+			Path:      f.LatestVersion.Path,
+			Before:    f.FirstVersion.Content,
+			After:     f.LatestVersion.Content,
+			Additions: f.Additions,
+			Deletions: f.Deletions,
+		})
+	}
+	m.dialog.OpenDialog(dialog.NewFiles(m.com, entries))
+	return nil
+}
+
+// sessionSearchResultsMsg delivers a content search's results, fetched
+// off-thread.
+type sessionSearchResultsMsg struct {
+	query    string
+	sessions []session.Session
+}
+
+// openUsageDialogMsg delivers the workspace-wide totals fetched off-thread
+// for the Usage dialog.
+type openUsageDialogMsg struct {
+	stats dialog.UsageStats
+}
+
+// openUsageDialog opens the usage/cost dialog for the current session,
+// alongside a workspace-wide total across every session.
+func (m *UI) openUsageDialog() tea.Cmd {
+	if !m.hasSession() {
+		return nil
+	}
+	if m.dialog.ContainsDialog(dialog.UsageID) {
+		m.dialog.BringToFront(dialog.UsageID)
+		return nil
+	}
+	stats := dialog.UsageStats{
+		SessionTitle:     m.session.Title,
+		MessageCount:     m.session.MessageCount,
+		PromptTokens:     m.session.PromptTokens,
+		CompletionTokens: m.session.CompletionTokens,
+		Cost:             m.session.Cost,
+		EstimatedUsage:   m.session.EstimatedUsage,
+	}
+	if model := m.selectedLargeModel(); model != nil {
+		stats.ContextWindow = model.CatwalkCfg.ContextWindow
+	}
+	ws := m.com.Workspace
+	return func() tea.Msg {
+		// Totals are a nice-to-have; on error just show the per-session
+		// stats already in hand instead of failing the whole dialog.
+		if sessions, err := ws.ListSessions(context.Background()); err == nil {
+			for _, s := range sessions {
+				stats.TotalSessions++
+				stats.TotalCost += s.Cost
+				stats.TotalPromptTokens += s.PromptTokens
+				stats.TotalCompletionTokens += s.CompletionTokens
+			}
+		}
+		return openUsageDialogMsg{stats: stats}
+	}
+}
+
+// openSnippetsDialog opens the saved-snippets dialog, offering the editor's
+// current draft (if any) as something to save.
+func (m *UI) openSnippetsDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.SnippetsID) {
+		m.dialog.BringToFront(dialog.SnippetsID)
+		return nil
+	}
+	snippets, err := loadSnippets()
+	if err != nil {
+		return util.ReportError(err)
+	}
+	m.dialog.OpenDialog(dialog.NewSnippets(m.com, snippets, m.textarea.Value()))
+	return nil
+}
+
+// openPromptHistoryDialog opens the fuzzy-searchable prompt-history dialog
+// (shell Ctrl+R style).
+func (m *UI) openPromptHistoryDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.PromptHistoryID) {
+		m.dialog.BringToFront(dialog.PromptHistoryID)
+		return nil
+	}
+	m.dialog.OpenDialog(dialog.NewPromptHistory(m.com, m.promptHistory.messages))
 	return nil
 }
 

@@ -256,6 +256,48 @@ func (q *Queries) ListUserMessagesBySession(ctx context.Context, sessionID strin
 	return items, nil
 }
 
+const searchSessionIDsByMessageContent = `-- name: SearchSessionIDsByMessageContent :many
+SELECT DISTINCT session_id, MAX(updated_at) AS last_matched_at
+FROM messages
+WHERE parts LIKE ? ESCAPE '\'
+GROUP BY session_id
+ORDER BY last_matched_at DESC
+LIMIT 50
+`
+
+type SearchSessionIDsByMessageContentRow struct {
+	SessionID     string      `json:"session_id"`
+	LastMatchedAt interface{} `json:"last_matched_at"`
+}
+
+// Session search by message content: parts is the message's serialized
+// content (JSON), which still contains the readable text, so a plain LIKE
+// over it is a cheap, no-schema-change substring search. The query param
+// must already be wrapped in %...% and have LIKE metacharacters escaped by
+// the caller.
+func (q *Queries) SearchSessionIDsByMessageContent(ctx context.Context, parts string) ([]SearchSessionIDsByMessageContentRow, error) {
+	rows, err := q.query(ctx, q.searchSessionIDsByMessageContentStmt, searchSessionIDsByMessageContent, parts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SearchSessionIDsByMessageContentRow{}
+	for rows.Next() {
+		var i SearchSessionIDsByMessageContentRow
+		if err := rows.Scan(&i.SessionID, &i.LastMatchedAt); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateMessage = `-- name: UpdateMessage :exec
 UPDATE messages
 SET

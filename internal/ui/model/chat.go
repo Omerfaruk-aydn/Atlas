@@ -584,6 +584,13 @@ func (m *Chat) ScrollToSelected() tea.Cmd {
 	return m.showScrollbar()
 }
 
+// IndexForID returns the list index of the item with the given message ID,
+// used by chat search to jump to a match.
+func (m *Chat) IndexForID(id string) (int, bool) {
+	idx, ok := m.idInxMap[id]
+	return idx, ok
+}
+
 // ScrollToIndex scrolls the chat view to the item at the given index.
 func (m *Chat) ScrollToIndex(index int) tea.Cmd {
 	m.list.ScrollToIndex(index)

@@ -136,6 +136,10 @@ type Workspace interface {
 	CreateSession(ctx context.Context, title string) (session.Session, error)
 	GetSession(ctx context.Context, sessionID string) (session.Session, error)
 	ListSessions(ctx context.Context) ([]session.Session, error)
+	// SearchSessions returns sessions with at least one message containing
+	// query (substring match), most recently matching first. Unlike
+	// ListSessions this searches message content, not just titles.
+	SearchSessions(ctx context.Context, query string) ([]session.Session, error)
 	SaveSession(ctx context.Context, sess session.Session) (session.Session, error)
 	DeleteSession(ctx context.Context, sessionID string) error
 	// RewindPreview reports how many files RewindTo would write and delete

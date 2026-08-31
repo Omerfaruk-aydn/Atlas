@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"image/color"
 	"time"
 
 	tea "charm.land/bubbletea/v2"
@@ -74,11 +75,34 @@ func (m *UI) applyJobStates(msg jobStatesMsg) tea.Cmd {
 	m.jobsCheckedAt = time.Now()
 	m.jobStates = msg.jobs
 	m.subAgentRuns = msg.subAgents
+
+	active := m.jobsHighlight.sync(m.jobsHighlightKeys())
+
+	var cmds []tea.Cmd
 	if m.jobsRefreshQueued {
 		m.jobsRefreshQueued = false
-		return m.dispatchJobsRefresh()
+		cmds = append(cmds, m.dispatchJobsRefresh())
 	}
-	return nil
+	if active {
+		cmds = append(cmds, highlightTickCmd())
+	}
+	return tea.Batch(cmds...)
+}
+
+// jobsHighlightKeys returns the set of keys (running job IDs and sub-agent
+// session IDs) currently shown in the Jobs section, for reconciling
+// m.jobsHighlight.
+func (m *UI) jobsHighlightKeys() map[string]struct{} {
+	keys := make(map[string]struct{}, len(m.jobStates)+len(m.subAgentRuns))
+	for _, j := range m.jobStates {
+		if !j.Done {
+			keys[j.ID] = struct{}{}
+		}
+	}
+	for _, s := range m.subAgentRuns {
+		keys[s.SessionID] = struct{}{}
+	}
+	return keys
 }
 
 // runningJobsCount returns the number of background jobs still running,
@@ -116,13 +140,14 @@ func (m *UI) jobsInfo(width, maxItems int, isSection bool) string {
 		return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 	}
 
-	list := jobsList(t, running, m.subAgentRuns, width, maxItems)
+	list := jobsList(t, running, m.subAgentRuns, width, maxItems, m.jobsHighlight.progress, m.com.Styles.Logo.FieldColor)
 	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, list))
 }
 
 // jobsList renders running background jobs and sub-agent runs, truncating
-// to maxItems if needed.
-func jobsList(t *styles.Styles, jobs []shell.BackgroundShellInfo, subAgents []workspace.SubAgentRunInfo, width, maxItems int) string {
+// to maxItems if needed. A row whose key is still fading in (per progress,
+// see highlightTracker) gets its title tinted toward accent.
+func jobsList(t *styles.Styles, jobs []shell.BackgroundShellInfo, subAgents []workspace.SubAgentRunInfo, width, maxItems int, progress func(key string) float64, accent color.Color) string {
 	if maxItems <= 0 {
 		return ""
 	}
@@ -135,7 +160,8 @@ func jobsList(t *styles.Styles, jobs []shell.BackgroundShellInfo, subAgents []wo
 		description := t.Resource.StatusText.Render(humanize.Time(j.StartedAt))
 		rendered = append(rendered, common.Status(t, common.StatusOpts{
 			Icon:        t.Resource.BusyIcon.String(),
-			Title:       t.Resource.Name.Render(title),
+			Title:       title,
+			TitleColor:  common.BlendColor(t.Resource.DefaultTitleFg, accent, progress(j.ID)),
 			Description: description,
 		}, width))
 	}
@@ -147,7 +173,8 @@ func jobsList(t *styles.Styles, jobs []shell.BackgroundShellInfo, subAgents []wo
 		description := t.Resource.StatusText.Render(humanize.Time(s.StartedAt))
 		rendered = append(rendered, common.Status(t, common.StatusOpts{
 			Icon:        t.Resource.BusyIcon.String(),
-			Title:       t.Resource.Name.Render(title),
+			Title:       title,
+			TitleColor:  common.BlendColor(t.Resource.DefaultTitleFg, accent, progress(s.SessionID)),
 			Description: description,
 		}, width))
 	}

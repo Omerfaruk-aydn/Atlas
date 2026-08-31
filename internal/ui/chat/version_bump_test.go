@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/crush/internal/message"
 	"github.com/charmbracelet/crush/internal/ui/anim"
 	"github.com/charmbracelet/crush/internal/ui/attachments"
+	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/list"
 	"github.com/charmbracelet/crush/internal/ui/styles"
 	"github.com/stretchr/testify/require"
@@ -93,7 +94,7 @@ func TestUserMessageItem_MutatorsBumpVersion(t *testing.T) {
 			message.TextContent{Text: "Hello"},
 		},
 	}
-	item := NewUserMessageItem(&sty, msg, r).(*UserMessageItem)
+	item := NewUserMessageItem(&sty, msg, r, common.Capabilities{}).(*UserMessageItem)
 
 	requireBump(t, "SetFocused", item, func() {
 		item.SetFocused(true)
@@ -263,7 +264,7 @@ func TestUserMessageItem_FinishedAlwaysTrue(t *testing.T) {
 		Role:  message.User,
 		Parts: []message.ContentPart{message.TextContent{Text: "hi"}},
 	}
-	item := NewUserMessageItem(&sty, msg, r).(*UserMessageItem)
+	item := NewUserMessageItem(&sty, msg, r, common.Capabilities{}).(*UserMessageItem)
 	require.True(t, item.Finished())
 }
 

@@ -59,6 +59,19 @@ var (
 	ellipsisFrames = []string{".", "..", "...", ""}
 )
 
+// rainbowStops are the hue stops fed to makeGradientRamp for Settings.Rainbow,
+// looping back to red so the scrolling ramp has no visible seam.
+var rainbowStops = []color.Color{
+	color.RGBA{R: 0xff, A: 0xff},          // red
+	color.RGBA{R: 0xff, G: 0x80, A: 0xff}, // orange
+	color.RGBA{R: 0xff, G: 0xff, A: 0xff}, // yellow
+	color.RGBA{G: 0xff, A: 0xff},          // green
+	color.RGBA{G: 0xff, B: 0xff, A: 0xff}, // cyan
+	color.RGBA{B: 0xff, A: 0xff},          // blue
+	color.RGBA{R: 0xff, B: 0xff, A: 0xff}, // magenta
+	color.RGBA{R: 0xff, A: 0xff},          // back to red
+}
+
 // Internal ID management. Used during animating to ensure that frame messages
 // are received only by spinner components that sent them.
 var lastID atomic.Int64
@@ -82,8 +95,8 @@ var animCacheMap = csync.NewMap[string, *animCache]()
 // settingsHash creates a hash key for the settings to use for caching
 func settingsHash(opts Settings) string {
 	h := xxh3.New()
-	fmt.Fprintf(h, "%d-%s-%v-%v-%v-%t-%v",
-		opts.Size, opts.Label, opts.LabelColor, opts.GradColorA, opts.GradColorB, opts.CycleColors, opts.SuffixColor)
+	fmt.Fprintf(h, "%d-%s-%v-%v-%v-%t-%v-%t",
+		opts.Size, opts.Label, opts.LabelColor, opts.GradColorA, opts.GradColorB, opts.CycleColors, opts.SuffixColor, opts.Rainbow)
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
@@ -121,6 +134,16 @@ type Settings struct {
 	// SuffixColor is the color used to render the suffix text.
 	// Falls back to LabelColor if unset.
 	SuffixColor color.Color
+
+	// Rainbow cycles the whole indicator (scrambled chars and label text
+	// alike) through a full hue sweep instead of blending between
+	// GradColorA/GradColorB. Implies the same scrolling behavior as
+	// CycleColors; GradColorA/GradColorB are ignored when set.
+	Rainbow bool
+
+	// FPS overrides the default animation frame rate (see the package
+	// fps const) for this instance. Zero means use the default.
+	FPS int
 }
 
 // Default settings.
@@ -144,6 +167,7 @@ type Anim struct {
 	id               string
 	suffix           func() string
 	suffixColor      color.Color
+	fps              int
 
 	// gen identifies the currently armed tick chain. Start() bumps it and
 	// stamps every emitted StepMsg with the new value; Animate() drops ticks
@@ -174,6 +198,11 @@ func New(opts Settings) *Anim {
 		a.id = opts.ID
 	} else {
 		a.id = fmt.Sprintf("%d", nextID())
+	}
+	if opts.FPS > 0 {
+		a.fps = opts.FPS
+	} else {
+		a.fps = fps
 	}
 	if opts.NoScramble {
 		a.cyclingCharWidth = 0
@@ -227,13 +256,20 @@ func New(opts Settings) *Anim {
 		// Render the label
 		a.renderLabel(opts.Label)
 
-		// Pre-generate gradient.
+		// Pre-generate gradient. Rainbow implies the same scrolling
+		// behavior as CycleColors, just with a full hue sweep instead
+		// of blending between GradColorA/GradColorB.
+		cycling := opts.CycleColors || opts.Rainbow
 		var ramp []color.Color
 		numFrames := prerenderedFrames
-		if opts.CycleColors {
+		switch {
+		case opts.Rainbow:
+			ramp = makeGradientRamp(a.width*3, rainbowStops...)
+			numFrames = a.width * 2
+		case opts.CycleColors:
 			ramp = makeGradientRamp(a.width*3, opts.GradColorA, opts.GradColorB, opts.GradColorA, opts.GradColorB)
 			numFrames = a.width * 2
-		} else {
+		default:
 			ramp = makeGradientRamp(a.width, opts.GradColorA, opts.GradColorB)
 		}
 
@@ -248,7 +284,7 @@ func New(opts Settings) *Anim {
 				}
 
 				var c color.Color
-				if j <= a.cyclingCharWidth {
+				if j <= a.cyclingCharWidth || opts.Rainbow {
 					c = ramp[j+offset]
 				} else {
 					c = opts.LabelColor
@@ -260,7 +296,7 @@ func New(opts Settings) *Anim {
 					Foreground(c).
 					Render(string(initialChar))
 			}
-			if opts.CycleColors {
+			if cycling {
 				offset++
 			}
 		}
@@ -288,7 +324,7 @@ func New(opts Settings) *Anim {
 					Foreground(ramp[j+offset]).
 					Render(string(r))
 			}
-			if opts.CycleColors {
+			if cycling {
 				offset++
 			}
 		}
@@ -502,7 +538,7 @@ func (a *Anim) Render() string {
 // whether this tick still belongs to the armed chain.
 func (a *Anim) Step() tea.Cmd {
 	gen := a.gen.Load()
-	return tea.Tick(time.Second/time.Duration(fps), func(t time.Time) tea.Msg {
+	return tea.Tick(time.Second/time.Duration(a.fps), func(t time.Time) tea.Msg {
 		return StepMsg{ID: a.id, Gen: gen}
 	})
 }

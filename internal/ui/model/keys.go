@@ -88,6 +88,13 @@ type KeyMap struct {
 	Rewind              key.Binding
 	Jobs                key.Binding
 	BackToSession       key.Binding
+	FocusMode           key.Binding
+	ChatSearch          key.Binding
+	Files               key.Binding
+	Usage               key.Binding
+	Snippets            key.Binding
+	PromptHistorySearch key.Binding
+	SessionSearch       key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -129,16 +136,50 @@ func DefaultKeyMap() KeyMap {
 			key.WithHelp("shift+tab", "cycle permission mode"),
 		),
 		Rewind: key.NewBinding(
-			key.WithKeys("ctrl+shift+r"),
-			key.WithHelp("ctrl+shift+r", "rewind"),
+			// f2 is the reliable fallback: legacy Windows consoles
+			// (conhost/cmd.exe) often can't distinguish ctrl+shift+<letter>
+			// from ctrl+<letter> (the Shift bit gets lost), so
+			// ctrl+shift+r silently fails to fire there. F-keys don't
+			// have that ambiguity in any terminal.
+			key.WithKeys("ctrl+shift+r", "f2"),
+			key.WithHelp("f2", "rewind"),
 		),
 		Jobs: key.NewBinding(
 			key.WithKeys("p"),
 			key.WithHelp("p", "jobs"),
 		),
 		BackToSession: key.NewBinding(
-			key.WithKeys("ctrl+shift+b"),
-			key.WithHelp("ctrl+shift+b", "back to previous session"),
+			// f3 fallback for the same reason as Rewind's f2 (see there).
+			key.WithKeys("ctrl+shift+b", "f3"),
+			key.WithHelp("f3", "back to previous session"),
+		),
+		FocusMode: key.NewBinding(
+			key.WithKeys("f4"),
+			key.WithHelp("f4", "focus mode"),
+		),
+		ChatSearch: key.NewBinding(
+			key.WithKeys("f5"),
+			key.WithHelp("f5", "search chat"),
+		),
+		Files: key.NewBinding(
+			key.WithKeys("f"),
+			key.WithHelp("f", "modified files"),
+		),
+		Usage: key.NewBinding(
+			key.WithKeys("f6"),
+			key.WithHelp("f6", "usage"),
+		),
+		Snippets: key.NewBinding(
+			key.WithKeys("f7"),
+			key.WithHelp("f7", "snippets"),
+		),
+		PromptHistorySearch: key.NewBinding(
+			key.WithKeys("f8"),
+			key.WithHelp("f8", "search prompt history"),
+		),
+		SessionSearch: key.NewBinding(
+			key.WithKeys("f9"),
+			key.WithHelp("f9", "search all sessions"),
 		),
 	}
 
