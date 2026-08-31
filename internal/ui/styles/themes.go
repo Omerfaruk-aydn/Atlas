@@ -110,7 +110,7 @@ func CharmtonePantera() Styles {
 	return s
 }
 
-// HypercrushObsidiana returns the Hypercrush dark theme.
+// HypercrushObsidiana returns the Hyper ATLAS-AGENT dark theme.
 func HypercrushObsidiana() Styles {
 	return CharmtonePantera()
 }

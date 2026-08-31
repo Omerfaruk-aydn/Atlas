@@ -1,4 +1,4 @@
-// Package exitbanner renders what Crush prints after the TUI exits.
+// Package exitbanner renders what ATLAS-AGENT prints after the TUI exits.
 package exitbanner
 
 import (
@@ -54,7 +54,7 @@ func Render(banner config.ExitBanner, sess *session.Session, width int) string {
 // logoSection returns the ASCII art logo followed by the parting message.
 func logoSection(contentWidth int) string {
 	t := styles.ThemeForProvider("")
-	crushLogo := logo.Render(t.Logo.GradCanvas, version.Version, true, logo.Opts{
+	atlasLogo := logo.Render(t.Logo.GradCanvas, version.Version, true, logo.Opts{
 		TitleColorA:  t.Logo.TitleColorA,
 		TitleColorB:  t.Logo.TitleColorB,
 		CharmColor:   t.Logo.CharmColor,
@@ -64,8 +64,8 @@ func logoSection(contentWidth int) string {
 	})
 	// Wrap the greeting and the message together: wrapping only the message
 	// leaves the greeting's own width unaccounted for and overflows the frame.
-	return crushLogo + "\n" +
-		lipgloss.NewStyle().Width(contentWidth).Render("Thanks for using Crush! "+randomExitMessage())
+	return atlasLogo + "\n" +
+		lipgloss.NewStyle().Width(contentWidth).Render("Thanks for using ATLAS-AGENT! "+randomExitMessage())
 }
 
 // sessionResumeLines returns the "Session  <title>\nContinue crush -s <hash>"

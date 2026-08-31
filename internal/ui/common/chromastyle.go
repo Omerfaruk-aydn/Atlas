@@ -35,7 +35,7 @@ func ChromaStyle(st *styles.Styles, bg color.Color) *chroma.Style {
 		chromaStyleByBg = nil
 	}
 	if chromaStyleBase == nil {
-		chromaStyleBase = chroma.MustNewStyle("crush", st.ChromaTheme())
+		chromaStyleBase = chroma.MustNewStyle("atlas-agent", st.ChromaTheme())
 	}
 	if bg == nil {
 		return chromaStyleBase

@@ -1,4 +1,4 @@
-// Package logo renders a Crush wordmark in a stylized way.
+// Package logo renders an ATLAS-AGENT wordmark in a stylized way.
 package logo
 
 import (
@@ -15,7 +15,7 @@ import (
 // a given amount via the boolean argument.
 type letterform func(bool) string
 
-// Opts are the options for rendering the Crush title art.
+// Opts are the options for rendering the ATLAS-AGENT title art.
 type Opts struct {
 	TitleColorA  color.Color // left gradient ramp point
 	TitleColorB  color.Color // right gradient ramp point
@@ -23,7 +23,7 @@ type Opts struct {
 	VersionColor color.Color // version text color
 	Width        int         // width of the rendered logo, used for truncation
 	Frame        int         // animation frame for the wide banner's rainbow sweep
-	Hyper        bool        // whether it is Crush or Hypercrush
+	Hyper        bool        // whether it is ATLAS-AGENT or Hyper ATLAS-AGENT
 
 	// When true, stretch a random letterform on each render. Has no effect in
 	// compact mode. Mainly for testing. In production you will want to cache
@@ -31,7 +31,7 @@ type Opts struct {
 	Unstable bool
 }
 
-// Render renders the Crush logo. Set the argument to true to render the narrow
+// Render renders the ATLAS-AGENT logo. Set the argument to true to render the narrow
 // version, intended for use in a sidebar.
 //
 // The compact argument determines whether it renders compact for the sidebar
@@ -56,23 +56,23 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 
 	// Title. Pick the widest lettering that fits; if none does, fall back to
 	// plain text rather than overflowing the caller's frame.
-	crush := fitWordmark(o.Hyper, o.Width)
-	if crush == "" {
+	wordmark := fitWordmark(o.Hyper, o.Width)
+	if wordmark == "" {
 		return plainWordmark(base, o)
 	}
-	crushWidth := lipgloss.Width(crush)
+	wordmarkWidth := lipgloss.Width(wordmark)
 	b := new(strings.Builder)
-	for r := range strings.SplitSeq(crush, "\n") {
+	for r := range strings.SplitSeq(wordmark, "\n") {
 		fmt.Fprintln(b, styles.ApplyForegroundGrad(base, r, o.TitleColorA, o.TitleColorB))
 	}
-	crush = b.String()
+	wordmark = b.String()
 
 	// Charm and version. Both are clipped against the wordmark's width so the
 	// meta row can never be the line that overflows: the wordmark is already
 	// known to fit, and the row is laid out to span exactly its width.
 	const metaRowGap = 1
-	charm = ansi.Truncate(charm, crushWidth, "…")
-	if maxVersionWidth := crushWidth - lipgloss.Width(charm) - metaRowGap; maxVersionWidth > 0 {
+	charm = ansi.Truncate(charm, wordmarkWidth, "…")
+	if maxVersionWidth := wordmarkWidth - lipgloss.Width(charm) - metaRowGap; maxVersionWidth > 0 {
 		version = ansi.Truncate(version, maxVersionWidth, "…")
 	} else {
 		version = ""
@@ -80,15 +80,15 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 	if o.Hyper && version != "" {
 		version += " "
 	}
-	gap := max(0, crushWidth-lipgloss.Width(charm)-lipgloss.Width(version))
+	gap := max(0, wordmarkWidth-lipgloss.Width(charm)-lipgloss.Width(version))
 	metaRow := fg(o.CharmColor, charm) + strings.Repeat(" ", gap) + fg(o.VersionColor, version)
 
-	// Join the meta row and big Crush title.
-	crush = strings.TrimSpace(metaRow + "\n" + crush)
+	// Join the meta row and big ATLAS-AGENT title.
+	wordmark = strings.TrimSpace(metaRow + "\n" + wordmark)
 
-	// Narrow version. If this is Hypercrush, this is also a stacked version.
+	// Narrow version. If this is Hyper ATLAS-AGENT, this is also a stacked version.
 	// Kept minimal on purpose: no decorative filler, just the wordmark.
-	return crush
+	return wordmark
 }
 
 // compactWordmarks lists the compact lettering variants from widest to
@@ -134,7 +134,7 @@ func plainWordmark(base lipgloss.Style, o Opts) string {
 	return styles.ApplyForegroundGrad(base, name, o.TitleColorA, o.TitleColorB)
 }
 
-// SmallRender renders a smaller version of the Crush logo, suitable for
+// SmallRender renders a smaller version of the ATLAS-AGENT logo, suitable for
 // smaller windows or sidebar usage.
 func SmallRender(t *styles.Styles, width int, o Opts) string {
 	name := "ATLAS-AGENT"
