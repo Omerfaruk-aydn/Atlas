@@ -66,6 +66,7 @@ func NewWriteTool(
 			filePath := filepathext.SmartJoin(workingDir, params.FilePath)
 
 			fileInfo, err := os.Stat(filePath)
+			fileExisted := err == nil
 			if err == nil {
 				if fileInfo.IsDir() {
 					return fantasy.NewTextErrorResponse(fmt.Sprintf("Path is a directory, not a file: %s", filePath)), nil
@@ -142,21 +143,31 @@ func NewWriteTool(
 			// Check if file exists in history
 			file, err := files.GetByPathAndSession(ctx, filePath, sessionID)
 			if err != nil {
-				_, err = files.Create(ctx, sessionID, filePath, oldContent)
+				// Genuine pre-chat baseline only if the file actually
+				// existed on disk before this write; otherwise this is a
+				// brand-new file and the placeholder must be tagged with
+				// the current message so ResolveAsOf doesn't mistake it
+				// for content that predates the file's existence.
+				baselineMessageID := ""
+				if !fileExisted {
+					baselineMessageID = GetMessageFromContext(ctx)
+				}
+				_, err = files.Create(ctx, sessionID, filePath, oldContent, baselineMessageID)
 				if err != nil {
 					// Log error but don't fail the operation
 					return fantasy.ToolResponse{}, fmt.Errorf("error creating file history: %w", err)
 				}
 			}
 			if file.Content != oldContent {
-				// User manually changed the content; store an intermediate version
-				_, err = files.CreateVersion(ctx, sessionID, filePath, oldContent)
+				// User manually changed the content outside of chat; store an
+				// intermediate version with no message association.
+				_, err = files.CreateVersion(ctx, sessionID, filePath, oldContent, "")
 				if err != nil {
 					slog.Error("Error creating file history version", "error", err)
 				}
 			}
 			// Store the new version
-			_, err = files.CreateVersion(ctx, sessionID, filePath, params.Content)
+			_, err = files.CreateVersion(ctx, sessionID, filePath, params.Content, GetMessageFromContext(ctx))
 			if err != nil {
 				slog.Error("Error creating file history version", "error", err)
 			}

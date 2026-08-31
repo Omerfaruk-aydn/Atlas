@@ -76,15 +76,18 @@ type KeyMap struct {
 	}
 
 	// Global key maps
-	Quit       key.Binding
-	Help       key.Binding
-	Commands   key.Binding
-	Models     key.Binding
-	Suspend    key.Binding
-	Sessions   key.Binding
-	Tab                  key.Binding
-	ToggleYolo           key.Binding
-	CyclePermissionMode  key.Binding
+	Quit                key.Binding
+	Help                key.Binding
+	Commands            key.Binding
+	Models              key.Binding
+	Suspend             key.Binding
+	Sessions            key.Binding
+	Tab                 key.Binding
+	ToggleYolo          key.Binding
+	CyclePermissionMode key.Binding
+	Rewind              key.Binding
+	Jobs                key.Binding
+	BackToSession       key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -124,6 +127,18 @@ func DefaultKeyMap() KeyMap {
 		CyclePermissionMode: key.NewBinding(
 			key.WithKeys("shift+tab", "ctrl+shift+y"),
 			key.WithHelp("shift+tab", "cycle permission mode"),
+		),
+		Rewind: key.NewBinding(
+			key.WithKeys("ctrl+shift+r"),
+			key.WithHelp("ctrl+shift+r", "rewind"),
+		),
+		Jobs: key.NewBinding(
+			key.WithKeys("p"),
+			key.WithHelp("p", "jobs"),
+		),
+		BackToSession: key.NewBinding(
+			key.WithKeys("ctrl+shift+b"),
+			key.WithHelp("ctrl+shift+b", "back to previous session"),
 		),
 	}
 

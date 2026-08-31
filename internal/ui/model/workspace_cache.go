@@ -298,6 +298,11 @@ func (m *UI) staleWorkspaceRefreshCmds() []tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 	}
+	if time.Since(m.jobsCheckedAt) >= jobStatesTTL {
+		if cmd := m.dispatchJobsRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	}
 	return cmds
 }
 

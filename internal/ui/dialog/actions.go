@@ -15,6 +15,7 @@ import (
 	"github.com/charmbracelet/crush/internal/oauth"
 	"github.com/charmbracelet/crush/internal/permission"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/session/rewind"
 	"github.com/charmbracelet/crush/internal/skills"
 	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/util"
@@ -34,6 +35,21 @@ type ActionOpenDialog struct {
 // ActionSelectSession is a message indicating a session has been selected.
 type ActionSelectSession struct {
 	Session session.Session
+}
+
+// ActionViewSession is a message indicating the user wants to switch into
+// viewing another session (e.g. a sub-agent's run) from the jobs dialog,
+// without losing track of the session they were on before.
+type ActionViewSession struct {
+	SessionID string
+}
+
+// ActionRewindApplied is a message indicating a rewind was applied
+// successfully: a new forked session was created and the working
+// directory's files were restored to their state as of the chosen
+// checkpoint message.
+type ActionRewindApplied struct {
+	Result rewind.Result
 }
 
 // ActionSelectModel is a message indicating a model has been selected.

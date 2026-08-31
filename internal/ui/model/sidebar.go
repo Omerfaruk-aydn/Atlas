@@ -98,6 +98,7 @@ func (m *UI) updateSidebarScrollState() {
 	mcpSection := m.mcpInfo(contentWidth, mcpCount(m.com.Config().MCP.Sorted(), m.mcpStates), true)
 	skillsSection := m.skillsInfo(contentWidth, len(m.skillStatusItems()), true)
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), contentWidth, fileChangeCount(m.sessionFiles), true)
+	jobsSection := m.jobsInfo(contentWidth, m.runningJobsCount(), true)
 
 	// Build the scrollable content.
 	content := lipgloss.JoinVertical(
@@ -109,6 +110,8 @@ func (m *UI) updateSidebarScrollState() {
 		m.modelInfo(contentWidth),
 		"",
 		filesSection,
+		"",
+		jobsSection,
 		"",
 		lspSection,
 		"",

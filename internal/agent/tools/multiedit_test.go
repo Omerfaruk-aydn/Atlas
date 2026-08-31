@@ -53,12 +53,16 @@ type mockHistoryService struct {
 	*pubsub.Broker[history.File]
 }
 
-func (m *mockHistoryService) Create(ctx context.Context, sessionID, path, content string) (history.File, error) {
-	return history.File{Path: path, Content: content}, nil
+func (m *mockHistoryService) Create(ctx context.Context, sessionID, path, content, messageID string) (history.File, error) {
+	return history.File{Path: path, Content: content, MessageID: messageID}, nil
 }
 
-func (m *mockHistoryService) CreateVersion(ctx context.Context, sessionID, path, content string) (history.File, error) {
+func (m *mockHistoryService) CreateVersion(ctx context.Context, sessionID, path, content, messageID string) (history.File, error) {
 	return history.File{}, nil
+}
+
+func (m *mockHistoryService) ResolveAsOf(ctx context.Context, sessionID string, messageIDsUpToTarget []string) ([]history.ResolvedFile, error) {
+	return nil, nil
 }
 
 func (m *mockHistoryService) GetByPathAndSession(ctx context.Context, path, sessionID string) (history.File, error) {

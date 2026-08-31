@@ -28,6 +28,8 @@ import (
 	"github.com/charmbracelet/crush/internal/pubsub"
 	"github.com/charmbracelet/crush/internal/question"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/session/rewind"
+	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/skills"
 	"github.com/charmbracelet/crush/internal/version"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
@@ -171,6 +173,26 @@ func (w *ClientWorkspace) SaveSession(ctx context.Context, sess session.Session)
 
 func (w *ClientWorkspace) DeleteSession(ctx context.Context, sessionID string) error {
 	return w.client.DeleteSession(ctx, w.workspaceID(), sessionID)
+}
+
+func (w *ClientWorkspace) RewindPreview(ctx context.Context, sourceSessionID, upToMessageID string) (int, int, error) {
+	preview, err := w.client.RewindPreviewSession(ctx, w.workspaceID(), sourceSessionID, upToMessageID)
+	if err != nil {
+		return 0, 0, err
+	}
+	return preview.FilesToWrite, preview.FilesToDelete, nil
+}
+
+func (w *ClientWorkspace) RewindTo(ctx context.Context, sourceSessionID, upToMessageID string) (rewind.Result, error) {
+	result, err := w.client.RewindSession(ctx, w.workspaceID(), sourceSessionID, upToMessageID)
+	if err != nil {
+		return rewind.Result{}, err
+	}
+	return rewind.Result{
+		Session:      protoToSession(result.Session),
+		FilesWritten: result.FilesWritten,
+		FilesDeleted: result.FilesDeleted,
+	}, nil
 }
 
 func (w *ClientWorkspace) CreateAgentToolSessionID(messageID, toolCallID string) string {
@@ -496,6 +518,47 @@ func (w *ClientWorkspace) LSPStart(ctx context.Context, path string) {
 
 func (w *ClientWorkspace) LSPStopAll(ctx context.Context) {
 	_ = w.client.LSPStopAll(ctx, w.workspaceID())
+}
+
+func (w *ClientWorkspace) BackgroundJobsList() []shell.BackgroundShellInfo {
+	jobs, err := w.client.GetJobs(context.Background(), w.workspaceID())
+	if err != nil {
+		return nil
+	}
+	result := make([]shell.BackgroundShellInfo, len(jobs))
+	for i, j := range jobs {
+		result[i] = shell.BackgroundShellInfo{
+			ID:          j.ID,
+			Command:     j.Command,
+			Description: j.Description,
+			WorkingDir:  j.WorkingDir,
+			StartedAt:   j.StartedAt,
+			Done:        j.Done,
+			Status:      shell.JobStatus(j.Status),
+			ExitErr:     j.ExitErr,
+		}
+	}
+	return result
+}
+
+func (w *ClientWorkspace) BackgroundJobKill(id string) error {
+	return w.client.KillJob(context.Background(), w.workspaceID(), id)
+}
+
+func (w *ClientWorkspace) SubAgentRunsList(ctx context.Context, sessionID string) []SubAgentRunInfo {
+	runs, err := w.client.GetSubAgentRuns(ctx, w.workspaceID(), sessionID)
+	if err != nil {
+		return nil
+	}
+	result := make([]SubAgentRunInfo, len(runs))
+	for i, r := range runs {
+		result[i] = SubAgentRunInfo{
+			SessionID: r.SessionID,
+			Title:     r.Title,
+			StartedAt: r.StartedAt,
+		}
+	}
+	return result
 }
 
 func (w *ClientWorkspace) LSPGetStates() map[string]LSPClientInfo {
@@ -1098,6 +1161,8 @@ func (w *ClientWorkspace) awaitSubscription() {
 // skills.GetLatestStates see fresh data.
 func (w *ClientWorkspace) translateEvent(ev any) tea.Msg {
 	switch e := ev.(type) {
+	case pubsub.Event[proto.JobEvent]:
+		return pubsub.Event[JobsEvent]{Type: e.Type, Payload: JobsEvent{}}
 	case pubsub.Event[proto.LSPEvent]:
 		return pubsub.Event[LSPEvent]{
 			Type: e.Type,

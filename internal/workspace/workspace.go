@@ -22,6 +22,8 @@ import (
 	"github.com/charmbracelet/crush/internal/proto"
 	"github.com/charmbracelet/crush/internal/question"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/session/rewind"
+	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/skills"
 )
 
@@ -95,6 +97,13 @@ const (
 	LSPEventDiagnosticsChanged LSPEventType = "diagnostics_changed"
 )
 
+// JobsEvent is a refresh signal for the background jobs sidebar, forwarded
+// from the server in client/server mode. Its payload carries no state on
+// purpose — consumers always re-fetch via BackgroundJobsList/
+// SubAgentRunsList, mirroring how LSPEvent is used purely to trigger a
+// refresh.
+type JobsEvent struct{}
+
 // LSPEvent represents an LSP event forwarded to the TUI.
 type LSPEvent struct {
 	Type            LSPEventType
@@ -110,6 +119,14 @@ type AgentModel struct {
 	ModelCfg   config.SelectedModel
 }
 
+// SubAgentRunInfo describes one in-flight sub-agent run for the background
+// jobs sidebar/dialog.
+type SubAgentRunInfo struct {
+	SessionID string
+	Title     string
+	StartedAt time.Time
+}
+
 // Workspace is the main abstraction consumed by the TUI and CLI. It
 // groups every operation a frontend needs to perform against a running
 // workspace, regardless of whether the workspace is in-process or
@@ -121,6 +138,15 @@ type Workspace interface {
 	ListSessions(ctx context.Context) ([]session.Session, error)
 	SaveSession(ctx context.Context, sess session.Session) (session.Session, error)
 	DeleteSession(ctx context.Context, sessionID string) error
+	// RewindPreview reports how many files RewindTo would write and delete
+	// for the given checkpoint, without applying anything. Used to show an
+	// accurate confirmation before the (hard to reverse) RewindTo call.
+	RewindPreview(ctx context.Context, sourceSessionID, upToMessageID string) (filesToWrite, filesToDelete int, err error)
+	// RewindTo forks sourceSessionID at upToMessageID (inclusive): the new
+	// child session gets a verbatim copy of the messages up to that point,
+	// and the working directory's files are restored to their content as
+	// of that message. sourceSessionID is never modified or deleted.
+	RewindTo(ctx context.Context, sourceSessionID, upToMessageID string) (rewind.Result, error)
 	CreateAgentToolSessionID(messageID, toolCallID string) string
 	ParseAgentToolSessionID(sessionID string) (messageID string, toolCallID string, ok bool)
 	// SetCurrentSession reports the session this client is currently
@@ -197,6 +223,15 @@ type Workspace interface {
 	LSPStopAll(ctx context.Context)
 	LSPGetStates() map[string]LSPClientInfo
 	LSPGetDiagnosticCounts(name string) lsp.DiagnosticCounts
+
+	// Background jobs
+	BackgroundJobsList() []shell.BackgroundShellInfo
+	BackgroundJobKill(id string) error
+
+	// SubAgentRunsList returns the sub-agent runs currently in flight under
+	// sessionID (i.e. spawned by the "agent"/"agentic_fetch" tools during
+	// that session's current turn).
+	SubAgentRunsList(ctx context.Context, sessionID string) []SubAgentRunInfo
 
 	// Config (read-only data)
 	Config() *config.Config

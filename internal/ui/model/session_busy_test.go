@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/crush/internal/permission"
 	"github.com/charmbracelet/crush/internal/pubsub"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/ui/attachments"
 	"github.com/charmbracelet/crush/internal/ui/common"
 	"github.com/charmbracelet/crush/internal/ui/dialog"
@@ -37,6 +38,8 @@ type countingWorkspace struct {
 	model     workspace.AgentModel
 	lspStates map[string]workspace.LSPClientInfo
 	lspDiags  map[string]lsp.DiagnosticCounts
+	jobs      []shell.BackgroundShellInfo
+	subAgents []workspace.SubAgentRunInfo
 
 	readyCalls      int
 	agentBusyCalls  int
@@ -49,6 +52,8 @@ type countingWorkspace struct {
 	modelCalls      int
 	lspStateCalls   int
 	lspDiagCalls    int
+	jobsListCalls   int
+	subAgentCalls   int
 }
 
 func (w *countingWorkspace) AgentIsReady() bool { w.readyCalls++; return w.ready }
@@ -124,6 +129,18 @@ func (w *countingWorkspace) ListUserMessages(context.Context, string) ([]message
 
 func (w *countingWorkspace) WorkingDir() string { return "" }
 
+func (w *countingWorkspace) BackgroundJobsList() []shell.BackgroundShellInfo {
+	w.jobsListCalls++
+	return w.jobs
+}
+
+func (w *countingWorkspace) BackgroundJobKill(string) error { return nil }
+
+func (w *countingWorkspace) SubAgentRunsList(context.Context, string) []workspace.SubAgentRunInfo {
+	w.subAgentCalls++
+	return w.subAgents
+}
+
 func (w *countingWorkspace) LSPStart(context.Context, string) {}
 
 func (w *countingWorkspace) Config() *config.Config { return nil }
@@ -134,7 +151,8 @@ func (w *countingWorkspace) Config() *config.Config { return nil }
 func (w *countingWorkspace) syncProbes() int {
 	return w.readyCalls + w.agentBusyCalls +
 		w.queuedCalls + w.queueListCalls + w.permCalls +
-		w.modelCalls + w.lspStateCalls + w.lspDiagCalls
+		w.modelCalls + w.lspStateCalls + w.lspDiagCalls +
+		w.jobsListCalls + w.subAgentCalls
 }
 
 func (w *countingWorkspace) resetCounters() {
@@ -142,6 +160,7 @@ func (w *countingWorkspace) resetCounters() {
 	w.queuedCalls, w.queueListCalls, w.permCalls = 0, 0, 0
 	w.permSetCalls, w.clearQueueCalls, w.cancelCalls = 0, 0, 0
 	w.modelCalls, w.lspStateCalls, w.lspDiagCalls = 0, 0, 0
+	w.jobsListCalls, w.subAgentCalls = 0, 0
 }
 
 // newBusyUI builds a UI wired to the stub workspace with an active session
@@ -169,11 +188,14 @@ func newBusyUI(ws *countingWorkspace) *UI {
 // boundary (the tests using it must not call t.Parallel).
 func pinTTLs(t *testing.T) {
 	t.Helper()
-	oldBusy, oldQueue, oldLSP := busyCacheTTL, promptQueueTTL, lspStatesTTL
+	oldBusy, oldQueue, oldLSP, oldJobs := busyCacheTTL, promptQueueTTL, lspStatesTTL, jobStatesTTL
 	busyCacheTTL = time.Hour
 	promptQueueTTL = time.Hour
 	lspStatesTTL = time.Hour
-	t.Cleanup(func() { busyCacheTTL, promptQueueTTL, lspStatesTTL = oldBusy, oldQueue, oldLSP })
+	jobStatesTTL = time.Hour
+	t.Cleanup(func() {
+		busyCacheTTL, promptQueueTTL, lspStatesTTL, jobStatesTTL = oldBusy, oldQueue, oldLSP, oldJobs
+	})
 }
 
 // warmCaches marks all memoized workspace state fresh so only explicit
@@ -198,7 +220,7 @@ func runCmds(m *UI, cmd tea.Cmd) {
 		for _, c := range msg {
 			runCmds(m, c)
 		}
-	case busyStateMsg, promptQueueMsg, agentRunSubmittedMsg, lspStatesMsg, agentModelChangedMsg:
+	case busyStateMsg, promptQueueMsg, agentRunSubmittedMsg, lspStatesMsg, agentModelChangedMsg, jobStatesMsg:
 		_, next := m.Update(msg)
 		runCmds(m, next)
 	}
@@ -764,6 +786,44 @@ func TestLSPEventRefreshIsOffThreadAndDeduped(t *testing.T) {
 	require.Equal(t, 2, m.lspDiagnostics["gopls"].Error, "fetched severity counts must land in the cache")
 	require.Equal(t, 3, m.lspErrorCount())
 	require.Equal(t, 2, ws.lspStateCalls, "one fetch plus the queued re-fetch")
+}
+
+// TestJobEventRefreshIsOffThreadAndDeduped mirrors
+// TestLSPEventRefreshIsOffThreadAndDeduped for the background jobs side: a
+// shell.JobEvent must not fetch jobs/sub-agent runs synchronously in
+// Update, must dedup while a fetch is in flight, and must re-dispatch a
+// queued refresh once the in-flight fetch lands.
+func TestJobEventRefreshIsOffThreadAndDeduped(t *testing.T) {
+	pinTTLs(t)
+
+	ws := &countingWorkspace{
+		ready: true,
+		jobs:  []shell.BackgroundShellInfo{{ID: "001", Command: "sleep 10"}},
+	}
+	m := newBusyUI(ws)
+	warmCaches(m, false)
+	ws.resetCounters()
+
+	_, cmd := m.Update(pubsub.Event[shell.JobEvent]{
+		Payload: shell.JobEvent{Type: shell.JobEventStarted},
+	})
+	require.Zero(t, ws.syncProbes(), "the job event handler must not probe synchronously")
+	require.True(t, m.jobsFetchInFlight, "a job event must schedule an off-thread refresh")
+
+	// A second event while the fetch is in flight queues a re-fetch instead
+	// of stacking another dispatch.
+	m.Update(pubsub.Event[shell.JobEvent]{
+		Payload: shell.JobEvent{Type: shell.JobEventCompleted},
+	})
+	require.Zero(t, ws.syncProbes())
+	require.True(t, m.jobsRefreshQueued, "an event during an in-flight fetch must queue a re-fetch")
+
+	runCmds(m, cmd)
+	require.False(t, m.jobsFetchInFlight)
+	require.False(t, m.jobsRefreshQueued, "the queued flag must clear once the re-dispatched fetch lands")
+	require.Len(t, m.jobStates, 1, "fetched jobs must land in the cache")
+	require.Equal(t, "001", m.jobStates[0].ID)
+	require.Equal(t, 2, ws.jobsListCalls, "one fetch plus the queued re-fetch")
 }
 
 // TestRemoteYoloToggleUpdatesEditorPrompt pins the second fix: when an

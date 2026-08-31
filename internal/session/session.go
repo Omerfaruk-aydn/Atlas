@@ -67,6 +67,14 @@ type Service interface {
 	Create(ctx context.Context, title string) (Session, error)
 	CreateTitleSession(ctx context.Context, parentSessionID string) (Session, error)
 	CreateTaskSession(ctx context.Context, toolCallID, parentSessionID, title string) (Session, error)
+	// CreateChild creates a new, ordinarily-addressable session (random ID,
+	// not the fixed toolCallID/title-session IDs CreateTaskSession and
+	// CreateTitleSession use) linked to parentSessionID. Used by rewind to
+	// fork a session at a checkpoint without disturbing the original.
+	CreateChild(ctx context.Context, parentSessionID, title string) (Session, error)
+	// ListByParent returns every session whose ParentSessionID equals
+	// parentSessionID, ordered oldest first.
+	ListByParent(ctx context.Context, parentSessionID string) ([]Session, error)
 	Get(ctx context.Context, id string) (Session, error)
 	GetLast(ctx context.Context) (Session, error)
 	List(ctx context.Context) ([]Session, error)
@@ -119,6 +127,33 @@ func (s *service) CreateTaskSession(ctx context.Context, toolCallID, parentSessi
 	session := s.fromDBItem(dbSession)
 	s.Publish(pubsub.CreatedEvent, session)
 	return session, nil
+}
+
+func (s *service) CreateChild(ctx context.Context, parentSessionID, title string) (Session, error) {
+	dbSession, err := s.q.CreateSession(ctx, db.CreateSessionParams{
+		ID:              uuid.New().String(),
+		ParentSessionID: sql.NullString{String: parentSessionID, Valid: true},
+		Title:           title,
+	})
+	if err != nil {
+		return Session{}, err
+	}
+	session := s.fromDBItem(dbSession)
+	s.Publish(pubsub.CreatedEvent, session)
+	event.SessionCreated()
+	return session, nil
+}
+
+func (s *service) ListByParent(ctx context.Context, parentSessionID string) ([]Session, error) {
+	dbSessions, err := s.q.ListSessionsByParent(ctx, sql.NullString{String: parentSessionID, Valid: true})
+	if err != nil {
+		return nil, err
+	}
+	sessions := make([]Session, len(dbSessions))
+	for i, dbSession := range dbSessions {
+		sessions[i] = s.fromDBItem(dbSession)
+	}
+	return sessions, nil
 }
 
 func (s *service) CreateTitleSession(ctx context.Context, parentSessionID string) (Session, error) {

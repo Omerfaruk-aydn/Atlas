@@ -29,6 +29,26 @@ type Session struct {
 	AttachedClients  int     `json:"attached_clients"`
 }
 
+// RewindRequest is the body of a rewind request: fork the session at
+// UpToMessageID (inclusive).
+type RewindRequest struct {
+	UpToMessageID string `json:"up_to_message_id"`
+}
+
+// RewindResult is the response to a rewind request.
+type RewindResult struct {
+	Session      Session `json:"session"`
+	FilesWritten int     `json:"files_written"`
+	FilesDeleted int     `json:"files_deleted"`
+}
+
+// RewindPreview is the response to a rewind preview request: how many
+// files would be written/deleted, without anything having been applied.
+type RewindPreview struct {
+	FilesToWrite  int `json:"files_to_write"`
+	FilesToDelete int `json:"files_to_delete"`
+}
+
 // Todo represents a single todo entry on a session in the proto layer.
 type Todo struct {
 	Content    string `json:"content"`

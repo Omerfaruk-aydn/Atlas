@@ -17,6 +17,7 @@ import (
 	"github.com/charmbracelet/crush/internal/pubsub"
 	"github.com/charmbracelet/crush/internal/question"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/skills"
 )
 
@@ -36,6 +37,11 @@ func wrapEvent(ev any) *pubsub.Payload {
 				Error:           e.Payload.Error,
 				DiagnosticCount: e.Payload.DiagnosticCount,
 			},
+		})
+	case pubsub.Event[shell.JobEvent]:
+		return envelope(pubsub.PayloadTypeJobEvent, pubsub.Event[proto.JobEvent]{
+			Type:    e.Type,
+			Payload: proto.JobEvent{Type: string(e.Payload.Type)},
 		})
 	case pubsub.Event[mcp.Event]:
 		pt := mcpEventTypeToProto(e.Payload.Type)

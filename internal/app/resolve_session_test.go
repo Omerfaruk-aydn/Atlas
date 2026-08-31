@@ -36,6 +36,14 @@ func (m *mockSessionService) CreateTaskSession(context.Context, string, string, 
 	return session.Session{}, nil
 }
 
+func (m *mockSessionService) CreateChild(context.Context, string, string) (session.Session, error) {
+	return session.Session{}, nil
+}
+
+func (m *mockSessionService) ListByParent(context.Context, string) ([]session.Session, error) {
+	return nil, nil
+}
+
 func (m *mockSessionService) Get(_ context.Context, id string) (session.Session, error) {
 	for _, s := range m.sessions {
 		if s.ID == id {

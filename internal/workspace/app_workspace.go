@@ -21,6 +21,7 @@ import (
 	"github.com/charmbracelet/crush/internal/proto"
 	"github.com/charmbracelet/crush/internal/question"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/session/rewind"
 	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/skills"
 )
@@ -62,6 +63,16 @@ func (w *AppWorkspace) SaveSession(ctx context.Context, sess session.Session) (s
 
 func (w *AppWorkspace) DeleteSession(ctx context.Context, sessionID string) error {
 	return w.app.Sessions.Delete(ctx, sessionID)
+}
+
+func (w *AppWorkspace) RewindPreview(ctx context.Context, sourceSessionID, upToMessageID string) (int, int, error) {
+	svc := rewind.NewService(w.app.Sessions, w.app.Messages, w.app.History)
+	return svc.Preview(ctx, sourceSessionID, upToMessageID)
+}
+
+func (w *AppWorkspace) RewindTo(ctx context.Context, sourceSessionID, upToMessageID string) (rewind.Result, error) {
+	svc := rewind.NewService(w.app.Sessions, w.app.Messages, w.app.History)
+	return svc.ForkAt(ctx, sourceSessionID, upToMessageID)
 }
 
 func (w *AppWorkspace) CreateAgentToolSessionID(messageID, toolCallID string) string {
@@ -310,6 +321,38 @@ func (w *AppWorkspace) LSPStart(ctx context.Context, path string) {
 
 func (w *AppWorkspace) LSPStopAll(ctx context.Context) {
 	w.app.LSPManager.StopAll(ctx)
+}
+
+func (w *AppWorkspace) BackgroundJobsList() []shell.BackgroundShellInfo {
+	return shell.GetBackgroundShellManager().ListInfo()
+}
+
+func (w *AppWorkspace) BackgroundJobKill(id string) error {
+	return shell.GetBackgroundShellManager().Kill(id)
+}
+
+func (w *AppWorkspace) SubAgentRunsList(ctx context.Context, sessionID string) []SubAgentRunInfo {
+	children, err := w.app.Sessions.ListByParent(ctx, sessionID)
+	if err != nil {
+		slog.Error("Failed to list child sessions for sub-agent runs", "error", err)
+		return nil
+	}
+
+	var runs []SubAgentRunInfo
+	for _, child := range children {
+		if !w.app.Sessions.IsAgentToolSession(child.ID) {
+			continue
+		}
+		if !w.AgentIsSessionBusy(child.ID) {
+			continue
+		}
+		runs = append(runs, SubAgentRunInfo{
+			SessionID: child.ID,
+			Title:     child.Title,
+			StartedAt: time.UnixMilli(child.CreatedAt),
+		})
+	}
+	return runs
 }
 
 func (w *AppWorkspace) LSPGetStates() map[string]LSPClientInfo {

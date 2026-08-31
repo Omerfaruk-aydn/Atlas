@@ -84,7 +84,7 @@ func NewRenameTool(
 						slog.Warn("Failed to read file for version tracking", "path", path, "error", err)
 						continue
 					}
-					if _, err := files.CreateVersion(ctx, sessionID, path, string(content)); err != nil {
+					if _, err := files.CreateVersion(ctx, sessionID, path, string(content), GetMessageFromContext(ctx)); err != nil {
 						slog.Warn("Failed to create file version", "path", path, "error", err)
 					}
 				}

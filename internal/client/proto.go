@@ -815,6 +815,101 @@ func (c *Client) DeleteSession(ctx context.Context, id string, sessionID string)
 	return nil
 }
 
+// RewindPreviewSession reports how many files rewinding to upToMessageID
+// would write/delete, without applying anything.
+func (c *Client) RewindPreviewSession(ctx context.Context, id, sessionID, upToMessageID string) (*proto.RewindPreview, error) {
+	rsp, err := c.post(
+		ctx,
+		fmt.Sprintf("/workspaces/%s/sessions/%s/rewind/preview", id, sessionID),
+		nil,
+		jsonBody(proto.RewindRequest{UpToMessageID: upToMessageID}),
+		http.Header{"Content-Type": []string{"application/json"}},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to preview rewind: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to preview rewind: status code %d", rsp.StatusCode)
+	}
+	var preview proto.RewindPreview
+	if err := json.NewDecoder(rsp.Body).Decode(&preview); err != nil {
+		return nil, fmt.Errorf("failed to decode rewind preview: %w", err)
+	}
+	return &preview, nil
+}
+
+// RewindSession forks a session at a checkpoint message and restores the
+// workspace's files to their state as of that message.
+func (c *Client) RewindSession(ctx context.Context, id, sessionID, upToMessageID string) (*proto.RewindResult, error) {
+	rsp, err := c.post(
+		ctx,
+		fmt.Sprintf("/workspaces/%s/sessions/%s/rewind", id, sessionID),
+		nil,
+		jsonBody(proto.RewindRequest{UpToMessageID: upToMessageID}),
+		http.Header{"Content-Type": []string{"application/json"}},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to rewind session: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to rewind session: status code %d", rsp.StatusCode)
+	}
+	var result proto.RewindResult
+	if err := json.NewDecoder(rsp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode rewind result: %w", err)
+	}
+	return &result, nil
+}
+
+// GetJobs lists background shell jobs for a workspace.
+func (c *Client) GetJobs(ctx context.Context, id string) ([]proto.BackgroundJob, error) {
+	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/jobs", id), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get jobs: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get jobs: status code %d", rsp.StatusCode)
+	}
+	var jobs []proto.BackgroundJob
+	if err := json.NewDecoder(rsp.Body).Decode(&jobs); err != nil {
+		return nil, fmt.Errorf("failed to decode jobs: %w", err)
+	}
+	return jobs, nil
+}
+
+// KillJob terminates a background shell job.
+func (c *Client) KillJob(ctx context.Context, id, jobID string) error {
+	rsp, err := c.delete(ctx, fmt.Sprintf("/workspaces/%s/jobs/%s", id, jobID), nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to kill job: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to kill job: status code %d", rsp.StatusCode)
+	}
+	return nil
+}
+
+// GetSubAgentRuns lists in-flight sub-agent runs for a session.
+func (c *Client) GetSubAgentRuns(ctx context.Context, id, sessionID string) ([]proto.SubAgentRun, error) {
+	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/%s/subagents", id, sessionID), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get sub-agent runs: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get sub-agent runs: status code %d", rsp.StatusCode)
+	}
+	var runs []proto.SubAgentRun
+	if err := json.NewDecoder(rsp.Body).Decode(&runs); err != nil {
+		return nil, fmt.Errorf("failed to decode sub-agent runs: %w", err)
+	}
+	return runs, nil
+}
+
 // ListUserMessages retrieves user-role messages for a session as proto types.
 func (c *Client) ListUserMessages(ctx context.Context, id string, sessionID string) ([]proto.Message, error) {
 	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/%s/messages/user", id, sessionID), nil, nil)

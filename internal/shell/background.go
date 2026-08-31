@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/crush/internal/csync"
+	"github.com/charmbracelet/crush/internal/pubsub"
 )
 
 const (
@@ -50,6 +51,7 @@ type BackgroundShell struct {
 	Description string
 	Shell       *Shell
 	WorkingDir  string
+	StartedAt   time.Time
 	ctx         context.Context
 	cancel      context.CancelFunc
 	stdout      *syncBuffer
@@ -61,6 +63,7 @@ type BackgroundShell struct {
 
 // BackgroundShellManager manages background shell instances.
 type BackgroundShellManager struct {
+	*pubsub.Broker[JobEvent]
 	shells *csync.Map[string, *BackgroundShell]
 }
 
@@ -73,6 +76,7 @@ var (
 // newBackgroundShellManager creates a new BackgroundShellManager instance.
 func newBackgroundShellManager() *BackgroundShellManager {
 	return &BackgroundShellManager{
+		Broker: pubsub.NewBroker[JobEvent](),
 		shells: csync.NewMap[string, *BackgroundShell](),
 	}
 }
@@ -106,6 +110,7 @@ func (m *BackgroundShellManager) Start(ctx context.Context, workingDir string, b
 		Command:     command,
 		Description: description,
 		WorkingDir:  workingDir,
+		StartedAt:   time.Now(),
 		Shell:       shell,
 		ctx:         shellCtx,
 		cancel:      cancel,
@@ -115,14 +120,18 @@ func (m *BackgroundShellManager) Start(ctx context.Context, workingDir string, b
 	}
 
 	m.shells.Set(id, bgShell)
+	m.Publish(pubsub.UpdatedEvent, JobEvent{Type: JobEventStarted, Info: bgShell.info()})
 
 	go func() {
-		defer close(bgShell.done)
-
 		err := shell.ExecStream(shellCtx, command, bgShell.stdout, bgShell.stderr)
 
 		bgShell.exitErr = err
 		bgShell.completedAt.Store(time.Now().Unix())
+		// Close done (which IsDone/info rely on) before publishing, so the
+		// completion event's snapshot correctly reports Done/Status instead
+		// of a still-running snapshot racing the channel close.
+		close(bgShell.done)
+		m.Publish(pubsub.UpdatedEvent, JobEvent{Type: JobEventCompleted, Info: bgShell.info()})
 	}()
 
 	return bgShell, nil
@@ -155,11 +164,59 @@ func (m *BackgroundShellManager) Kill(id string) error {
 	return nil
 }
 
-// BackgroundShellInfo contains information about a background shell.
+// JobStatus is the current lifecycle state of a background shell.
+type JobStatus string
+
+const (
+	JobStatusRunning JobStatus = "running"
+	JobStatusDone    JobStatus = "done"
+	JobStatusFailed  JobStatus = "failed"
+	JobStatusKilled  JobStatus = "killed"
+)
+
+// BackgroundShellInfo is a point-in-time snapshot of a background shell,
+// safe to pass around without exposing the shell's internal output buffers.
 type BackgroundShellInfo struct {
 	ID          string
 	Command     string
 	Description string
+	WorkingDir  string
+	StartedAt   time.Time
+	Done        bool
+	Status      JobStatus
+	ExitErr     string
+}
+
+// info builds the current point-in-time snapshot for bs.
+func (bs *BackgroundShell) info() BackgroundShellInfo {
+	done := bs.IsDone()
+	status := JobStatusRunning
+	exitErr := ""
+	if done {
+		switch {
+		case bs.exitErr == nil:
+			status = JobStatusDone
+		case bs.ctx.Err() != nil:
+			// The shell's own context was canceled (Kill), rather than the
+			// command failing on its own — report it as killed instead of
+			// failed even though ExecStream also returns a non-nil error
+			// in that case.
+			status = JobStatusKilled
+		default:
+			status = JobStatusFailed
+			exitErr = bs.exitErr.Error()
+		}
+	}
+	return BackgroundShellInfo{
+		ID:          bs.ID,
+		Command:     bs.Command,
+		Description: bs.Description,
+		WorkingDir:  bs.WorkingDir,
+		StartedAt:   bs.StartedAt,
+		Done:        done,
+		Status:      status,
+		ExitErr:     exitErr,
+	}
 }
 
 // List returns all background shell IDs.
@@ -169,6 +226,16 @@ func (m *BackgroundShellManager) List() []string {
 		ids = append(ids, id)
 	}
 	return ids
+}
+
+// ListInfo returns a point-in-time snapshot of every tracked background
+// shell, running or completed (until Cleanup evicts it).
+func (m *BackgroundShellManager) ListInfo() []BackgroundShellInfo {
+	infos := make([]BackgroundShellInfo, 0, m.shells.Len())
+	for shell := range m.shells.Seq() {
+		infos = append(infos, shell.info())
+	}
+	return infos
 }
 
 // Cleanup removes completed jobs that have been finished for more than the retention period

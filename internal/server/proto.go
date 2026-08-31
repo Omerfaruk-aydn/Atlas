@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/charmbracelet/crush/internal/backend"
 	"github.com/charmbracelet/crush/internal/proto"
@@ -388,6 +389,98 @@ func (c *controllerV1) handleGetWorkspaceLSPDiagnostics(w http.ResponseWriter, r
 	jsonEncode(w, diagnostics)
 }
 
+// handleGetWorkspaceJobs lists background shell jobs for a workspace.
+//
+//	@Summary		List background jobs
+//	@Tags			jobs
+//	@Produce		json
+//	@Param			id	path		string	true	"Workspace ID"
+//	@Success		200	{array}		proto.BackgroundJob
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/jobs [get]
+func (c *controllerV1) handleGetWorkspaceJobs(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	jobs, err := c.backend.ListBackgroundJobs(id)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	result := make([]proto.BackgroundJob, len(jobs))
+	for i, j := range jobs {
+		result[i] = proto.BackgroundJob{
+			ID:          j.ID,
+			Command:     j.Command,
+			Description: j.Description,
+			WorkingDir:  j.WorkingDir,
+			StartedAt:   j.StartedAt,
+			Done:        j.Done,
+			Status:      string(j.Status),
+			ExitErr:     j.ExitErr,
+		}
+	}
+	jsonEncode(w, result)
+}
+
+// handleDeleteWorkspaceJob kills a background shell job.
+//
+//	@Summary		Kill background job
+//	@Tags			jobs
+//	@Param			id	path	string	true	"Workspace ID"
+//	@Param			jid	path	string	true	"Job ID"
+//	@Success		200
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/jobs/{jid} [delete]
+func (c *controllerV1) handleDeleteWorkspaceJob(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	jid := r.PathValue("jid")
+	if err := c.backend.KillBackgroundJob(id, jid); err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// handleGetWorkspaceSessionSubAgents lists in-flight sub-agent runs for a
+// session.
+//
+//	@Summary		List sub-agent runs for session
+//	@Tags			sessions
+//	@Produce		json
+//	@Param			id	path		string	true	"Workspace ID"
+//	@Param			sid	path		string	true	"Session ID"
+//	@Success		200	{array}		proto.SubAgentRun
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/sessions/{sid}/subagents [get]
+func (c *controllerV1) handleGetWorkspaceSessionSubAgents(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	sid := r.PathValue("sid")
+	children, err := c.backend.ListChildSessions(r.Context(), id, sid)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	ws, _ := c.backend.GetWorkspace(id)
+
+	var runs []proto.SubAgentRun
+	for _, child := range children {
+		if ws == nil || ws.Sessions == nil || !ws.Sessions.IsAgentToolSession(child.ID) {
+			continue
+		}
+		if !isSessionBusy(ws, child.ID) {
+			continue
+		}
+		runs = append(runs, proto.SubAgentRun{
+			SessionID: child.ID,
+			Title:     child.Title,
+			StartedAt: time.UnixMilli(child.CreatedAt),
+		})
+	}
+	jsonEncode(w, runs)
+}
+
 // handleGetWorkspaceSessions lists sessions for a workspace.
 //
 //	@Summary		List sessions
@@ -574,6 +667,88 @@ func (c *controllerV1) handleDeleteWorkspaceSession(w http.ResponseWriter, r *ht
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+// handlePostWorkspaceSessionRewindPreview reports how many files a rewind
+// would write/delete, without applying anything.
+//
+//	@Summary		Preview a session rewind
+//	@Tags			sessions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string					true	"Workspace ID"
+//	@Param			sid		path		string					true	"Session ID"
+//	@Param			request	body		proto.RewindRequest		true	"Rewind target"
+//	@Success		200		{object}	proto.RewindPreview
+//	@Failure		400		{object}	proto.Error
+//	@Failure		404		{object}	proto.Error
+//	@Failure		500		{object}	proto.Error
+//	@Router			/workspaces/{id}/sessions/{sid}/rewind/preview [post]
+func (c *controllerV1) handlePostWorkspaceSessionRewindPreview(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	sid := r.PathValue("sid")
+
+	var req proto.RewindRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.server.logError(r, "Failed to decode request", "error", err)
+		jsonError(w, http.StatusBadRequest, "failed to decode request")
+		return
+	}
+	if req.UpToMessageID == "" {
+		jsonError(w, http.StatusBadRequest, "up_to_message_id is required")
+		return
+	}
+
+	written, deleted, err := c.backend.RewindPreviewSession(r.Context(), id, sid, req.UpToMessageID)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+
+	jsonEncode(w, proto.RewindPreview{FilesToWrite: written, FilesToDelete: deleted})
+}
+
+// handlePostWorkspaceSessionRewind forks a session at a checkpoint message
+// and restores the workspace's files to their state as of that message.
+//
+//	@Summary		Rewind session
+//	@Tags			sessions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string					true	"Workspace ID"
+//	@Param			sid		path		string					true	"Session ID"
+//	@Param			request	body		proto.RewindRequest		true	"Rewind target"
+//	@Success		200		{object}	proto.RewindResult
+//	@Failure		400		{object}	proto.Error
+//	@Failure		404		{object}	proto.Error
+//	@Failure		500		{object}	proto.Error
+//	@Router			/workspaces/{id}/sessions/{sid}/rewind [post]
+func (c *controllerV1) handlePostWorkspaceSessionRewind(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	sid := r.PathValue("sid")
+
+	var req proto.RewindRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.server.logError(r, "Failed to decode request", "error", err)
+		jsonError(w, http.StatusBadRequest, "failed to decode request")
+		return
+	}
+	if req.UpToMessageID == "" {
+		jsonError(w, http.StatusBadRequest, "up_to_message_id is required")
+		return
+	}
+
+	result, err := c.backend.RewindSession(r.Context(), id, sid, req.UpToMessageID)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+
+	jsonEncode(w, proto.RewindResult{
+		Session:      sessionToProto(result.Session),
+		FilesWritten: result.FilesWritten,
+		FilesDeleted: result.FilesDeleted,
+	})
 }
 
 // handleGetWorkspaceSessionUserMessages returns user messages for a session.

@@ -218,13 +218,14 @@ func processMultiEditWithCreation(edit editContext, params MultiEditParams, call
 		return fantasy.ToolResponse{}, fmt.Errorf("failed to write file: %w", err)
 	}
 
-	// Update file history
-	_, err = edit.files.Create(edit.ctx, sessionID, params.FilePath, "")
+	// Update file history. This is a brand-new file, not a pre-chat
+	// baseline, so tag it with the current message.
+	_, err = edit.files.Create(edit.ctx, sessionID, params.FilePath, "", GetMessageFromContext(edit.ctx))
 	if err != nil {
 		return fantasy.ToolResponse{}, fmt.Errorf("error creating file history: %w", err)
 	}
 
-	_, err = edit.files.CreateVersion(edit.ctx, sessionID, params.FilePath, currentContent)
+	_, err = edit.files.CreateVersion(edit.ctx, sessionID, params.FilePath, currentContent, GetMessageFromContext(edit.ctx))
 	if err != nil {
 		slog.Error("Error creating file history version", "error", err)
 	}

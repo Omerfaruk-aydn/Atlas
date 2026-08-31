@@ -165,15 +165,17 @@ func createNewFile(edit editContext, filePath, content string, call fantasy.Tool
 		return fantasy.ToolResponse{}, fmt.Errorf("failed to write file: %w", err)
 	}
 
-	// File can't be in the history so we create a new file history
-	_, err = edit.files.Create(edit.ctx, sessionID, filePath, "")
+	// File can't be in the history so we create a new file history. This is
+	// a brand-new file (createNewFile), not a pre-chat baseline, so tag it
+	// with the current message rather than leaving it message-less.
+	_, err = edit.files.Create(edit.ctx, sessionID, filePath, "", GetMessageFromContext(edit.ctx))
 	if err != nil {
 		// Log error but don't fail the operation
 		return fantasy.ToolResponse{}, fmt.Errorf("error creating file history: %w", err)
 	}
 
 	// Add the new content to the file history
-	_, err = edit.files.CreateVersion(edit.ctx, sessionID, filePath, content)
+	_, err = edit.files.CreateVersion(edit.ctx, sessionID, filePath, content, GetMessageFromContext(edit.ctx))
 	if err != nil {
 		// Log error but don't fail the operation
 		slog.Error("Error creating file history version", "error", err)
@@ -250,18 +252,23 @@ func commitFileChange(edit editContext, sessionID, filePath, oldContent, newCont
 
 	file, err := edit.files.GetByPathAndSession(edit.ctx, filePath, sessionID)
 	if err != nil {
-		_, err = edit.files.Create(edit.ctx, sessionID, filePath, oldContent)
+		// Genuine pre-chat baseline: oldContent is what was actually on
+		// disk before this edit, so leave it message-less.
+		_, err = edit.files.Create(edit.ctx, sessionID, filePath, oldContent, "")
 		if err != nil {
 			return fmt.Errorf("error creating file history: %w", err)
 		}
 	}
 	if file.Content != oldContent {
-		// User manually changed the content; store an intermediate version.
-		if _, err := edit.files.CreateVersion(edit.ctx, sessionID, filePath, oldContent); err != nil {
+		// User manually changed the content outside of chat; store an
+		// intermediate version with no message association, since it
+		// reflects drift that predates this tool call rather than content
+		// this message produced.
+		if _, err := edit.files.CreateVersion(edit.ctx, sessionID, filePath, oldContent, ""); err != nil {
 			slog.Error("Error creating file history version", "error", err)
 		}
 	}
-	if _, err := edit.files.CreateVersion(edit.ctx, sessionID, filePath, newContent); err != nil {
+	if _, err := edit.files.CreateVersion(edit.ctx, sessionID, filePath, newContent, GetMessageFromContext(edit.ctx)); err != nil {
 		slog.Error("Error creating file history version", "error", err)
 	}
 

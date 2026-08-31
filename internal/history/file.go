@@ -21,17 +21,34 @@ type File struct {
 	Path      string
 	Content   string
 	Version   int64
+	MessageID string
 	CreatedAt int64
 	UpdatedAt int64
+}
+
+// ResolvedFile is one path's resolved-as-of-a-message content, as computed
+// by ResolveAsOf. Content == nil means the path did not exist yet as of the
+// target message and should be deleted when applying the resolution.
+type ResolvedFile struct {
+	Path    string
+	Content *string
 }
 
 // Service manages file versions and history for sessions.
 type Service interface {
 	pubsub.Subscriber[File]
-	Create(ctx context.Context, sessionID, path, content string) (File, error)
+	// Create records a file's version-0 content. Pass an empty messageID
+	// for a genuine pre-chat baseline (the file already existed on disk
+	// before this session touched it) so ResolveAsOf can fall back to it;
+	// pass the current message ID when this call is a placeholder for a
+	// brand-new file the tool is about to create, so ResolveAsOf does not
+	// mistake it for a baseline that predates the file's existence.
+	Create(ctx context.Context, sessionID, path, content, messageID string) (File, error)
 
-	// CreateVersion creates a new version of a file.
-	CreateVersion(ctx context.Context, sessionID, path, content string) (File, error)
+	// CreateVersion creates a new version of a file, produced by messageID.
+	// messageID may be empty if there is no associated message (e.g. a
+	// caller outside the normal chat flow).
+	CreateVersion(ctx context.Context, sessionID, path, content, messageID string) (File, error)
 
 	Get(ctx context.Context, id string) (File, error)
 	GetByPathAndSession(ctx context.Context, path, sessionID string) (File, error)
@@ -39,6 +56,19 @@ type Service interface {
 	ListLatestSessionFiles(ctx context.Context, sessionID string) ([]File, error)
 	Delete(ctx context.Context, id string) error
 	DeleteSessionFiles(ctx context.Context, sessionID string) error
+
+	// ResolveAsOf computes, for every path this session has touched, the
+	// file content as of the target message (inclusive). messageIDsUpToTarget
+	// must be the ordered set of every message ID in the session at or
+	// before the target message; history has no message-ordering knowledge
+	// of its own, so callers (message.Service) own that ordering.
+	//
+	// For each path, the version with the highest Version number whose
+	// MessageID is in messageIDsUpToTarget wins. If none qualifies, the
+	// version-0 baseline (no MessageID) is used if one exists. If neither
+	// exists, the path did not exist as of the target message and is
+	// reported with Content == nil (caller should delete it).
+	ResolveAsOf(ctx context.Context, sessionID string, messageIDsUpToTarget []string) ([]ResolvedFile, error)
 }
 
 type service struct {
@@ -55,14 +85,14 @@ func NewService(q *db.Queries, db *sql.DB) Service {
 	}
 }
 
-func (s *service) Create(ctx context.Context, sessionID, path, content string) (File, error) {
-	return s.createWithVersion(ctx, sessionID, path, content, InitialVersion)
+func (s *service) Create(ctx context.Context, sessionID, path, content, messageID string) (File, error) {
+	return s.createWithVersion(ctx, sessionID, path, content, messageID, InitialVersion)
 }
 
 // CreateVersion creates a new version of a file with auto-incremented version
 // number. If no previous versions exist for the path, it creates the initial
 // version. The provided content is stored as the new version.
-func (s *service) CreateVersion(ctx context.Context, sessionID, path, content string) (File, error) {
+func (s *service) CreateVersion(ctx context.Context, sessionID, path, content, messageID string) (File, error) {
 	// Get the latest version for this path
 	files, err := s.q.ListFilesByPath(ctx, path)
 	if err != nil {
@@ -71,17 +101,17 @@ func (s *service) CreateVersion(ctx context.Context, sessionID, path, content st
 
 	if len(files) == 0 {
 		// No previous versions, create initial
-		return s.Create(ctx, sessionID, path, content)
+		return s.createWithVersion(ctx, sessionID, path, content, messageID, InitialVersion)
 	}
 
 	// Get the latest version
 	latestFile := files[0] // Files are ordered by version DESC, created_at DESC
 	nextVersion := latestFile.Version + 1
 
-	return s.createWithVersion(ctx, sessionID, path, content, nextVersion)
+	return s.createWithVersion(ctx, sessionID, path, content, messageID, nextVersion)
 }
 
-func (s *service) createWithVersion(ctx context.Context, sessionID, path, content string, version int64) (File, error) {
+func (s *service) createWithVersion(ctx context.Context, sessionID, path, content, messageID string, version int64) (File, error) {
 	// Maximum number of retries for transaction conflicts
 	const maxRetries = 3
 	var file File
@@ -105,6 +135,7 @@ func (s *service) createWithVersion(ctx context.Context, sessionID, path, conten
 			Path:      path,
 			Content:   content,
 			Version:   version,
+			MessageID: sql.NullString{String: messageID, Valid: messageID != ""},
 		})
 		if txErr != nil {
 			// Rollback the transaction
@@ -211,7 +242,66 @@ func (s *service) fromDBItem(item db.File) File {
 		Path:      item.Path,
 		Content:   item.Content,
 		Version:   item.Version,
+		MessageID: item.MessageID.String,
 		CreatedAt: item.CreatedAt,
 		UpdatedAt: item.UpdatedAt,
 	}
+}
+
+// ResolveAsOf implements Service.ResolveAsOf. See the interface doc for the
+// exact selection semantics.
+func (s *service) ResolveAsOf(ctx context.Context, sessionID string, messageIDsUpToTarget []string) ([]ResolvedFile, error) {
+	files, err := s.ListBySession(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+
+	allowed := make(map[string]struct{}, len(messageIDsUpToTarget))
+	for _, id := range messageIDsUpToTarget {
+		allowed[id] = struct{}{}
+	}
+
+	// ListBySession is ordered version ASC, created_at ASC. Within each path
+	// group we track the highest-version qualifying entry (message_id in
+	// allowed) and, separately, the baseline (version 0, no message_id) as a
+	// fallback. Because versions are visited ascending, the last qualifying
+	// entry seen is always the highest-version one, so a plain overwrite is
+	// correct; a qualifying entry always outranks the baseline regardless of
+	// visit order.
+	type resolution struct {
+		qualifying *string
+		baseline   *string
+	}
+	byPath := make(map[string]*resolution)
+	order := make([]string, 0)
+
+	for _, f := range files {
+		r, ok := byPath[f.Path]
+		if !ok {
+			r = &resolution{}
+			byPath[f.Path] = r
+			order = append(order, f.Path)
+		}
+
+		content := f.Content
+		if _, qualifies := allowed[f.MessageID]; qualifies {
+			r.qualifying = &content
+		} else if f.Version == InitialVersion && f.MessageID == "" {
+			r.baseline = &content
+		}
+	}
+
+	resolved := make([]ResolvedFile, 0, len(order))
+	for _, path := range order {
+		r := byPath[path]
+		switch {
+		case r.qualifying != nil:
+			resolved = append(resolved, ResolvedFile{Path: path, Content: r.qualifying})
+		case r.baseline != nil:
+			resolved = append(resolved, ResolvedFile{Path: path, Content: r.baseline})
+		default:
+			resolved = append(resolved, ResolvedFile{Path: path, Content: nil})
+		}
+	}
+	return resolved, nil
 }

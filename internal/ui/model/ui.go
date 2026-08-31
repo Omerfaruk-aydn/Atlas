@@ -45,6 +45,7 @@ import (
 	"github.com/charmbracelet/crush/internal/pubsub"
 	"github.com/charmbracelet/crush/internal/question"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/shell"
 	"github.com/charmbracelet/crush/internal/skills"
 	"github.com/charmbracelet/crush/internal/stringext"
 	"github.com/charmbracelet/crush/internal/ui/anim"
@@ -292,6 +293,24 @@ type UI struct {
 	// still lands.
 	lspRefreshQueued bool
 	lspCheckedAt     time.Time
+
+	// jobStates / subAgentRuns memoize running background shell jobs and
+	// in-flight sub-agent runs for the current session, shown in the
+	// sidebar's "Jobs" section. shell.JobEvent (background shells) and
+	// session-created events (sub-agent task sessions) refresh them
+	// off-thread with a TTL backstop; see background_jobs.go.
+	jobStates         []shell.BackgroundShellInfo
+	subAgentRuns      []workspace.SubAgentRunInfo
+	jobsFetchInFlight bool
+	jobsRefreshQueued bool
+	jobsCheckedAt     time.Time
+
+	// previousSessionID holds the session the user was on before jumping
+	// into another session's view (e.g. a running sub-agent, via the jobs
+	// dialog). Ctrl+Shift+B jumps back to it and clears it; entering a new
+	// "detour" session overwrites it rather than stacking, so back always
+	// returns to the last place the user was deliberately reading.
+	previousSessionID string
 
 	// mcp
 	mcpStates map[string]mcp.ClientInfo
@@ -734,6 +753,10 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd := m.applyLSPStates(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case jobStatesMsg:
+		if cmd := m.applyJobStates(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case agentModelChangedMsg:
 		// The coordinator model changed (selection, thinking, reasoning):
 		// re-fetch the memoized ready/model state off-thread.
@@ -777,6 +800,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 		}
 		cmds = append(cmds, m.startLSPs(msg.lspFilePaths()))
+		// Sub-agent runs are session-scoped; re-fetch for the newly loaded
+		// session instead of showing the previous session's runs.
+		if cmd := m.requestJobsRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 		msgs, err := m.com.Workspace.ListMessages(context.Background(), m.session.ID)
 		if err != nil {
 			cmds = append(cmds, util.ReportError(err))
@@ -860,6 +888,15 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.dialog.CloseFrontDialog()
 
 	case pubsub.Event[session.Session]:
+		if msg.Type == pubsub.CreatedEvent && m.session != nil && msg.Payload.ParentSessionID == m.session.ID {
+			// A child session (sub-agent task session) started under the
+			// current session: refresh the jobs sidebar. Completion isn't
+			// its own event; the TTL backstop in requestJobsRefresh's
+			// dispatch picks that up within a few seconds.
+			if cmd := m.requestJobsRefresh(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
 		if msg.Type == pubsub.DeletedEvent {
 			if m.session != nil && m.session.ID == msg.Payload.ID {
 				if cmd := m.newSession(); cmd != nil {
@@ -942,6 +979,19 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// synchronous HTTP round-trip in client/server mode and diagnostics
 		// events can arrive per edited file.
 		if cmd := m.requestLSPRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case pubsub.Event[shell.JobEvent]:
+		// Local path: shell.JobEvent is bridged directly onto app.events
+		// (no app-level wrapper type needed, unlike LSP, since the
+		// background shell manager is already a clean global broker).
+		if cmd := m.requestJobsRefresh(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case pubsub.Event[workspace.JobsEvent]:
+		// Remote path: the server forwards shell.JobEvent as
+		// workspace.JobsEvent over SSE.
+		if cmd := m.requestJobsRefresh(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
 	case pubsub.Event[workspace.LSPEvent]:
@@ -1916,7 +1966,25 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	// Session dialog messages.
 	case dialog.ActionSelectSession:
 		m.dialog.CloseDialog(dialog.SessionsID)
+		m.previousSessionID = ""
 		cmds = append(cmds, m.loadSession(msg.Session.ID))
+
+	// Jobs dialog: jump into a running sub-agent's session to watch it live.
+	case dialog.ActionViewSession:
+		m.dialog.CloseDialog(dialog.JobsID)
+		if m.hasSession() && m.session.ID != msg.SessionID {
+			m.previousSessionID = m.session.ID
+		}
+		cmds = append(cmds, m.loadSession(msg.SessionID))
+
+	// Rewind dialog messages.
+	case dialog.ActionRewindApplied:
+		m.dialog.CloseDialog(dialog.RewindID)
+		cmds = append(cmds, m.loadSession(msg.Result.Session.ID))
+		cmds = append(cmds, util.ReportInfo(fmt.Sprintf(
+			"Rewound: %d file(s) restored, %d deleted",
+			msg.Result.FilesWritten, msg.Result.FilesDeleted,
+		)))
 
 	// Open dialog message.
 	case dialog.ActionOpenDialog:
@@ -2497,6 +2565,19 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			mode := m.cyclePermissionMode()
 			cmds = append(cmds, util.ReportInfo("Permission mode: "+permissionModeLabel(mode)))
 			return true
+		case key.Matches(msg, m.keyMap.Rewind):
+			if cmd := m.openRewindDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return true
+		case key.Matches(msg, m.keyMap.BackToSession):
+			if m.previousSessionID == "" {
+				return true
+			}
+			target := m.previousSessionID
+			m.previousSessionID = ""
+			cmds = append(cmds, m.loadSession(target))
+			return true
 		}
 		return false
 	}
@@ -2937,6 +3018,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				m.sidebarScrollbarVisible = false
 				cmds = append(cmds, m.textarea.Focus())
 				m.chat.Blur()
+			case key.Matches(msg, m.keyMap.Jobs):
+				if cmd := m.openJobsDialog(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 			default:
 				handleGlobalKeys(msg)
 			}
@@ -3313,9 +3398,13 @@ func (m *UI) FullHelp() [][]key.Binding {
 			k.Sessions,
 			k.ToggleYolo,
 			k.CyclePermissionMode,
+			k.Rewind,
 		)
 		if hasSession {
 			mainBinds = append(mainBinds, k.Chat.NewSession, k.Chat.EndFollow)
+		}
+		if m.previousSessionID != "" {
+			mainBinds = append(mainBinds, k.BackToSession)
 		}
 
 		binds = append(binds, mainBinds)
@@ -4514,6 +4603,14 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		if cmd := m.openQuitDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.RewindID:
+		if cmd := m.openRewindDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.JobsID:
+		if cmd := m.openJobsDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	default:
 		// Unknown dialog
 		break
@@ -4628,6 +4725,38 @@ func (m *UI) openSessionsDialog() tea.Cmd {
 	}
 
 	m.dialog.OpenDialog(dialog)
+	return nil
+}
+
+// openRewindDialog opens the rewind checkpoint dialog for the current
+// session.
+func (m *UI) openRewindDialog() tea.Cmd {
+	if !m.hasSession() {
+		return util.ReportWarn("No active session to rewind")
+	}
+	if m.dialog.ContainsDialog(dialog.RewindID) {
+		m.dialog.BringToFront(dialog.RewindID)
+		return nil
+	}
+
+	dlg, err := dialog.NewRewind(m.com, m.session.ID, m.session.Title)
+	if err != nil {
+		return util.ReportError(err)
+	}
+
+	m.dialog.OpenDialog(dlg)
+	return nil
+}
+
+// openJobsDialog opens the background jobs/sub-agent runs dialog, built
+// from the already-memoized state (see background_jobs.go) rather than
+// probing the workspace synchronously.
+func (m *UI) openJobsDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.JobsID) {
+		m.dialog.BringToFront(dialog.JobsID)
+		return nil
+	}
+	m.dialog.OpenDialog(dialog.NewJobs(m.com, m.jobStates, m.subAgentRuns))
 	return nil
 }
 
@@ -5152,14 +5281,15 @@ func (m *UI) drawSessionDetails(scr uv.Screen, area uv.Rectangle) {
 	remainingHeight := height - lipgloss.Height(detailsHeader) - lipgloss.Height(version)
 
 	const maxSectionWidth = 50
-	sectionWidth := max(1, min(maxSectionWidth, width/4-2)) // account for spacing between sections
+	sectionWidth := max(1, min(maxSectionWidth, width/5-2)) // account for spacing between sections
 	maxItemsPerSection := remainingHeight - 3               // Account for section title and spacing
 
 	lspSection := m.lspInfo(sectionWidth, maxItemsPerSection, false)
 	mcpSection := m.mcpInfo(sectionWidth, maxItemsPerSection, false)
 	skillsSection := m.skillsInfo(sectionWidth, maxItemsPerSection, false)
 	filesSection := m.filesInfo(m.com.Workspace.WorkingDir(), sectionWidth, maxItemsPerSection, false)
-	sections := lipgloss.JoinHorizontal(lipgloss.Top, filesSection, " ", lspSection, " ", mcpSection, " ", skillsSection)
+	jobsSection := m.jobsInfo(sectionWidth, maxItemsPerSection, false)
+	sections := lipgloss.JoinHorizontal(lipgloss.Top, filesSection, " ", jobsSection, " ", lspSection, " ", mcpSection, " ", skillsSection)
 	uv.NewStyledString(
 		s.CompactDetails.View.
 			Width(area.Dx()).

@@ -152,7 +152,7 @@ func NewReplaceSymbolTool(
 			}
 
 			if files != nil && sessionID != "" {
-				if _, err := files.CreateVersion(ctx, sessionID, params.FilePath, string(content)); err != nil {
+				if _, err := files.CreateVersion(ctx, sessionID, params.FilePath, string(content), GetMessageFromContext(ctx)); err != nil {
 					slog.Warn("Failed to create file version before replace", "path", params.FilePath, "error", err)
 				}
 			}

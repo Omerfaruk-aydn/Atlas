@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/crush/internal/message"
 	"github.com/charmbracelet/crush/internal/proto"
 	"github.com/charmbracelet/crush/internal/session"
+	"github.com/charmbracelet/crush/internal/session/rewind"
 )
 
 // CreateSession creates a new session in the given workspace.
@@ -109,6 +110,30 @@ func (b *Backend) DeleteSession(ctx context.Context, workspaceID, sessionID stri
 	}
 
 	return ws.Sessions.Delete(ctx, sessionID)
+}
+
+// RewindPreviewSession reports how many files rewinding sourceSessionID to
+// upToMessageID would write/delete, without applying anything.
+func (b *Backend) RewindPreviewSession(ctx context.Context, workspaceID, sourceSessionID, upToMessageID string) (int, int, error) {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	svc := rewind.NewService(ws.Sessions, ws.Messages, ws.History)
+	return svc.Preview(ctx, sourceSessionID, upToMessageID)
+}
+
+// RewindSession forks sourceSessionID at upToMessageID (inclusive) and
+// restores the workspace's files to their state as of that message.
+func (b *Backend) RewindSession(ctx context.Context, workspaceID, sourceSessionID, upToMessageID string) (rewind.Result, error) {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return rewind.Result{}, err
+	}
+
+	svc := rewind.NewService(ws.Sessions, ws.Messages, ws.History)
+	return svc.ForkAt(ctx, sourceSessionID, upToMessageID)
 }
 
 // ListUserMessages returns user-role messages for a session.
