@@ -1,0 +1,68 @@
+name: Release NPM
+
+# Triggered by the Release workflow completing successfully. Publishes the
+# wrapper package @atlas-coder/atlas-agent to npmjs with the version that
+# matches the release tag.
+#
+# Setup required:
+#   - secrets.NPM_TOKEN must be set in repo settings (publish automation token
+#     with bypass-2fa enabled; classic or granular with "Publish packages").
+
+on:
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish @atlas-coder/atlas-agent
+    runs-on: ubuntu-latest
+    # Only publish when the Release workflow succeeded and produced a real
+    # release (the Release job posts a release with a non-empty tag_name).
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Resolve release version
+        id: version
+        run: |
+          set -euo pipefail
+          TAG=$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/releases/latest" \
+            | jq -r .tag_name)
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "::error::No release tag found"
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version $VERSION from tag $TAG"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sync package.json version
+        working-directory: npm/cli
+        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Verify package contents
+        working-directory: npm/cli
+        run: |
+          echo "--- npm pack --dry-run ---"
+          npm pack --dry-run
+          echo "--- package.json ---"
+          cat package.json
+
+      - name: Publish to npmjs
+        working-directory: npm/cli
+        run: npm publish --access public --provenance=false
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
