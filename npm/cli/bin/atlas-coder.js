@@ -10,7 +10,7 @@ function binaryPath() {
   const platform = PLATFORM_MAP[process.platform] || process.platform;
   const arch = process.arch;
   const ext = process.platform === 'win32' ? '.exe' : '';
-  const name = `atlas-coder-${platform}-${arch}${ext}`;
+  const name = `atlas-agent-${platform}-${arch}${ext}`;
   return path.join(__dirname, '..', 'bin', name);
 }
 

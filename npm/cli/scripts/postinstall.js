@@ -9,7 +9,7 @@ const PLATFORM_MAP = { win32: 'windows', darwin: 'darwin', linux: 'linux' };
 const platform = PLATFORM_MAP[process.platform] || process.platform;
 const arch = process.arch; // 'x64' | 'arm64'
 const ext = process.platform === 'win32' ? '.exe' : '';
-const assetName = `atlas-coder-${platform}-${arch}${ext}`;
+const assetName = `atlas-agent-${platform}-${arch}${ext}`;
 
 const REPO = 'Omerfaruk-aydn/Atlas-Agent';
 const VERSION = require('../package.json').version;

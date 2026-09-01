@@ -6,7 +6,7 @@ Atlas Agent — terminal-first AI coding assistant.
 
 ```bash
 npm install -g @atlas-coder/atlas-agent
-atlas-coder
+atlas-agent
 ```
 
 On install, the matching native binary for your OS/arch is downloaded from the
@@ -16,11 +16,11 @@ matches this package version.
 ## Usage
 
 ```bash
-atlas-coder                  # interactive mode
-atlas-coder run "your task"  # non-interactive
-atlas-coder --help           # CLI help
-atlas-coder models           # list models
-atlas-coder dirs             # show config paths
+atlas-agent                  # interactive mode
+atlas-agent run "your task"  # non-interactive
+atlas-agent --help           # CLI help
+atlas-agent models           # list models
+atlas-agent dirs             # show config paths
 ```
 
 ## Supported platforms
