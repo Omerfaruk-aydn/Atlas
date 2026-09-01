@@ -1,15 +1,11 @@
-# Atlas
+# ATLAS-AGENT
 
-<p align="center">
-    <a href="https://stuff.charm.sh/crush/charm-crush.png"><img width="450" alt="Atlas Logo" src="https://github.com/user-attachments/assets/cf8ca3ce-8b02-43f0-9d0f-5a331488da4b" /></a><br />
-    <a href="https://github.com/charmbracelet/crush/releases"><img src="https://img.shields.io/github/release/charmbracelet/crush" alt="Latest Release"></a>
-    <a href="https://github.com/charmbracelet/crush/actions"><img src="https://github.com/charmbracelet/crush/actions/workflows/build.yml/badge.svg" alt="Build Status"></a>
-</p>
+<p align="center">A terminal-first AI assistant for software development.<br />Your tools, your code, and your workflows, wired into your LLM of choice.</p>
 
-<p align="center">Your new coding bestie, now available in your favourite terminal.<br />Your tools, your code, and your workflows, wired into your LLM of choice.</p>
-<p align="center">终端里的编程新搭档，<br />无缝接入你的工具、代码与工作流，全面兼容主流 LLM 模型。</p>
-
-<p align="center"><img width="800" alt="Atlas Demo" src="https://github.com/user-attachments/assets/58280caf-851b-470a-b6f7-d5c4ea8a1968" /></p>
+> [!NOTE]
+> ATLAS-AGENT is a fork of [Crush][crush] by [Charm](https://charm.land),
+> rebranded and modified. The design and the engine are theirs; anything
+> broken here belongs to this fork. See [License](#license).
 
 ## Features
 
@@ -18,176 +14,50 @@
 - **Session-Based:** maintain multiple work sessions and contexts per project
 - **LSP-Enhanced:** Atlas uses LSPs for additional context, just like you do
 - **Extensible:** add capabilities via MCPs (`http`, `stdio`, and `sse`)
-- **Works Everywhere:** first-class support in every terminal on macOS, Linux, Windows (PowerShell and WSL), Android, FreeBSD, OpenBSD, and NetBSD
-- **Industrial Grade:** built on the Charm ecosystem, powering 25k+ applications, from leading open source projects to business-critical infrastructure
+- **Works Everywhere:** macOS, Linux, Windows (PowerShell and WSL), Android, FreeBSD, OpenBSD, and NetBSD
 
 ## Installation
 
-Use a package manager:
+This fork publishes nothing: no Homebrew tap, no npm package, no winget entry,
+no release binaries. Build it from source. You need Go 1.26 or newer.
 
 ```bash
-# Homebrew
-brew install charmbracelet/tap/crush
-
-# NPM
-npm install -g @charmland/crush
-
-# Arch Linux (btw)
-yay -S crush-bin
-
-# Nix
-nix run github:numtide/nix-ai-tools#crush
-
-# FreeBSD
-pkg install crush
+git clone https://github.com/Omerfaruk-aydn/Atlas-Agent
+cd Atlas-Agent
+go build -o atlas .
 ```
 
-Windows users:
+On Windows, `go build -o atlas.exe .`. Then put the binary somewhere on your
+`PATH`.
+
+`go install` does not work yet. The Go module is still declared as
+`github.com/charmbracelet/crush`, which does not match this repository's
+address, so the module path has to be renamed before that command can resolve.
+
+On Oracle Solaris, add `-tags sqlite3_dotlk` so the local database uses
+dot-file locking:
 
 ```bash
-# Winget
-winget install charmbracelet.crush
-
-# Scoop
-scoop bucket add charm https://github.com/charmbracelet/scoop-bucket.git
-scoop install crush
+go build -tags sqlite3_dotlk -o atlas .
 ```
 
-<details>
-<summary><strong>Nix (NUR)</strong></summary>
+On illumos (OpenIndiana, OmniOS) the plain build works. Only native OS
+notifications are unavailable there; terminal notifications (OSC) and the
+terminal bell still work.
 
-Atlas is available via the official Charm [NUR](https://github.com/nix-community/NUR) in `nur.repos.charmbracelet.crush`, which is the most up-to-date way to get Atlas in Nix.
-
-You can also try out Atlas via the NUR with `nix-shell`:
-
-```bash
-# Add the NUR channel.
-nix-channel --add https://github.com/nix-community/NUR/archive/main.tar.gz nur
-nix-channel --update
-
-# Get Atlas in a Nix shell.
-nix-shell -p '(import <nur> { pkgs = import <nixpkgs> {}; }).repos.charmbracelet.crush'
-```
-
-### NixOS & Home Manager Module Usage via NUR
-
-Atlas provides NixOS and Home Manager modules via NUR.
-You can use these modules directly in your flake by importing them from NUR. Since it auto detects whether its a home manager or nixos context you can use the import the exact same way :)
-
-```nix
-{
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nur.url = "github:nix-community/NUR";
-  };
-
-  outputs = { self, nixpkgs, nur, ... }: {
-    nixosConfigurations.your-hostname = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        nur.modules.nixos.default
-        nur.repos.charmbracelet.modules.crush
-        {
-          programs.crush = {
-            enable = true;
-            settings = {
-              providers = {
-                openai = {
-                  id = "openai";
-                  name = "OpenAI";
-                  base_url = "https://api.openai.com/v1";
-                  type = "openai";
-                  api_key = "sk-fake123456789abcdef...";
-                  models = [
-                    {
-                      id = "gpt-4";
-                      name = "GPT-4";
-                    }
-                  ];
-                };
-              };
-              lsp = {
-                go = { command = "gopls"; enabled = true; };
-                nix = { command = "nil"; enabled = true; };
-              };
-              options = {
-                context_paths = [ "/etc/nixos/configuration.nix" ];
-                tui = { compact_mode = true; };
-                debug = false;
-              };
-            };
-          };
-        }
-      ];
-    };
-  };
-}
-```
-
-</details>
-
-<details>
-<summary><strong>Debian/Ubuntu</strong></summary>
-
-```bash
-sudo mkdir -p /etc/apt/keyrings
-curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
-echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
-sudo apt update && sudo apt install crush
-```
-
-</details>
-
-<details>
-<summary><strong>Fedora/RHEL</strong></summary>
-
-```bash
-echo '[charm]
-name=Charm
-baseurl=https://repo.charm.sh/yum/
-enabled=1
-gpgcheck=1
-gpgkey=https://repo.charm.sh/yum/gpg.key' | sudo tee /etc/yum.repos.d/charm.repo
-sudo yum install crush
-```
-
-</details>
-
-Or, download it:
-
-- [Packages][releases] are available in Debian and RPM formats
-- [Binaries][releases] are available for Linux, macOS, Windows, FreeBSD, OpenBSD, and NetBSD
-
-[releases]: https://github.com/charmbracelet/crush/releases
-
-Or just install it with Go:
-
-```
-go install github.com/charmbracelet/crush@latest
-```
-
-On illumos (OpenIndiana, OmniOS), the command above works as-is. Only native
-OS notifications are unavailable there; terminal-based notifications (OSC) and
-the terminal bell still work. On Oracle Solaris, add `-tags sqlite3_dotlk` so
-the local database uses dot-file locking:
-
-```
-go install -tags sqlite3_dotlk github.com/charmbracelet/crush@latest
-```
-
-> [!WARNING]
-> Productivity may increase when using Atlas and you may find yourself nerd
-> sniped when first using the application. If the symptoms persist, join the
-> [Slack][slack] or [Discord][discord] and nerd snipe the rest of us.
+Upstream Crush *is* packaged, for every platform listed above. If you want the
+original rather than this fork, [get it there][crush].
 
 ## Getting Started
 
-The quickest way to get started is to choose a [Hyper][hyper] model from model
-picker. Follow the steps to authenticate and you'll be good to go.
+The quickest way to get started is to pick a provider you already have an API
+key for: press <kbd>ctrl+l</kbd> to open the model picker, choose it, and paste
+the key.
 
-[Hyper], from Charm, is the official Atlas provider. It’s subscription-based,
-with a free tier, and optimized for Atlas. It’s privacy focused, with zero data
-retention (ZDR) is and designed to comply with GDPR. [More on Hyper][hyper].
+[Hyper][hyper] is Charm's own provider, built for upstream Crush and reachable
+from here unchanged. It’s subscription-based with a free tier, privacy focused,
+with zero data retention (ZDR) and designed to comply with GDPR. [More on
+Hyper][hyper].
 
 <p><a href="https://hyper.charm.land"><img width="340" height="200" alt="Charm Hyper" src="https://github.com/user-attachments/assets/50875289-7992-454d-9f14-9f790413fb5e" /></a></p>
 
@@ -240,7 +110,10 @@ Also note that Atlas can support nearly any provider, including
 
 Is there a provider you’d like to see in Atlas? Is there an existing model that needs an update?
 
-Atlas’s default model listing is managed in [Catwalk](https://github.com/charmbracelet/catwalk), a community-supported, open source repository of Atlas-compatible models, and you’re welcome to contribute.
+The default model listing comes from [Catwalk](https://github.com/charmbracelet/catwalk),
+Charm’s community-supported, open source catalogue of provider and model
+definitions. This fork uses it unchanged, so a model added there shows up here
+too — contributions go to Catwalk, not to this repository.
 
 <a href="https://github.com/charmbracelet/catwalk"><img width="174" height="174" alt="Catwalk Badge" src="https://github.com/user-attachments/assets/95b49515-fe82-4409-b10d-5beb0873787d" /></a>
 
@@ -325,6 +198,27 @@ Both `atlasrc` and `atlas.json` are trusted code; `atlasrc` runs in a full
 shell, and any `$(...)` in `atlas.json` runs at load time. Don't launch Atlas
 in a directory whose config you haven't reviewed, and don't randomly `source`
 files from the internet into your config.
+
+### Names from before the rebrand
+
+This program was called Crush before it was renamed, and an installation made
+back then holds files under that name. Both spellings are read, everywhere:
+
+| What           | Current                     | Also read                   |
+| -------------- | --------------------------- | --------------------------- |
+| Shell config   | `atlasrc`, `.atlasrc`       | `crushrc`, `.crushrc`       |
+| JSON config    | `atlas.json`, `.atlas.json` | `crush.json`, `.crush.json` |
+| Data directory | `.atlas/`                   | `.crush/`                   |
+| Database       | `atlas.db`                  | `crush.db`                  |
+| Log file       | `atlas.log`                 | `crush.log`                 |
+| Context file   | `ATLAS.md`                  | `CRUSH.md`                  |
+| Ignore file    | `.atlasignore`              | `.crushignore`              |
+| Environment    | `ATLAS_*`                   | `CRUSH_*`                   |
+
+The rule is the same in every case: the current name wins when it is present,
+the old name is used when it is the only one there, and anything created from
+scratch gets the current name. Nothing is moved or rewritten, so an installation
+predating the rename keeps its config, sessions, and database where they are.
 
 ### Environment Variables
 
@@ -676,10 +570,10 @@ option attribution-generated-with true
 
 - `trailer_style`: Controls the attribution trailer added to commit messages
   (default: `assisted-by`)
-  - `assisted-by`: Adds `Assisted-by: Atlas:[ModelID]` as specified in [the convention](https://docs.kernel.org/process/coding-assistants.html#attribution)
-  - `co-authored-by`: Adds `Co-Authored-By: Atlas <atlas@charm.land>`
+  - `assisted-by`: Adds `Assisted-by: ATLAS-AGENT:[ModelID]` as specified in [the convention](https://docs.kernel.org/process/coding-assistants.html#attribution)
+  - `co-authored-by`: Adds `Co-Authored-By: ATLAS-AGENT <noreply@atlas-agent.local>`
   - `none`: No attribution trailer
-- `generated_with`: When true (default), adds `💘 Generated with Atlas` line to
+- `generated_with`: When true (default), adds `💘 Generated with ATLAS-AGENT` line to
   commit messages and PR descriptions
 
 ### Custom Providers
@@ -936,23 +830,28 @@ atlas update-providers --help
 
 ## Metrics
 
-Atlas records pseudonymous usage metrics (tied to a device-specific hash),
-which maintainers rely on to inform development and support priorities. The
+> [!IMPORTANT]
+> This fork has not touched upstream's telemetry. Metrics still go to Charm's
+> endpoint (`data.charm.land`) under the analytics key compiled into the
+> binary — they reach Charm, not this fork's author. Opt out below, or delete
+> `internal/event` if you would rather it not be there at all.
+
+Atlas records pseudonymous usage metrics, tied to a device-specific hash. The
 metrics include solely usage metadata; prompts and responses are NEVER
 collected.
 
-Details on exactly what’s collected are in the source code ([here](https://github.com/charmbracelet/crush/tree/main/internal/event)
-and [here](https://github.com/charmbracelet/crush/blob/main/internal/llm/agent/event.go)).
+Details on exactly what’s collected are in the source:
+[`internal/event`](./internal/event).
 
-You can opt out of metrics collection at any time by setting the environment
-variable by setting the following in your environment:
+You can opt out at any time by setting:
 
 ```bash
 export ATLAS_DISABLE_METRICS=1
 ```
 
-Atlas also respects the [`DO_NOT_TRACK`](https://donottrack.sh/) convention
-which can be enabled via `export DO_NOT_TRACK=1`.
+`CRUSH_DISABLE_METRICS=1` is honoured too. Atlas also respects the
+[`DO_NOT_TRACK`](https://donottrack.sh/) convention, enabled with
+`export DO_NOT_TRACK=1`.
 
 ## Q&A
 
@@ -969,30 +868,20 @@ Installing an extra tool might be needed on Unix-like environments.
 
 ## Contributing
 
-See the [contributing guide](https://github.com/charmbracelet/crush?tab=contributing-ov-file#contributing).
+Issues and pull requests for this fork go to
+[Omerfaruk-aydn/Atlas-Agent](https://github.com/Omerfaruk-aydn/Atlas-Agent/issues).
 
-## Whatcha think?
-
-We’d love to hear your thoughts on this project. Need help? We gotchu. You can find us on:
-
-- [Twitter](https://twitter.com/charmcli)
-- [Slack][slack]
-- [Discord][discord]
-- [The Fediverse](https://mastodon.social/@charmcli)
-- [Bluesky](https://bsky.app/profile/charm.land)
-
-[slack]: https://charm.land/slack
-[discord]: https://charm.land/discord
+Anything that is really an upstream matter — a bug in the engine, a provider
+that needs adding, a model definition — belongs with [Crush][crush] or
+[Catwalk](https://github.com/charmbracelet/catwalk), where it will help
+everyone rather than just this fork.
 
 ## License
 
-[FSL-1.1-MIT](https://github.com/charmbracelet/crush/raw/main/LICENSE.md)
+[FSL-1.1-MIT](./LICENSE.md), inherited from upstream.
 
----
+ATLAS-AGENT is a fork of [Crush][crush] by [Charm](https://charm.land), used
+under that license. Crush, Charm, Catwalk, Hyper, and the Charm logo belong to
+Charm; this project is not affiliated with or endorsed by them.
 
-Part of [Charm](https://charm.land).
-
-<a href="https://charm.land/"><img alt="The Charm logo" width="400" src="https://stuff.charm.sh/charm-banner-softy.jpg" /></a>
-
-<!--prettier-ignore-->
-Charm热爱开源 • Charm loves open source
+[crush]: https://github.com/charmbracelet/crush
