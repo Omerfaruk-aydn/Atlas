@@ -1,8 +1,8 @@
 ﻿package backend
 
 import (
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 )
 
 // GrantPermission grants, denies, or persistently grants a permission

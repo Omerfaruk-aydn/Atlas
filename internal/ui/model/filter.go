@@ -3,8 +3,8 @@
 import (
 	"time"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 )
 
 // inputFilterInterval targets roughly one filtered sample per 60 Hz frame.

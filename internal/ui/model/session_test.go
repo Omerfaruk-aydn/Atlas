@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/history"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 

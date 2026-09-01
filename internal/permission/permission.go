@@ -7,8 +7,8 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/csync"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/google/uuid"
 )
 

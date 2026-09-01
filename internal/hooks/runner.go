@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 )
 
 // abandonGrace is how long runOne waits after ctx cancellation for the

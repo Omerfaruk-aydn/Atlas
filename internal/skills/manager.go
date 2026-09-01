@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 )
 
 // Manager owns per-workspace skill discovery state: the latest discovery

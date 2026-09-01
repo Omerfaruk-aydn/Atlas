@@ -1,8 +1,8 @@
 ﻿package backend
 
 import (
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/question"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
 )
 
 // AnswerQuestion submits answers for a question. The returned bool

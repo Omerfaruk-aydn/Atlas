@@ -3,7 +3,7 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/hooks"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
 	"github.com/stretchr/testify/require"
 )
 

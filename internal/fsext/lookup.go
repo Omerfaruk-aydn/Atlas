@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 )
 
 // Lookup searches for a target files or directories starting from dir

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 )
 
 //go:embed web_search.md.tpl

@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/agent/hyper"
-	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/hyper"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

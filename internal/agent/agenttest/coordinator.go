@@ -8,13 +8,13 @@ package agenttest
 import (
 	"context"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/openaicompat"
-	"github.com/maincodss/atlas-agent/internal/agent"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/openaicompat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 )
 
 // NewCoordinator builds a real agent.Coordinator through the production

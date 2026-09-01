@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/agent/tools"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 )
 
 // QuestionToolMessageItem renders question tool calls in the chat.

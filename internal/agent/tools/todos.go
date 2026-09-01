@@ -5,8 +5,8 @@ import (
 	_ "embed"
 	"fmt"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 )
 
 //go:embed todos.md

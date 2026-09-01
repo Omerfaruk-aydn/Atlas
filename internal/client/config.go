@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/oauth"
-	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 )
 
 // SetConfigField sets a config key/value pair on the server.

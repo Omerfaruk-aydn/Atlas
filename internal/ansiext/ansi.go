@@ -3,7 +3,7 @@ package ansiext
 import (
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 )
 
 // Escape replaces control characters with their Unicode Control Picture

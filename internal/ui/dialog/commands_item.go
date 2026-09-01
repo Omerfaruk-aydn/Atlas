@@ -3,10 +3,10 @@
 import (
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/list"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 	"github.com/sahilm/fuzzy"
 )
 

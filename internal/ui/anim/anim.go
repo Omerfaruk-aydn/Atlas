@@ -11,11 +11,11 @@ import (
 
 	"github.com/zeebo/xxh3"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
 	"github.com/lucasb-eyer/go-colorful"
 
-	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 )
 
 const (

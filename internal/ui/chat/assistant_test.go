@@ -3,9 +3,9 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 	"github.com/stretchr/testify/require"
 )
 

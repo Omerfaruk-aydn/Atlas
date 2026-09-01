@@ -13,11 +13,11 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 // ListWorkspaces retrieves all workspaces from the server.

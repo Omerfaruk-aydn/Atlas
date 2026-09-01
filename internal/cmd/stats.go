@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/db"
-	"github.com/maincodss/atlas-agent/internal/event"
-	"github.com/maincodss/atlas-agent/internal/projects"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/projects"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )

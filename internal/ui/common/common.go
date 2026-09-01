@@ -5,13 +5,13 @@ import (
 	"image"
 	"os"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/clipboard"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/ui/util"
-	"github.com/maincodss/atlas-agent/internal/workspace"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 // MaxAttachmentSize defines the maximum allowed size for file attachments (5 MB).

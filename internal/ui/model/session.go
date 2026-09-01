@@ -8,16 +8,16 @@ import (
 	"slices"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/diff"
-	"github.com/maincodss/atlas-agent/internal/fsext"
-	"github.com/maincodss/atlas-agent/internal/history"
-	"github.com/maincodss/atlas-agent/internal/session"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/ui/util"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/diff"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 )
 
 // loadSessionMsg is a message indicating that a session and its files have

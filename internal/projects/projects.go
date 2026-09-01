@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 )
 
 const projectsFileName = "projects.json"

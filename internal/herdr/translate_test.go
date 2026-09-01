@@ -3,11 +3,11 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/agent/notify"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/stretchr/testify/assert"
 )
 

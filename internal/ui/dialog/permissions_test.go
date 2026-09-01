@@ -3,10 +3,10 @@
 import (
 	"testing"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 

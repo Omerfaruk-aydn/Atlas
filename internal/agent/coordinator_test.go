@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/anthropic"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/bedrock"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/openaicompat"
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/anthropic"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/bedrock"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/openaicompat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -3,10 +3,10 @@
 import (
 	"context"
 
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/session"
-	"github.com/maincodss/atlas-agent/internal/session/rewind"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/rewind"
 )
 
 // CreateSession creates a new session in the given workspace.

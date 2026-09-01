@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/backend"
-	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/backend"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

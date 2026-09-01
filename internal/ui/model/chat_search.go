@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/dialog"
-	"github.com/maincodss/atlas-agent/internal/ui/util"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 )
 
 // resetChatSearch clears search state, e.g. when a different session loads.

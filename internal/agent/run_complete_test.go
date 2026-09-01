@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/agent/notify"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 

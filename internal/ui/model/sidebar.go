@@ -6,14 +6,14 @@ import (
 	"image"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	mcp "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/logo"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet/layout"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	mcp "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet/layout"
 )
 
 // gitStatusLine renders the branch/ahead-behind/changed-file readout shown

@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

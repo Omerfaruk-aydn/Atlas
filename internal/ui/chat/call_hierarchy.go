@@ -3,9 +3,9 @@
 import (
 	"encoding/json"
 
-	"github.com/maincodss/atlas-agent/internal/agent/tools"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // CallHierarchyToolMessageItem is a message item that represents a call hierarchy tool call.

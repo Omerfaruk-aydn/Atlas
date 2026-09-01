@@ -3,12 +3,12 @@
 import (
 	"testing"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/question"
-	"github.com/maincodss/atlas-agent/internal/ui/attachments"
-	"github.com/maincodss/atlas-agent/internal/ui/dialog"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/attachments"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 	"github.com/stretchr/testify/require"
 )
 

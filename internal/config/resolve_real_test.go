@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/env"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/stretchr/testify/require"
 )
 

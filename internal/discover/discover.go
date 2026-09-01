@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
 )
 
 // httpClient is shared across all discovery and enrichment calls. It

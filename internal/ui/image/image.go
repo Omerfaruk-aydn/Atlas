@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/util"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi/kitty"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi/kitty"
 	"github.com/disintegration/imaging"
 )
 

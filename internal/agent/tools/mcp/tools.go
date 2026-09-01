@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

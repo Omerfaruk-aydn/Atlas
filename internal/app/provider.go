@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	xstrings "github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/strings"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/strings"
 )
 
 // parseModelStr parses a model string into provider filter and model ID.

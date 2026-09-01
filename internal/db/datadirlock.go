@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/maincodss/atlas-agent/internal/appenv"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/lock"
-	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 )
 
 // ErrDataDirLocked is returned by Connect when the data directory is

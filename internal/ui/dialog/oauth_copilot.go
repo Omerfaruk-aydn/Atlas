@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/oauth/copilot"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 )
 
 func NewOAuthCopilot(

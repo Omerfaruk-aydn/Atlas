@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 )
 
 const (

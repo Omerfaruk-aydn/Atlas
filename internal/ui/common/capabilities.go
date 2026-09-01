@@ -4,13 +4,13 @@ import (
 	"slices"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/colorprofile"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
-	xstrings "github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/strings"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/colorprofile"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/strings"
 
-	"github.com/maincodss/atlas-agent/internal/ui/notification"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/notification"
 )
 
 // Capabilities define different terminal capabilities supported.

@@ -5,9 +5,9 @@ import (
 	"errors"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 
 // Workspace represents a running app.App workspace with its associated

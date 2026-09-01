@@ -1,9 +1,9 @@
 ﻿package dialog
 
 import (
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 // InlineEditor is the interface for components that replace the

@@ -6,7 +6,7 @@
 //	@contact.name	Atlas
 //	@contact.url	https://charm.sh
 //	@license.name	MIT
-//	@license.url	https://github.com/maincodss/atlas-agent/blob/main/LICENSE
+//	@license.url	https://github.com/Omerfaruk-aydn/Atlas-Agent/blob/main/LICENSE
 //	@BasePath		/v1
 package main
 
@@ -16,8 +16,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	"github.com/maincodss/atlas-agent/internal/cmd"
-	_ "github.com/maincodss/atlas-agent/internal/dns"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/cmd"
+	_ "github.com/Omerfaruk-aydn/Atlas-Agent/internal/dns"
 	_ "github.com/joho/godotenv/autoload"
 )
 

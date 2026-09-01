@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
 
-	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 )
 
 // promptHistoryLoadedMsg is sent when prompt history is loaded.

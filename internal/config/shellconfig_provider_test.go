@@ -4,8 +4,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

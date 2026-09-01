@@ -3,8 +3,8 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/chat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
 	"github.com/stretchr/testify/require"
 )
 

@@ -13,11 +13,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/csync"
-	"github.com/maincodss/atlas-agent/internal/fsext"
-	powernapconfig "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/config"
-	powernap "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
+	powernapconfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/config"
+	powernap "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp"
 	"github.com/sourcegraph/jsonrpc2"
 )
 

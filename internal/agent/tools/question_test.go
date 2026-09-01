@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/question"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
 	"github.com/stretchr/testify/require"
 )
 

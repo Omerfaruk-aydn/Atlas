@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/require"

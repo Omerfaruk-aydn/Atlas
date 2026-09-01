@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 
 const LSPRestartToolName = "lsp_restart"

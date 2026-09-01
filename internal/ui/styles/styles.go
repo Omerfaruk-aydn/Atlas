@@ -9,15 +9,15 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/filepicker"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
-	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2/ansi"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/filepicker"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/help"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/textarea"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/textinput"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/glamour/v2/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/diffview"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 const (

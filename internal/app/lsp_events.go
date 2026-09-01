@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/csync"
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 )
 
 // LSPEventType represents the type of LSP event

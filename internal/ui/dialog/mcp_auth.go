@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/spinner"
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/help"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/spinner"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	mcptools "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 	"github.com/pkg/browser"
 )
 

@@ -1,7 +1,7 @@
 ﻿package shell
 
 import (
-	"github.com/maincodss/atlas-agent/internal/appenv"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"runtime"
 	"strconv"
 )

@@ -16,12 +16,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/filepathext"
-	"github.com/maincodss/atlas-agent/internal/filetracker"
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 )
 
 //go:embed view.md.tpl

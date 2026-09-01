@@ -4,10 +4,10 @@ import (
 	"image/color"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/glamour/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/maincodss/atlas-agent/internal/ui/xchroma"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
 )
 
 const formatterName = "atlas-agent"

@@ -5,11 +5,11 @@ import (
 	"os"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/db"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/list"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // BenchmarkResizeSession reproduces the resize re-render path over a real

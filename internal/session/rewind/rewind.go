@@ -10,9 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/maincodss/atlas-agent/internal/history"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 )
 
 // Result is what ForkAt produced: the new session plus a summary of the

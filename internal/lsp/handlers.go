@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"github.com/maincodss/atlas-agent/internal/lsp/util"
-	powernap "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp/util"
+	powernap "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 // HandleWorkspaceConfiguration handles workspace configuration requests

@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/session/rewind"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/list"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/help"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/rewind"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 // RewindID is the identifier for the rewind checkpoint dialog.

@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 )
 
 var namedArgPattern = regexp.MustCompile(`\$([A-Z][A-Z0-9_]*)`)

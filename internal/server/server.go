@@ -13,9 +13,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/backend"
-	"github.com/maincodss/atlas-agent/internal/config"
-	_ "github.com/maincodss/atlas-agent/internal/swagger"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/backend"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	_ "github.com/Omerfaruk-aydn/Atlas-Agent/internal/swagger"
 	httpswagger "github.com/swaggo/http-swagger/v2"
 )
 

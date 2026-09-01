@@ -10,15 +10,15 @@ import (
 	"strconv"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/anim"
-	"github.com/maincodss/atlas-agent/internal/ui/attachments"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	fimage "github.com/maincodss/atlas-agent/internal/ui/image"
-	"github.com/maincodss/atlas-agent/internal/ui/list"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/attachments"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	fimage "github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/image"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // skillInvocation represents the XML structure for a loaded skill.

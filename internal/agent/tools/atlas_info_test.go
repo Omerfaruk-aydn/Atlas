@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/csync"
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

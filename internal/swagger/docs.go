@@ -15,7 +15,7 @@ const docTemplate = `{
         },
         "license": {
             "name": "MIT",
-            "url": "https://github.com/maincodss/atlas-agent/blob/main/LICENSE"
+            "url": "https://github.com/Omerfaruk-aydn/Atlas-Agent/blob/main/LICENSE"
         },
         "version": "{{.Version}}"
     },

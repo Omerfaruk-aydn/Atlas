@@ -7,7 +7,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 )
 
 // reinitAction describes how to reconcile one MCP server against the

@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/client"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )

@@ -12,9 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 type ReferencesParams struct {

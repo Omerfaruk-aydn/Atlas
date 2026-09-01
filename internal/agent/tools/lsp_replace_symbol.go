@@ -8,12 +8,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/filetracker"
-	"github.com/maincodss/atlas-agent/internal/history"
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 type ReplaceSymbolParams struct {

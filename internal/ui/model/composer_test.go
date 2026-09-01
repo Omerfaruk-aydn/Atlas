@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/stretchr/testify/require"
 )
 

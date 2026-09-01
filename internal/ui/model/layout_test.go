@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/session"
-	"github.com/maincodss/atlas-agent/internal/ui/chat"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/textarea"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 // testMessageItem is a minimal chat item used to populate the chat list

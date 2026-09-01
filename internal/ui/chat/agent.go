@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"strings"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/tree"
-	"github.com/maincodss/atlas-agent/internal/agent"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/ui/anim"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2/tree"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // -----------------------------------------------------------------------------

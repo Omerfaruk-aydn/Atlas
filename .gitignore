@@ -13,7 +13,6 @@
 
 # Dependency directories
 vendor/
-internal/deps/
 
 # Temp migration scripts
 _*.js

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/aymanbagabas/go-udiff"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/golden"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/golden"
 )
 
 func TestUdiff(t *testing.T) {

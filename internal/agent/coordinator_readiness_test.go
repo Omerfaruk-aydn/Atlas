@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/agent/prompt"
-	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/maincodss/atlas-agent/internal/ui/diffview"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/golden"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/golden"
 )
 
 //go:embed testdata/TestDefault.before

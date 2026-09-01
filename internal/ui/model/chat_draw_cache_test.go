@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/ui/chat"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 	"github.com/stretchr/testify/require"
 )
 

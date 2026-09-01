@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
 )
 
 // gitStatusTTL bounds how long the memoized git status may go without a

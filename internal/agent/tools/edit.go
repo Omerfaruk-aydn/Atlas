@@ -11,15 +11,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/diff"
-	"github.com/maincodss/atlas-agent/internal/filepathext"
-	"github.com/maincodss/atlas-agent/internal/filetracker"
-	"github.com/maincodss/atlas-agent/internal/fsext"
-	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/diff"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 
-	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 )
 
 type EditParams struct {

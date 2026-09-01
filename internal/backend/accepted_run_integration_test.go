@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/agent"
-	"github.com/maincodss/atlas-agent/internal/agent/agenttest"
-	"github.com/maincodss/atlas-agent/internal/db"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/agenttest"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/stretchr/testify/require"
 )
 

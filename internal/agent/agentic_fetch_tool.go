@@ -9,11 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 
-	"github.com/maincodss/atlas-agent/internal/agent/prompt"
-	"github.com/maincodss/atlas-agent/internal/agent/tools"
-	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 )
 
 //go:embed templates/agentic_fetch.md

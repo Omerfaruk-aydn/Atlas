@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/diffdetect"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/diffdetect"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 type parsedDiffFile struct {

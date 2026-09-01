@@ -4,8 +4,8 @@ import (
 	"context"
 	_ "embed"
 
-	"github.com/maincodss/atlas-agent/internal/agent/prompt"
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 )
 
 //go:embed templates/coder.md.tpl

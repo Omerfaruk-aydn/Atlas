@@ -1,6 +1,6 @@
 ﻿package model
 
-import "github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+import "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
 
 type KeyMap struct {
 	Editor struct {

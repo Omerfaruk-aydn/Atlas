@@ -5,13 +5,13 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/agent/notify"
-	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
-	"github.com/maincodss/atlas-agent/internal/app"
-	"github.com/maincodss/atlas-agent/internal/message"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

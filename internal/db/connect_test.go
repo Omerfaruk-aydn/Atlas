@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/lock"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	"github.com/stretchr/testify/require"
 )
 

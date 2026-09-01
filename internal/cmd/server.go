@@ -11,10 +11,10 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	atlaslog "github.com/maincodss/atlas-agent/internal/log"
-	"github.com/maincodss/atlas-agent/internal/server"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	atlaslog "github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/server"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/term"
 	"github.com/spf13/cobra"
 )
 

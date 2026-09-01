@@ -4,11 +4,11 @@ import (
 	"context"
 	"sync"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/agent/notify"
-	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
-	"github.com/maincodss/atlas-agent/internal/question"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
 )
 
 // NewForTest constructs a minimal [App] suitable for in-process tests

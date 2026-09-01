@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"

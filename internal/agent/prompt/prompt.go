@@ -12,11 +12,11 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/filepathext"
-	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/maincodss/atlas-agent/internal/shell"
-	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 )
 
 // Prompt represents a template-based prompt generator.

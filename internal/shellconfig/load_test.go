@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/shell"
-	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/stretchr/testify/require"
 )
 

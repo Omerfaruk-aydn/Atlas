@@ -15,8 +15,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/oauth"
-	"github.com/maincodss/atlas-agent/internal/oauth/callback"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/callback"
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/oauthex"
 	"github.com/pkg/browser"

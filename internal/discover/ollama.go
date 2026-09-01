@@ -7,7 +7,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
 )
 
 func init() {

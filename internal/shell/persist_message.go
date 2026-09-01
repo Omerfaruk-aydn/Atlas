@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 )
 
 // PersistOutput stores a bang-mode shell command result as a user message.

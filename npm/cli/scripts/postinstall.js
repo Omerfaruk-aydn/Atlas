@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 // Postinstall: download the platform-specific binary from GitHub Releases.
+// Errors are printed to stderr and exit 1 so npm install surfaces them.
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -7,7 +8,7 @@ const { URL } = require('url');
 
 const PLATFORM_MAP = { win32: 'windows', darwin: 'darwin', linux: 'linux' };
 const platform = PLATFORM_MAP[process.platform] || process.platform;
-const arch = process.arch; // 'x64' | 'arm64'
+const arch = process.arch;
 const ext = process.platform === 'win32' ? '.exe' : '';
 const assetName = `atlas-agent-${platform}-${arch}${ext}`;
 
@@ -19,44 +20,51 @@ const binDir = path.join(__dirname, '..', 'bin');
 fs.mkdirSync(binDir, { recursive: true });
 const dest = path.join(binDir, assetName);
 
-function follow(url, redirectsLeft = 5) {
+function download(url, redirectsLeft) {
+  if (redirectsLeft == null) redirectsLeft = 5;
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    const req = https.get(url, { headers: { 'User-Agent': 'atlas-agent-installer' } }, (res) => {
+      // Follow redirects
       if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
-        if (redirectsLeft <= 0) return reject(new Error('too many redirects'));
-        return follow(new URL(res.headers.location).toString(), redirectsLeft - 1).then(resolve, reject);
+        if (redirectsLeft <= 0) return reject(new Error('Too many redirects for ' + url));
+        const next = res.headers.location;
+        if (!next) return reject(new Error('Redirect with no Location header'));
+        res.resume();
+        return resolve(download(new URL(next, url).toString(), redirectsLeft - 1));
       }
-      resolve(res);
-    }).on('error', reject);
+      if (res.statusCode !== 200) {
+        return reject(new Error('HTTP ' + res.statusCode + ' for ' + url));
+      }
+      const tmp = dest + '.part';
+      const out = fs.createWriteStream(tmp);
+      res.pipe(out);
+      out.on('finish', () => out.close(() => {
+        try { fs.renameSync(tmp, dest); resolve(); }
+        catch (e) { reject(e); }
+      }));
+      out.on('error', reject);
+      res.on('error', reject);
+    });
+    req.on('error', reject);
+    req.setTimeout(60000, () => { req.destroy(new Error('Download timeout (60s)')); });
   });
 }
 
-async function download() {
+(async () => {
   const url = `https://github.com/${REPO}/releases/download/${TAG}/${assetName}`;
-  console.log(`Atlas Agent postinstall: downloading ${assetName} ...`);
-  const res = await follow(url);
-  if (res.statusCode !== 200) {
-    throw new Error(`HTTP ${res.statusCode} for ${url}`);
+  console.log(`Atlas Agent postinstall: downloading ${assetName} from ${url}`);
+  await download(url);
+  if (process.platform !== 'win32') {
+    fs.chmodSync(dest, 0o755);
   }
-  const tmp = dest + '.part';
-  await new Promise((resolve, reject) => {
-    const f = fs.createWriteStream(tmp);
-    res.pipe(f);
-    f.on('finish', () => f.close(resolve));
-    f.on('error', reject);
-  });
-  fs.renameSync(tmp, dest);
-  if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
   const size = (fs.statSync(dest).size / 1024 / 1024).toFixed(1);
   console.log(`Atlas Agent postinstall: installed ${assetName} (${size} MB)`);
-}
-
-download().catch((err) => {
-  console.error(`Atlas Agent postinstall FAILED: ${err.message}`);
-  console.error('This is usually one of:');
-  console.error('  - No release yet for this version. Run:');
-  console.error(`    gh release create ${TAG} --title "${TAG}" --notes "release"`);
-  console.error('    then upload the binary as ' + assetName);
-  console.error('  - Network/registry blocked. Try again later.');
-  // Don't fail install — the launcher will print a clear error if the binary is missing.
+})().catch((err) => {
+  console.error('Atlas Agent postinstall FAILED: ' + err.message);
+  console.error('URL: https://github.com/' + REPO + '/releases/download/' + TAG + '/' + assetName);
+  console.error('You can manually download it from:');
+  console.error('  https://github.com/' + REPO + '/releases/tag/' + TAG);
+  console.error('and place it at:');
+  console.error('  ' + dest);
+  process.exit(1);
 });

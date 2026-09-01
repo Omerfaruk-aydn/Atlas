@@ -3,7 +3,7 @@
 import (
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // minThumbSize keeps the thumb from shrinking to a single cell in a long

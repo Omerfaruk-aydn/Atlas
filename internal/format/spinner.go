@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/anim"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 )
 
 // Spinner wraps the bubbles spinner for non-interactive mode

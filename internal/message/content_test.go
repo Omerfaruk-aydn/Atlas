@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 	"github.com/stretchr/testify/require"
 )
 

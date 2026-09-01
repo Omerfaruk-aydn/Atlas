@@ -9,15 +9,15 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/filepicker"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
-	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	fimage "github.com/maincodss/atlas-agent/internal/ui/image"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/filepicker"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/help"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	fimage "github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/image"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
 )
 
 // FilePickerID is the identifier for the FilePicker dialog.

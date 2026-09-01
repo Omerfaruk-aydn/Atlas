@@ -1,8 +1,8 @@
 ﻿package common
 
 import (
-	"github.com/maincodss/atlas-agent/internal/ui/diffview"
-	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // DiffFormatter returns a diff formatter with the given styles that can be

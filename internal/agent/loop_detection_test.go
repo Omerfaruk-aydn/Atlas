@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 )
 
 // makeStep creates a StepResult with the given tool calls and results in its Content.

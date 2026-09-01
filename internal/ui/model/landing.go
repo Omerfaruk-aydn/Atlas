@@ -4,11 +4,11 @@ import (
 	"image"
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/logo"
-	"github.com/maincodss/atlas-agent/internal/workspace"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet/layout"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet/layout"
 )
 
 // selectedLargeModel returns the currently selected large language model as

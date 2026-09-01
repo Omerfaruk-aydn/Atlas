@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/maincodss/atlas-agent/internal/log"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
 )
 
 var assistantRolePattern = regexp.MustCompile(`"role"\s*:\s*"assistant"`)

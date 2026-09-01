@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 )
 
 // roundedBorderRunes are chars that only appear when a pill has a visible

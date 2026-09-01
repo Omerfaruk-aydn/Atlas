@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
 )
 
 // Service defines the interface for tracking file reads in sessions.

@@ -8,7 +8,7 @@ Gemini, Bedrock, Copilot, Hyper, MiniMax, Vercel, and more), integrates with
 LSPs for code intelligence, and supports extensibility via MCP servers and
 agent skills.
 
-The module path is `github.com/maincodss/atlas-agent`.
+The module path is `github.com/Omerfaruk-aydn/Atlas-Agent`.
 
 ## Architecture
 

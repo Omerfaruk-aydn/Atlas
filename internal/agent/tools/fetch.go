@@ -11,10 +11,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 )
 
 const (

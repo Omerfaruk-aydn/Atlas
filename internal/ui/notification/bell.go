@@ -3,7 +3,7 @@
 import (
 	"log/slog"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
 )
 
 // BellBackend sends notifications by triggering the terminal bell. This is the

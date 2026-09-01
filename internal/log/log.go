@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/event"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/term"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

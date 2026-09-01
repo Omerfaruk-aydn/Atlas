@@ -3,7 +3,7 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/stretchr/testify/require"
 )
 

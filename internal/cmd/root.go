@@ -6,7 +6,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/maincodss/atlas-agent/internal/appenv"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	
 	"io"
 	"io/fs"
@@ -22,32 +22,32 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
-	fang "github.com/maincodss/atlas-agent/internal/deps/fang/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/colorprofile"
-	"github.com/maincodss/atlas-agent/internal/app"
-	"github.com/maincodss/atlas-agent/internal/client"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/db"
-	"github.com/maincodss/atlas-agent/internal/event"
-	"github.com/maincodss/atlas-agent/internal/lock"
-	atlaslog "github.com/maincodss/atlas-agent/internal/log"
-	"github.com/maincodss/atlas-agent/internal/projects"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/server"
-	"github.com/maincodss/atlas-agent/internal/session"
-	"github.com/maincodss/atlas-agent/internal/skills"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	"github.com/maincodss/atlas-agent/internal/ui/exitbanner"
-	ui "github.com/maincodss/atlas-agent/internal/ui/model"
-	"github.com/maincodss/atlas-agent/internal/version"
-	"github.com/maincodss/atlas-agent/internal/workspace"
-	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
-	xstrings "github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/strings"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	fang "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fang/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/colorprofile"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
+	atlaslog "github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/projects"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/server"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/exitbanner"
+	ui "github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/model"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/charmtone"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/strings"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/term"
 	"github.com/spf13/cobra"
 )
 
@@ -146,7 +146,7 @@ atlas --continue
 		if _, err := program.Run(); err != nil {
 			event.Error(err)
 			slog.Error("TUI run error", "error", err)
-			return errors.New("ATLAS-AGENT crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/maincodss/atlas-agent/issues/new?template=bug.yml") //nolint:staticcheck
+			return errors.New("ATLAS-AGENT crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/Omerfaruk-aydn/Atlas-Agent/issues/new?template=bug.yml") //nolint:staticcheck
 		}
 		var banner config.ExitBanner
 		if cfg := com.Config(); cfg != nil {

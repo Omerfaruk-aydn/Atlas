@@ -1,6 +1,6 @@
-module github.com/maincodss/atlas-agent
+module github.com/Omerfaruk-aydn/Atlas-Agent
 
-go 1.23
+go 1.26.6
 
 require (
 	github.com/JohannesKaufmann/html-to-markdown v1.6.0

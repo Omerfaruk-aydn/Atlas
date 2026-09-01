@@ -3,8 +3,8 @@
 import (
 	"strings"
 
-	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/glamour/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 )
 
 // streamingMarkdown caches a "stable prefix" glamour render so each

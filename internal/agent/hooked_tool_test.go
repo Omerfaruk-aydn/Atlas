@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/hooks"
-	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/stretchr/testify/require"
 )
 

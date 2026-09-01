@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/env"
-	"github.com/maincodss/atlas-agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 )
 
 // resolveTimeout bounds how long a single ResolveValue call may spend

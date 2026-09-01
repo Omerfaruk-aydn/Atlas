@@ -5,12 +5,12 @@ import (
 	"errors"
 	"os"
 
-	"github.com/maincodss/atlas-agent/internal/agent"
-	"github.com/maincodss/atlas-agent/internal/agent/notify"
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
-	"github.com/maincodss/atlas-agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 )
 
 // SendMessage validates and accepts a prompt for the workspace's agent,

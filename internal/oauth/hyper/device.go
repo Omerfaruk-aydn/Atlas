@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/agent/hyper"
-	"github.com/maincodss/atlas-agent/internal/event"
-	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/hyper"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 )
 
 // DeviceAuthResponse contains the response from the device authorization endpoint.

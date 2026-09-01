@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 )
 
 const (

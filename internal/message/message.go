@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/db"
-	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/google/uuid"
 )
 

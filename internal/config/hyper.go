@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/agent/hyper"
-	xetag "github.com/maincodss/atlas-agent/internal/deps/cb/x/etag"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/hyper"
+	xetag "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/etag"
 )
 
 type hyperClient interface {

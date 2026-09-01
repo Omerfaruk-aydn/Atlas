@@ -5,11 +5,11 @@ import (
 	_ "embed"
 	"errors"
 
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
 
-	"github.com/maincodss/atlas-agent/internal/agent/prompt"
-	"github.com/maincodss/atlas-agent/internal/agent/tools"
-	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 )
 
 //go:embed templates/agent_tool.md

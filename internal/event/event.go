@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/posthog/posthog-go"
 )
 

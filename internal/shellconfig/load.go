@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/shell"
-	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 )
 
 // loadTimeout bounds a single atlasrc execution. Config loading runs on the

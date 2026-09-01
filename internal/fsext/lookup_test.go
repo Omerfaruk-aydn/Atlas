@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/stretchr/testify/require"
 )
 

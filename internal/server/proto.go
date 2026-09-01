@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/backend"
-	"github.com/maincodss/atlas-agent/internal/proto"
-	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/backend"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/google/uuid"
 )
 

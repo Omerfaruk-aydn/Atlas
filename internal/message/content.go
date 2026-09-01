@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/anthropic"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/google"
-	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/openai"
-	"github.com/maincodss/atlas-agent/internal/stringext"
-	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/anthropic"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/google"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/openai"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/stringext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
 )
 
 type MessageRole string

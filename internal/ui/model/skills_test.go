@@ -3,10 +3,10 @@
 import (
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/maincodss/atlas-agent/internal/skills"
-	"github.com/maincodss/atlas-agent/internal/ui/common"
-	uistyles "github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	uistyles "github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 

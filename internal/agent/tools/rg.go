@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/maincodss/atlas-agent/internal/log"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
 )
 
 var getRg = sync.OnceValue(func() string {
