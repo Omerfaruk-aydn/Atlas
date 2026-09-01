@@ -1,33 +1,42 @@
-# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-
-name: goreleaser
+name: Release
 
 on:
   push:
     tags:
-      - v*.*.*
+      - 'v*'
+  workflow_dispatch:
 
-concurrency:
-  group: goreleaser
-  cancel-in-progress: true
+permissions:
+  contents: write
 
 jobs:
-  goreleaser:
-    uses: charmbracelet/meta/.github/workflows/goreleaser.yml@main
-    with:
-      go_version: "1.26.6"
-      macos_sign_entitlements: "./.github/entitlements.plist"
-    secrets:
-      docker_username: ${{ secrets.DOCKERHUB_USERNAME }}
-      docker_token: ${{ secrets.DOCKERHUB_TOKEN }}
-      gh_pat: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-      goreleaser_key: ${{ secrets.GORELEASER_KEY }}
-      fury_token: ${{ secrets.FURY_TOKEN }}
-      nfpm_gpg_key: ${{ secrets.NFPM_GPG_KEY }}
-      nfpm_passphrase: ${{ secrets.NFPM_PASSPHRASE }}
-      aur_key: ${{ secrets.AUR_KEY }}
-      macos_sign_p12: ${{ secrets.MACOS_SIGN_P12 }}
-      macos_sign_password: ${{ secrets.MACOS_SIGN_PASSWORD }}
-      macos_notary_issuer_id: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
-      macos_notary_key_id: ${{ secrets.MACOS_NOTARY_KEY_ID }}
-      macos_notary_key: ${{ secrets.MACOS_NOTARY_KEY }}
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.6'
+
+      - name: Build all platforms
+        run: |
+          mkdir -p dist
+          GOOS=windows GOARCH=amd64 go build -o dist/atlas-agent-windows-x64.exe .
+          GOOS=linux   GOARCH=amd64 go build -o dist/atlas-agent-linux-x64 .
+          GOOS=darwin  GOARCH=amd64 go build -o dist/atlas-agent-darwin-x64 .
+          GOOS=darwin  GOARCH=arm64 go build -o dist/atlas-agent-darwin-arm64 .
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            dist/atlas-agent-windows-x64.exe
+            dist/atlas-agent-linux-x64
+            dist/atlas-agent-darwin-x64
+            dist/atlas-agent-darwin-arm64
+            install.sh
+            install.ps1
