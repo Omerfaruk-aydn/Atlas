@@ -188,13 +188,13 @@ func TestBuildEnv(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, EventPreToolUse, envMap["CRUSH_EVENT"])
-	require.Equal(t, "bash", envMap["CRUSH_TOOL_NAME"])
-	require.Equal(t, "sess-1", envMap["CRUSH_SESSION_ID"])
-	require.Equal(t, "/work", envMap["CRUSH_CWD"])
-	require.Equal(t, "/project", envMap["CRUSH_PROJECT_DIR"])
-	require.Equal(t, "ls", envMap["CRUSH_TOOL_INPUT_COMMAND"])
-	require.Equal(t, "/tmp/f.txt", envMap["CRUSH_TOOL_INPUT_FILE_PATH"])
+	require.Equal(t, EventPreToolUse, envMap["ATLAS-AGENT_EVENT"])
+	require.Equal(t, "bash", envMap["ATLAS-AGENT_TOOL_NAME"])
+	require.Equal(t, "sess-1", envMap["ATLAS-AGENT_SESSION_ID"])
+	require.Equal(t, "/work", envMap["ATLAS-AGENT_CWD"])
+	require.Equal(t, "/project", envMap["ATLAS-AGENT_PROJECT_DIR"])
+	require.Equal(t, "ls", envMap["ATLAS-AGENT_TOOL_INPUT_COMMAND"])
+	require.Equal(t, "/tmp/f.txt", envMap["ATLAS-AGENT_TOOL_INPUT_FILE_PATH"])
 
 	// Shared Atlas-Agent markers must be present so hook-authored scripts can
 	// detect they're running under Atlas-Agent the same way bash-tool-invoked

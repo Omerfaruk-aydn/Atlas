@@ -207,7 +207,7 @@ back then holds files under that name. Both spellings are read, everywhere:
 | What           | Current                     | Also read                   |
 | -------------- | --------------------------- | --------------------------- |
 | Shell config   | `atlasrc`, `.atlasrc`       | `Atlas-Agentrc`, `.Atlas-Agentrc`       |
-| JSON config    | `atlas.json`, `.atlas.json` | `crush\.json`, `\.crush\b.json` |
+| JSON config    | `atlas.json`, `.atlas.json` | `atlas\.json`, `\.crush\b.json` |
 | Data directory | `.atlas/`                   | `\.crush/`                   |
 | Database       | `atlas.db`                  | `crush\.db`                  |
 | Log file       | `atlas.log`                 | `crush\.log`                 |
@@ -229,7 +229,7 @@ authentication (e.g. the AWS SDK credential chain) without wrapping the
 
 ```json
 {
-  "$schema": "https://charm.land/crush\.json",
+  "$schema": "https://charm.land/atlas\.json",
   "env": {
     "AWS_PROFILE": "my-sso-profile"
   }
@@ -655,7 +655,7 @@ credential error, Atlas runs the command, then retries the request in place
 
 ```json
 {
-  "$schema": "https://charm.land/crush\.json",
+  "$schema": "https://charm.land/atlas\.json",
   "env": {
     "AWS_PROFILE": "my-sso-profile"
   },

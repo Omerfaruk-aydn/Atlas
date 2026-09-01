@@ -38,8 +38,8 @@ func TestModelSelectionSurvivesPeerWrite(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "atlas.json")
 
-	t.Setenv("CRUSH_GLOBAL_CONFIG", dir)
-	t.Setenv("CRUSH_GLOBAL_DATA", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
 	resetProviderState()
 	t.Cleanup(resetProviderState)
 
@@ -75,8 +75,8 @@ func TestModelSelectionYieldsToDiskWhenUnchosen(t *testing.T) {
 	dir := t.TempDir()
 	configPath := filepath.Join(dir, "atlas.json")
 
-	t.Setenv("CRUSH_GLOBAL_CONFIG", dir)
-	t.Setenv("CRUSH_GLOBAL_DATA", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
 	resetProviderState()
 	t.Cleanup(resetProviderState)
 

@@ -1,11 +1,11 @@
 ﻿---
 name: atlas-hooks
-description: Use when the user wants to add, write, debug, or configure an ATLAS-AGENT hook — gating or blocking tool calls, approving or rewriting tool input before execution, injecting context into tool results, or troubleshooting hook behavior in crush\.json.
+description: Use when the user wants to add, write, debug, or configure an ATLAS-AGENT hook — gating or blocking tool calls, approving or rewriting tool input before execution, injecting context into tool results, or troubleshooting hook behavior in atlas\.json.
 ---
 
 # ATLAS-AGENT Hooks
 
-Hooks are user-defined commands in `crush\.json` that fire at specific points
+Hooks are user-defined commands in `atlas\.json` that fire at specific points
 during execution, giving deterministic control over tool behavior. They run
 **before** permission checks and **only on the top-level agent's** tool calls —
 sub-agent calls (task tool, agentic_fetch, etc.) are not intercepted, though
@@ -187,7 +187,7 @@ preserved.
 
 1. Add `#!/usr/bin/env bash` and `set -euo pipefail` (for shell scripts).
 2. `chmod +x` the script.
-3. Add the entry under `hooks.PreToolUse` in `crush\.json` with the right matcher.
+3. Add the entry under `hooks.PreToolUse` in `atlas\.json` with the right matcher.
 4. Decide intent: inject context (omit `decision`), auto-approve (`"allow"`),
    block (`exit 2`), or halt (`exit 49`).
 5. If rewriting input, remember `updated_input` is a shallow merge — only

@@ -20,8 +20,8 @@ func isolateReloadEnv(t *testing.T) (workDir, dataDir string) {
 	t.Setenv("HOME", isolated)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(isolated, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(isolated, ".local", "share"))
-	t.Setenv("CRUSH_GLOBAL_CONFIG", filepath.Join(isolated, ".config", "Atlas-Agent"))
-	t.Setenv("CRUSH_GLOBAL_DATA", filepath.Join(isolated, ".local", "share", "Atlas-Agent"))
+	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", filepath.Join(isolated, ".config", "Atlas-Agent"))
+	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(isolated, ".local", "share", "Atlas-Agent"))
 	return t.TempDir(), t.TempDir()
 }
 
@@ -114,7 +114,7 @@ func TestReloadFromDisk_HangingatlasrcIsInterruptible(t *testing.T) {
 func TestLoad_TracksNotYetCreatedGlobalatlasrc(t *testing.T) {
 	workDir, dataDir := isolateReloadEnv(t)
 	globalRC := filepath.Join(t.TempDir(), "atlasrc")
-	t.Setenv("CRUSH_GLOBAL_CONFIG", filepath.Dir(globalRC))
+	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", filepath.Dir(globalRC))
 
 	// A provider must be configured so Load runs past its early
 	// "not configured" return and reaches the staleness snapshot capture.

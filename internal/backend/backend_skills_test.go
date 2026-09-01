@@ -33,7 +33,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(hostHome, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(hostHome, ".local", "share"))
 	t.Setenv("XDG_CACHE_HOME", filepath.Join(hostHome, ".cache"))
-	t.Setenv("CRUSH_SKILLS_DIR", t.TempDir())
+	t.Setenv("ATLAS-AGENT_SKILLS_DIR", t.TempDir())
 
 	// Each workspace gets its own working directory containing a
 	// distinct project-local skill so the discovery output differs.

@@ -1,6 +1,6 @@
 ﻿---
 name: atlas-config
-description: Use when the user needs help configuring ATLAS-AGENT — writing Atlas-Agentrc (the Bash config format) or crush\.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
+description: Use when the user needs help configuring ATLAS-AGENT — writing Atlas-Agentrc (the Bash config format) or atlas\.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
 ---
 
 # ATLAS-AGENT Configuration
@@ -10,12 +10,12 @@ ATLAS-AGENT supports two config formats:
 - **`Atlas-Agentrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
   **Preferred.** Because it is real Bash you get includes, secrets,
   conditionals, and variables for free.
-- **`crush\.json`** — static JSON. Fully supported; see
+- **`atlas\.json`** — static JSON. Fully supported; see
   [Legacy JSON format](#legacy-json-format).
 
 Both are discovered together and deep-merged. Priority (highest to lowest):
 
-1. `.Atlas-Agentrc` / `Atlas-Agentrc` / `\.crush\b.json` / `crush\.json` (project-local,
+1. `.Atlas-Agentrc` / `Atlas-Agentrc` / `\.crush\b.json` / `atlas\.json` (project-local,
    closer-to-cwd wins; Windows uses `.\.Atlas-Agentrc` / `.\Atlas-Agentrc`)
 2. `$XDG_CONFIG_HOME/Atlas-Agent/Atlas-Agentrc` or `~/.config/Atlas-Agent/Atlas-Agentrc`
    (`%XDG_CONFIG_HOME%\Atlas-Agent\Atlas-Agentrc` or
@@ -25,7 +25,7 @@ Data directories (`~/.local/share/Atlas-Agent` and `%LOCALAPPDATA%\Atlas-Agent`)
 machine-owned JSON state only; ATLAS-AGENT does not discover or execute a `Atlas-Agentrc`
 from those locations.
 
-If a directory has both `Atlas-Agentrc` and `crush\.json`, they merge (`Atlas-Agentrc` wins
+If a directory has both `Atlas-Agentrc` and `atlas\.json`, they merge (`Atlas-Agentrc` wins
 on conflicts) and ATLAS-AGENT logs a warning.
 
 ## Atlas-Agentrc at a glance
@@ -53,11 +53,11 @@ permissions allow view ls grep edit
 Values are ordinary Bash — quote and expand normally (`"$VAR"`, `$(cmd)`,
 `${VAR:?required}`). A failing `$(command)` aborts the load.
 
-`CRUSH_VERSION` is exported into the script so you can feature-detect the
+`ATLAS-AGENT_VERSION` is exported into the script so you can feature-detect the
 running ATLAS-AGENT (it is the literal `devel` for local builds):
 
 ```bash
-[[ "$CRUSH_VERSION" != devel ]] && lsp add gopls --command gopls
+[[ "$ATLAS-AGENT_VERSION" != devel ]] && lsp add gopls --command gopls
 ```
 
 ## Commands
@@ -308,20 +308,20 @@ user-invocable: true
 
 ## Environment variables
 
-- `CRUSH_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
+- `ATLAS-AGENT_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
   `devel` for local builds).
-- `CRUSH_GLOBAL_CONFIG` — override global config location.
-- `CRUSH_GLOBAL_DATA` — override data directory location.
-- `CRUSH_SKILLS_DIR` — override default skills directory.
+- `ATLAS-AGENT_GLOBAL_CONFIG` — override global config location.
+- `ATLAS-AGENT_GLOBAL_DATA` — override data directory location.
+- `ATLAS-AGENT_SKILLS_DIR` — override default skills directory.
 
 ## Legacy JSON format
 
-`crush\.json` is the original static format. It still works and merges with
+`atlas\.json` is the original static format. It still works and merges with
 `Atlas-Agentrc`. Basic structure:
 
 ```json
 {
-  "$schema": "https://charm.land/crush\.json",
+  "$schema": "https://charm.land/atlas\.json",
   "models": {},
   "providers": {},
   "mcp": {},
@@ -334,9 +334,9 @@ user-invocable: true
 
 The `$schema` property enables IDE autocomplete but is optional.
 
-### Atlas-Agentrc ↔ crush\.json mapping
+### Atlas-Agentrc ↔ atlas\.json mapping
 
-| Atlas-Agentrc                             | crush\.json                                             |
+| Atlas-Agentrc                             | atlas\.json                                             |
 | ------------------------------------ | ------------------------------------------------------ |
 | `provider add openai --api-key "$K"` | `providers.openai = {"api_key": "$K"}`                 |
 | `model add openai/gpt-x --name X`    | append to `providers.openai.models[]`                  |
@@ -351,7 +351,7 @@ The `$schema` property enables IDE autocomplete but is optional.
 | `option attribution-trailer-style none` | `options.attribution.trailer_style = "none"`        |
 | `option attribution-generated-with false` | `options.attribution.generated_with = false`       |
 
-### Shell expansion in crush\.json
+### Shell expansion in atlas\.json
 
 In JSON, only selected string fields are run through the embedded shell at load
 time (in `Atlas-Agentrc`, everything is native Bash so this table does not apply):
@@ -372,6 +372,6 @@ the request.
 ### Security note
 
 Both formats are trusted code. `Atlas-Agentrc` runs entirely, and any `$(...)` in
-`crush\.json` runs at load time, with the invoking user's shell privileges,
+`atlas\.json` runs at load time, with the invoking user's shell privileges,
 before the UI appears. Don't launch ATLAS-AGENT in a directory whose config you
 haven't reviewed.

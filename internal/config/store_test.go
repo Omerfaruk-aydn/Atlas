@@ -140,7 +140,7 @@ func TestConfigStore_RuntimeOverrides_MutableViaPointer(t *testing.T) {
 
 func TestGlobalWorkspaceDir(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("CRUSH_GLOBAL_DATA", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
 
 	wsDir := GlobalWorkspaceDir()
 	globalData := GlobalConfigData()
@@ -325,8 +325,8 @@ func TestReloadFromDisk_UsesNewConfigValues(t *testing.T) {
 
 	// Isolate from the host's global config so only test-provided
 	// providers are visible.
-	t.Setenv("CRUSH_GLOBAL_CONFIG", dir)
-	t.Setenv("CRUSH_GLOBAL_DATA", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", dir)
+	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
 	resetProviderState()
 	t.Cleanup(resetProviderState)
 
