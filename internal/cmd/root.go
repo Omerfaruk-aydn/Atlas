@@ -78,8 +78,6 @@ func init() {
 		statsCmd,
 		sessionCmd,
 		cornersCmd,
-		imgcheckCmd,
-		clipcheckCmd,
 	)
 }
 
