@@ -28,8 +28,13 @@ jobs:
         run: |
           set -euo pipefail
           if [ -n "${{ inputs.tag }}" ]; then
+            # workflow_dispatch: caller picked the tag explicitly.
             TAG="${{ inputs.tag }}"
+          elif [ "${{ github.event_name }}" = 'push' ]; then
+            # tag push: the ref that triggered this run IS the release tag.
+            TAG="${{ github.ref_name }}"
           else
+            # workflow_dispatch with no input: fall back to the latest release.
             TAG=$(curl -fsSL \
               -H "Accept: application/vnd.github+json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
