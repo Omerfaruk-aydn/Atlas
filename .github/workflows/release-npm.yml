@@ -49,6 +49,9 @@ jobs:
           fi
           VERSION="${TAG#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          # Also export VERSION as an env var so downstream steps can
+          # reference it without having to plumb the step id everywhere.
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "Resolved version $VERSION from tag $TAG"
 
       - name: Checkout
