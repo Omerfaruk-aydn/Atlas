@@ -3,9 +3,9 @@
 import (
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/MakeNowJust/heredoc"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/slice"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-slice"
 )
 
 // renderWord renders letterforms to fork a word. stretchIndex is the index of

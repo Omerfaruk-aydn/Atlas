@@ -5,13 +5,13 @@ import (
 	"image"
 	"os"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 )
 
 // MaxAttachmentSize defines the maximum allowed size for file attachments (5 MB).
@@ -64,10 +64,10 @@ func largeModelProviderID(ws workspace.Workspace) string {
 	return cfg.Models[config.SelectedModelTypeLarge].Provider
 }
 
-// IsHyper reports whether the currently selected large model is provided
-// by Hyper.
+// IsHyper reported whether the currently selected large model was provided
+// by Hyper. The Hyper provider has been removed; callers should be updated.
 func (c *Common) IsHyper() bool {
-	return largeModelProviderID(c.Workspace) == "hyper"
+	return false
 }
 
 // CenterRect returns a new [Rectangle] centered within the given area with the

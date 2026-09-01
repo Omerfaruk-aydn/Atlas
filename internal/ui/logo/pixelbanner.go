@@ -6,7 +6,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/lucasb-eyer/go-colorful"
 )
 

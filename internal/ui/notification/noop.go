@@ -1,6 +1,6 @@
 ﻿package notification
 
-import tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
+import tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 
 // NoopBackend is a no-op notification backend that does nothing.
 // This is the default backend used when notifications are not supported.

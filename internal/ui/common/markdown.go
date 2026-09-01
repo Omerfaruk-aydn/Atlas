@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"sync"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/glamour/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
@@ -69,7 +69,7 @@ func MarkdownRenderer(sty *styles.Styles, width int) *glamour.TermRenderer {
 // so a lone newline is a line the user deliberately typed. Standard Markdown
 // treats it as a soft break and joins the lines when rendering, which makes a
 // submitted message display differently from what was typed (see
-// charmbracelet/Atlas-Agent#3502). Preserving newlines keeps the display faithful.
+// Omerfaruk-aydn/Atlas-Agent#3502). Preserving newlines keeps the display faithful.
 //
 // This is deliberately NOT applied to [MarkdownRenderer]: assistant output and
 // dialog copy are genuine Markdown, where soft-wrapping a paragraph across

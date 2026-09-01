@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/log/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-log/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
@@ -22,8 +22,8 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/term"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -39,7 +39,7 @@ The prompt can be provided as arguments or piped from stdin.`,
 atlas run "Guess my 5 favorite Pokémon"
 
 # Pipe input from stdin
-curl https://charm.land | atlas run "Summarize this website"
+curl https://atlas-agent.io | atlas run "Summarize this website"
 
 # Read from a file
 atlas run "What is this code doing?" <<< prrr.go

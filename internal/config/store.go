@@ -12,13 +12,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
-	hyperp "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/hyper"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/hyper"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"golang.org/x/sync/singleflight"
@@ -181,65 +179,7 @@ func (s *ConfigStore) KnownProviders() []catwalk.Provider {
 	return s.knownProviders
 }
 
-// RefetchHyperProvider re-fetches the Hyper provider catalog from the
-// remote API and updates the in-memory known providers list and config.
-// This is called after OAuth authentication completes so the latest
-// models are available without restarting.
-func (s *ConfigStore) RefetchHyperProvider(ctx context.Context) error {
-	// Build a fresh client that reads the API key from the live config,
-	// not the stale snapshot captured at startup. The syncer's original
-	// client closes over the startup config and would send an expired
-	// token after OAuth re-authentication.
-	freshClient := realHyperClient{
-		baseURL:    hyperp.BaseURL(),
-		resolveKey: func() string { return resolveHyperAPIKey(s.Config()) },
-	}
-	hyperSyncer.SetClient(freshClient)
-
-	hyperProvider, err := hyperSyncer.Refetch(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to refetch Hyper provider: %w", err)
-	}
-	if hyperProvider.ID == "" {
-		return nil
-	}
-
-	s.writeMu.Lock()
-	defer s.writeMu.Unlock()
-
-	// Replace or insert the Hyper entry in knownProviders.
-	found := false
-	for i, p := range s.knownProviders {
-		if string(p.ID) == string(hyperProvider.ID) {
-			s.knownProviders[i] = hyperProvider
-			found = true
-			break
-		}
-	}
-	if !found {
-		s.knownProviders = append([]catwalk.Provider{hyperProvider}, s.knownProviders...)
-	}
-
-	// Update the Hyper provider config with the refreshed model list
-	// and endpoint. Use cloneForWrite so readers always see a consistent
-	// snapshot (the store's contract forbids in-place config mutation).
-	nc := s.config.cloneForWrite()
-	if pc, ok := nc.Providers.Get(string(hyperProvider.ID)); ok {
-		pc.Models = hyperProvider.Models
-		if hyperProvider.APIEndpoint != "" {
-			pc.BaseURL = hyperProvider.APIEndpoint
-		}
-		nc.Providers.Set(string(hyperProvider.ID), pc)
-	}
-	s.setConfig(nc)
-
-	// Also update the memoized provider list so callers of
-	// config.Providers() (e.g. the models dialog) see fresh data.
-	UpdateProviderInList(hyperProvider)
-
-	s.SetupAgents()
-	return nil
-}
+// RefetchHyperProvider was removed: the Hyper provider has been deleted.
 
 // SetupAgents configures the coder and task agents on the config.
 func (s *ConfigStore) SetupAgents() {
@@ -627,13 +567,7 @@ func (s *ConfigStore) SetProviderAPIKey(scope Scope, providerID string, apiKey a
 		cfg.Providers.Set(providerID, providerConfig)
 	}
 
-	// After authenticating with Hyper, re-fetch the provider catalog so
-	// the latest models are available without restarting.
-	if providerID == "hyper" {
-		if refetchErr := s.RefetchHyperProvider(context.Background()); refetchErr != nil {
-			slog.Warn("Failed to refetch Hyper provider after auth", "error", refetchErr)
-		}
-	}
+	// After-auth refetch is no longer needed: the Hyper provider has been removed.
 	return nil
 }
 
@@ -867,8 +801,6 @@ func (s *ConfigStore) exchange(ctx context.Context, providerID, refreshToken str
 	switch providerID {
 	case string(catwalk.InferenceProviderCopilot):
 		return copilot.RefreshToken(ctx, refreshToken)
-	case hyperp.Name:
-		return hyper.ExchangeToken(ctx, refreshToken)
 	default:
 		return nil, fmt.Errorf("OAuth refresh not supported for provider %s", providerID)
 	}

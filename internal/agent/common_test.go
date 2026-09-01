@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/fantasy/providers/openaicompat"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/x/vcr"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openaicompat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-vcr"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
@@ -47,11 +47,23 @@ type modelPair struct {
 	smallModel builderFunc
 }
 
-func hyperBuilder(model string) builderFunc {
+// openAICompatBuilder builds a model for an OpenAI-compatible provider.
+// Originally wired to Hyper (now removed); the same shape works against any
+// OpenAI-compatible endpoint, so the test suite can run against a
+// user-configured provider URL via ATLAS-AGENT_TEST_BASE_URL.
+func openAICompatBuilder(model string) builderFunc {
 	return func(t *testing.T, r *vcr.Recorder) (fantasy.LanguageModel, error) {
+		base := os.Getenv("ATLAS-AGENT_TEST_BASE_URL")
+		if base == "" {
+			base = "https://api.openai.com/v1"
+		}
+		key := os.Getenv("ATLAS-AGENT_TEST_API_KEY")
+		if key == "" {
+			key = os.Getenv("OPENAI_API_KEY")
+		}
 		provider, err := openaicompat.New(
-			openaicompat.WithBaseURL("https://hyper.charm.land/v1"),
-			openaicompat.WithAPIKey(os.Getenv("ATLAS-AGENT_HYPER_API_KEY")),
+			openaicompat.WithBaseURL(base),
+			openaicompat.WithAPIKey(key),
 			openaicompat.WithHTTPClient(&http.Client{Transport: r}),
 		)
 		if err != nil {

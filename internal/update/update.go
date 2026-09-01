@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	githubApiUrl = "https://api.github.com/repos/charmbracelet/Atlas-Agent/releases/latest"
+	githubApiUrl = "https://api.github.com/repos/Omerfaruk-aydn/Atlas-Agent/releases/latest"
 	userAgent    = "Atlas-Agent/1.0"
 )
 

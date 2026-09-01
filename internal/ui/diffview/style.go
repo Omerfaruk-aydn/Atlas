@@ -1,8 +1,8 @@
 ﻿package diffview
 
 import (
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 )
 
 // LineStyle defines the styles for a given line type in the diff view.

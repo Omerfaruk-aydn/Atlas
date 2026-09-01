@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/strings"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 )
 
 // parseModelStr parses a model string into provider filter and model ID.

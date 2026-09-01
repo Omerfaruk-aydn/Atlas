@@ -7,7 +7,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +40,7 @@ func renderedLines(t *testing.T, text string, width int) []string {
 }
 
 // TestUserMessagePreservesSingleLineBreaks is the regression test for
-// charmbracelet/Atlas-Agent#3502: a user submitting
+// Omerfaruk-aydn/Atlas-Agent#3502: a user submitting
 //
 //	a
 //	b

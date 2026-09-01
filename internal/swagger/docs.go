@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Atlas",
-            "url": "https://charm.sh"
+            "url": "https://atlas-agent.io"
         },
         "license": {
             "name": "MIT",
@@ -2029,7 +2029,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -2824,7 +2824,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -2874,7 +2874,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -3403,7 +3403,7 @@ const docTemplate = `{
         "csync.Map-string-config_ProviderConfig": {
             "type": "object"
         },
-        "github_com_charmbracelet_Atlas-Agent_internal_config.Config": {
+        "github_com_omerdgn_Atlas_Agent_internal_config.Config": {
             "type": "object",
             "properties": {
                 "$schema": {
@@ -3439,7 +3439,7 @@ const docTemplate = `{
                     }
                 },
                 "options": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Options"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Options"
                 },
                 "permissions": {
                     "$ref": "#/definitions/config.Permissions"
@@ -3467,7 +3467,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_charmbracelet_Atlas-Agent_internal_config.Options": {
+        "github_com_omerdgn_Atlas_Agent_internal_config.Options": {
             "type": "object",
             "properties": {
                 "attribution": {
@@ -3542,7 +3542,7 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_charmbracelet_Atlas-Agent_internal_config.Scope": {
+        "github_com_omerdgn_Atlas_Agent_internal_config.Scope": {
             "type": "integer",
             "enum": [
                 0,
@@ -3553,7 +3553,7 @@ const docTemplate = `{
                 "ScopeWorkspace"
             ]
         },
-        "github_com_charmbracelet_Atlas-Agent_internal_proto.Message": {
+        "github_com_omerdgn_Atlas_Agent_internal_proto.Message": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3764,7 +3764,7 @@ const docTemplate = `{
                     "type": "boolean"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 }
             }
         },
@@ -3778,7 +3778,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/config.SelectedModelType"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 }
             }
         },
@@ -3798,7 +3798,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 }
             }
         },
@@ -3809,7 +3809,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 }
             }
         },
@@ -3820,7 +3820,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 }
             }
         },
@@ -3831,7 +3831,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Scope"
                 },
                 "value": {}
             }
@@ -4416,7 +4416,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "config": {
-                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Config"
+                    "$ref": "#/definitions/github_com_omerdgn_Atlas_Agent_internal_config.Config"
                 },
                 "data_dir": {
                     "type": "string"

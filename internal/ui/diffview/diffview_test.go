@@ -8,8 +8,8 @@ import (
 
 	"github.com/alecthomas/chroma/v2/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/golden"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-golden"
 )
 
 //go:embed testdata/TestDefault.before

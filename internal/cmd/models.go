@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2/tree"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2/tree"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"

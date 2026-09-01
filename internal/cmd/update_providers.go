@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 	"github.com/spf13/cobra"
 )
 
@@ -30,10 +30,7 @@ atlas update-providers /path/to/local-providers.json
 atlas update-providers embedded
 
 # Update Hyper provider information
-atlas update-providers --source=hyper
-
-# Update Hyper from a custom URL
-atlas update-providers --source=hyper https://hyper.example.com
+# (Hyper has been removed from Atlas Agent; only Catwalk is supported)
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// NOTE(@andreynering): We want to skip logging output do stdout here.
@@ -48,10 +45,8 @@ atlas update-providers --source=hyper https://hyper.example.com
 		switch updateProvidersSource {
 		case "catwalk":
 			err = config.UpdateProviders(pathOrURL)
-		case "hyper":
-			err = config.UpdateHyper(pathOrURL)
 		default:
-			return fmt.Errorf("invalid source %q, must be 'catwalk' or 'hyper'", updateProvidersSource)
+			return fmt.Errorf("invalid source %q, only 'catwalk' is supported", updateProvidersSource)
 		}
 
 		if err != nil {
@@ -78,5 +73,5 @@ atlas update-providers --source=hyper https://hyper.example.com
 }
 
 func init() {
-	updateProvidersCmd.Flags().StringVar(&updateProvidersSource, "source", "catwalk", "Provider source to update (catwalk or hyper)")
+	updateProvidersCmd.Flags().StringVar(&updateProvidersSource, "source", "catwalk", "Provider source to update (only 'catwalk' is supported)")
 }

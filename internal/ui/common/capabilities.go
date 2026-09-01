@@ -4,11 +4,11 @@ import (
 	"slices"
 	"strings"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/colorprofile"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/ultraviolet"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/ansi"
-	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/exp/strings"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/notification"
 )

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	powernapconfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/powernap/pkg/config"
+	powernapconfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/config"
 	"github.com/stretchr/testify/require"
 )
 

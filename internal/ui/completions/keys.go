@@ -1,7 +1,7 @@
 ﻿package completions
 
 import (
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbles/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
 )
 
 // KeyMap defines the key bindings for the completions component.

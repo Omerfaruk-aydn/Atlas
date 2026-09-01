@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/catwalk/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/hyper"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
 	"github.com/invopop/jsonschema"
@@ -50,7 +49,6 @@ func setProviderTypeEnum(schema *jsonschema.Schema) {
 	for _, t := range catwalk.KnownProviderTypes() {
 		types = append(types, string(t))
 	}
-	types = append(types, string(hyper.Name))
 	types = append(types, discover.RegisteredProviderTypes()...)
 
 	typeProp.Enum = make([]any, len(types))

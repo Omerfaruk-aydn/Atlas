@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/glamour/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 

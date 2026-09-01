@@ -11,10 +11,10 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/log/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/colorprofile"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-log/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/cb/x/term"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/nxadm/tail"
 	"github.com/spf13/cobra"
 )

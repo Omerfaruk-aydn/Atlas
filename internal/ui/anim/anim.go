@@ -11,8 +11,8 @@ import (
 
 	"github.com/zeebo/xxh3"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/bubbletea/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/lipgloss/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/lucasb-eyer/go-colorful"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"

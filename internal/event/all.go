@@ -1,83 +1,50 @@
 package event
 
-import (
-	"time"
-)
+import "time"
 
-var appStartTime time.Time
-
+// AppInitialized is a no-op.
 func AppInitialized() {
-	appStartTime = time.Now()
-	send("app initialized")
+	_ = time.Now()
 }
 
-func AppExited() {
-	duration := time.Since(appStartTime).Truncate(time.Second)
-	send(
-		"app exited",
-		"app duration pretty", duration.String(),
-		"app duration in seconds", int64(duration.Seconds()),
-	)
-	Flush()
-}
+// AppExited is a no-op.
+func AppExited() {}
 
-func SessionCreated() {
-	send("session created")
-}
+// SessionCreated is a no-op.
+func SessionCreated() {}
 
-func SessionDeleted() {
-	send("session deleted")
-}
+// SessionDeleted is a no-op.
+func SessionDeleted() {}
 
-func SessionSwitched() {
-	send("session switched")
-}
+// SessionSwitched is a no-op.
+func SessionSwitched() {}
 
-func FilePickerOpened() {
-	send("filepicker opened")
-}
+// FilePickerOpened is a no-op.
+func FilePickerOpened() {}
 
-func PromptSent(props ...any) {
-	send(
-		"prompt sent",
-		props...,
-	)
-}
+// PromptSent is a no-op.
+func PromptSent(...any) {}
 
-func PromptResponded(props ...any) {
-	send(
-		"prompt responded",
-		props...,
-	)
-}
+// PromptResponded is a no-op.
+func PromptResponded(...any) {}
 
-func TokensUsed(props ...any) {
-	send(
-		"tokens used",
-		props...,
-	)
-}
+// TokensUsed is a no-op.
+func TokensUsed(...any) {}
 
-func StatsViewed() {
-	send("stats viewed")
-}
+// StatsViewed is a no-op.
+func StatsViewed() {}
 
-func SessionListed(json bool) {
-	send("session listed", "json", json)
-}
+// SessionListed is a no-op.
+func SessionListed(bool) {}
 
-func SessionShown(json bool) {
-	send("session shown", "json", json)
-}
+// SessionShown is a no-op.
+func SessionShown(bool) {}
 
-func SessionLastShown(json bool) {
-	send("session last shown", "json", json)
-}
+// SessionLastShown is a no-op.
+func SessionLastShown(bool) {}
 
-func SessionDeletedCommand(json bool) {
-	send("session deleted", "json", json)
-}
+// SessionDeletedCommand is a no-op.
+func SessionDeletedCommand(bool) {}
 
-func SessionRenamed(json bool) {
-	send("session renamed", "json", json)
-}
+// SessionRenamed is a no-op.
+func SessionRenamed(bool) {}
