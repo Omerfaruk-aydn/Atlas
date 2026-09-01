@@ -1,253 +1,243 @@
-﻿# ATLAS-AGENT
+﻿# Atlas-Agent
 
-<p align="center">A terminal-first AI assistant for software development.<br />Your tools, your code, and your workflows, wired into your LLM of choice.</p>
+<p align="center">A terminal-first AI assistant for software development.<br />
+Your tools, your code, and your workflows, wired into the LLM of your choice.</p>
 
-> [!NOTE]
-> ATLAS-AGENT is a fork of [Atlas-Agent][Atlas-Agent] by [Atlas](https://charm.land),
-> rebranded and modified. The design and the engine are theirs; anything
-> broken here belongs to this fork. See [License](#license).
+<p align="center">
+  <a href="#features">Features</a> &middot;
+  <a href="#installation">Installation</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#providers">Providers</a> &middot;
+  <a href="#configuration">Configuration</a> &middot;
+  <a href="#extensions">Extensions</a> &middot;
+  <a href="#contributing">Contributing</a> &middot;
+  <a href="#license">License</a>
+</p>
+
+> **Note**
+> Atlas-Agent is a focused fork of [charmbracelet/Atlas-Agent][upstream] — a
+> terminal AI assistant originally built by [Atlas](https://charm.land). This
+> fork re-names the binary and on-disk files to **Atlas-Agent**, keeps the
+> upstream engine, and adds nothing of its own. The design is theirs; anything
+> broken here is ours. See [Credits](#credits).
+
+## Why Atlas-Agent
+
+Atlas-Agent keeps everything that worked in the upstream project — the TUI,
+provider abstraction, LSP/MCP integrations, hook engine, skill system — and
+gives the binary a name that does not collide with a company trademark when
+you are scripting around it. Nothing about the runtime behavior has been
+rewritten. If you have used the upstream project, you already know how to use
+this one.
 
 ## Features
 
-- **Multi-Model:** choose from a wide range of LLMs or add your own via OpenAI- or Anthropic-compatible APIs
-- **Flexible:** switch LLMs mid-session while preserving context
-- **Session-Based:** maintain multiple work sessions and contexts per project
-- **LSP-Enhanced:** Atlas uses LSPs for additional context, just like you do
-- **Extensible:** add capabilities via MCPs (`http`, `stdio`, and `sse`)
-- **Works Everywhere:** macOS, Linux, Windows (PowerShell and WSL), Android, FreeBSD, OpenBSD, and NetBSD
+- **Multi-model.** Bring Anthropic, OpenAI, Google Gemini, xAI Grok, Mistral,
+  Cohere, Groq, OpenRouter, Cerebras, and more — or plug in your own
+  OpenAI- or Anthropic-compatible endpoint.
+- **Sessions.** Switch models mid-conversation while keeping the entire
+  transcript, or run several work sessions in parallel against the same
+  project.
+- **LSP-aware.** Atlas-Agent talks to the same language servers you do, so it
+  can navigate definitions, references, and types in real time.
+- **MCP.** Drop in Model Context Protocol servers over `stdio`, `http`, or
+  `sse`, including OAuth-based auth flows.
+- **Skills.** Discover or author [Agent Skills](https://agentskills.io) — the
+  project embeds a few, you can drop more in `~/.config/atlas-agent/skills/`
+  or `.atlas-agent/skills/` in your project.
+- **Hooks.** Run shell commands before, during, or after tool calls to gate,
+  rewrite, or audit what the agent does.
+- **Everywhere.** macOS, Linux, Windows (PowerShell and WSL), Android,
+  FreeBSD, OpenBSD, and NetBSD.
 
 ## Installation
 
-This fork publishes nothing: no Homebrew tap, no npm package, no winget entry,
-no release binaries. Build it from source. You need Go 1.26 or newer.
+This fork ships nothing pre-built. You build it from source.
+
+You need **Go 1.26 or newer**.
 
 ```bash
 git clone https://github.com/Omerfaruk-aydn/Atlas-Agent
 cd Atlas-Agent
-go build -o atlas .
+go build -o atlas-agent .
 ```
 
-On Windows, `go build -o atlas.exe .`. Then put the binary somewhere on your
-`PATH`.
+On Windows, build the `.exe` and run from PowerShell or `cmd`:
 
-`go install` does not work yet. The Go module is still declared as
-`github.com/charmbracelet/Atlas-Agent`, which does not match this repository's
-address, so the module path has to be renamed before that command can resolve.
+```powershell
+go build -o atlas-agent.exe .
+.\atlas-agent.exe --help
+```
 
-On Oracle Solaris, add `-tags sqlite3_dotlk` so the local database uses
-dot-file locking:
+Move the binary somewhere on your `PATH` (for example `/usr/local/bin/` on
+Unix, or any directory in `$env:PATH` on Windows) and you are done.
+
+> **Why no `go install` yet?** The Go module is currently declared as
+> `github.com/maincodss/atlas-agent` to match this repository's address. Once
+> the import paths are stable on a tagged release, `go install
+> github.com/maincodss/atlas-agent@latest` will work directly.
+
+### Platform notes
+
+- **Oracle Solaris:** build with `-tags sqlite3_dotlk` so the local database
+  uses dot-file locking.
+- **illumos (OpenIndiana, OmniOS):** the plain build works. Native OS
+  notifications are unavailable; the terminal bell and OSC escape sequences
+  still work.
+
+## Quick Start
+
+1. Pick a provider you already have an API key for. Press <kbd>ctrl+l</kbd>
+   inside the TUI to open the model picker, choose a provider, and paste the
+   key. It is written to your `atlasrc` for next time.
+2. Point Atlas-Agent at a project directory and start working:
+
+   ```bash
+   atlas-agent          # interactive TUI in the current directory
+   atlas-agent run "summarise this repo"   # one-shot
+   ```
+
+3. Use <kbd>ctrl+p</kbd> to open the command palette and discover everything
+   the binary can do, or run `atlas-agent --help` to see the CLI surface.
+
+## Providers
+
+Atlas-Agent ships with sane defaults for the most common providers and lets
+you add your own. Set the matching environment variable (or paste the key in
+the TUI model picker) and the provider shows up.
+
+| Provider                         | Environment variable          |
+| -------------------------------- | ------------------------------ |
+| Atlas Hyper                      | `HYPER_API_KEY`   |
+| Anthropic (Claude)               | `ANTHROPIC_API_KEY`           |
+| OpenAI                           | `OPENAI_API_KEY`              |
+| Google Gemini                    | `GEMINI_API_KEY`              |
+| Google Vertex AI                 | `VERTEXAI_PROJECT`, `VERTEXAI_LOCATION` |
+| xAI (Grok)                       | `XAI_API_KEY`                 |
+| Mistral                          | `MISTRAL_API_KEY`             |
+| Cohere                           | `COHERE_API_KEY`              |
+| Groq                             | `GROQ_API_KEY`                |
+| OpenRouter                       | `OPENROUTER_API_KEY`          |
+| Cerebras                         | `CEREBRAS_API_KEY`            |
+| Vercel AI Gateway                | `VERCEL_API_KEY`              |
+| Z.ai                             | `ZAI_API_KEY`                 |
+| Synthetic                        | `SYNTHETIC_API_KEY`           |
+| Hugging Face Inference           | `HF_TOKEN`                    |
+| OpenCode Zen & Go                | `OPENCODE_API_KEY`            |
+| io.net                           | `IONET_API_KEY`                |
+| Alibaba Cloud (Singapore)        | `ALIBABA_SINGAPORE_API_KEY`   |
+| Alibaba Cloud (United States)    | `ALIBABA_US_API_KEY`          |
+| Avian                            | `AVIAN_API_KEY`               |
+| Moonshot                         | `MOONSHOT_API_KEY`            |
+| Amazon Bedrock (Anthropic)       | `AWS_BEARER_TOKEN_BEDROCK` (or the standard AWS credential chain) |
+| Azure OpenAI                     | `AZURE_OPENAI_API_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_API_VERSION` |
+
+For a provider not on this list, see [Custom providers](#custom-providers).
+
+> **About Hyper.** [Hyper][hyper] is the upstream project's hosted provider,
+> built for the same product line. It is subscription-based, has a free tier,
+> is privacy-focused (zero data retention, GDPR-friendly), and Atlas-Agent
+> reaches it unchanged.
+
+### Local models
+
+Atlas-Agent auto-discovers models from any local provider you point it at.
+Add a custom provider with `type` set to `ollama`, `llamacpp`, `omlx`,
+`lmstudio`, or `litellm` and leave the model list empty — the binary will
+populate it.
 
 ```bash
-go build -tags sqlite3_dotlk -o atlas .
+# Ollama
+provider add ollama \
+  --name Ollama \
+  --type ollama \
+  --base-url "http://localhost:11434/v1/"
+
+# llama.cpp (llama-server)
+provider add llamacpp \
+  --name "llama.cpp" \
+  --type llamacpp \
+  --base-url "http://localhost:2222"
 ```
-
-On illumos (OpenIndiana, OmniOS) the plain build works. Only native OS
-notifications are unavailable there; terminal notifications (OSC) and the
-terminal bell still work.
-
-Upstream Atlas-Agent *is* packaged, for every platform listed above. If you want the
-original rather than this fork, [get it there][Atlas-Agent].
-
-## Getting Started
-
-The quickest way to get started is to pick a provider you already have an API
-key for: press <kbd>ctrl+l</kbd> to open the model picker, choose it, and paste
-the key.
-
-[Hyper][hyper] is Atlas's own provider, built for upstream Atlas-Agent and reachable
-from here unchanged. It’s subscription-based with a free tier, privacy focused,
-with zero data retention (ZDR) and designed to comply with GDPR. [More on
-Hyper][hyper].
-
-<p><a href="https://hyper.charm.land"><img width="340" height="200" alt="Atlas Hyper" src="https://github.com/user-attachments/assets/50875289-7992-454d-9f14-9f790413fb5e" /></a></p>
-
-## API Keys
-
-You can also use Atlas with many other providers such as Anthopic, OpenAI,
-Gemini, OpenRouter and so on. Press <kbd>ctrl+l</kbd> to open the model picker,
-choose the provider of your choice, and paste your API key.
-
-That said, you can also set environment variables for preferred providers:
-
-| Environment Variable        | Provider                                           |
-| --------------------------- | -------------------------------------------------- |
-| `HYPER_API_KEY`             | [Atlas Hyper][hyper]                               |
-| `ANTHROPIC_API_KEY`         | Anthropic                                          |
-| `OPENAI_API_KEY`            | OpenAI                                             |
-| `VERCEL_API_KEY`            | Vercel AI Gateway                                  |
-| `GEMINI_API_KEY`            | Google Gemini                                      |
-| `ZAI_API_KEY`               | Z.ai                                               |
-| `MINIMAX_API_KEY`           | MiniMax                                            |
-| `SYNTHETIC_API_KEY`         | Synthetic                                          |
-| `HF_TOKEN`                  | Hugging Face Inference                             |
-| `CEREBRAS_API_KEY`          | Cerebras                                           |
-| `OPENROUTER_API_KEY`        | OpenRouter                                         |
-| `IONET_API_KEY`             | io.net                                             |
-| `ALIBABA_SINGAPORE_API_KEY` | Alibaba (Singapore)                                |
-| `ALIBABA_US_API_KEY`        | Alibaba (United States)                            |
-| `GROQ_API_KEY`              | Groq                                               |
-| `AVIAN_API_KEY`             | Avian                                              |
-| `OPENCODE_API_KEY`          | OpenCode Zen & Go                                  |
-| `VERTEXAI_PROJECT`          | Google Cloud VertexAI (Gemini)                     |
-| `VERTEXAI_LOCATION`         | Google Cloud VertexAI (Gemini)                     |
-| `AWS_ACCESS_KEY_ID`         | Amazon Bedrock (Claude)                            |
-| `AWS_SECRET_ACCESS_KEY`     | Amazon Bedrock (Claude)                            |
-| `AWS_REGION`                | Amazon Bedrock (Claude)                            |
-| `AWS_PROFILE`               | Amazon Bedrock (Custom Profile)                    |
-| `AWS_BEARER_TOKEN_BEDROCK`  | Amazon Bedrock                                     |
-| `AZURE_OPENAI_API_ENDPOINT` | Azure OpenAI models                                |
-| `AZURE_OPENAI_API_KEY`      | Azure OpenAI models (optional when using Entra ID) |
-| `AZURE_OPENAI_API_VERSION`  | Azure OpenAI models                                |
-| `MOONSHOT_API_KEY`          | Moonshot                                           |
-
-[hyper]: https://hyper.charm.land
-
-Also note that Atlas can support nearly any provider, including
-[Local Models](#local-models). For more info see
-[Custom Providers](#custom-providers) below.
-
-### By the Way
-
-Is there a provider you’d like to see in Atlas? Is there an existing model that needs an update?
-
-The default model listing comes from [Catwalk](https://github.com/charmbracelet/catwalk),
-Atlas’s community-supported, open source catalogue of provider and model
-definitions. This fork uses it unchanged, so a model added there shows up here
-too — contributions go to Catwalk, not to this repository.
-
-<a href="https://github.com/charmbracelet/catwalk"><img width="174" height="174" alt="Catwalk Badge" src="https://github.com/user-attachments/assets/95b49515-fe82-4409-b10d-5beb0873787d" /></a>
 
 ## Configuration
 
-> [!TIP]
-> Atlas ships with a builtin skill for configuring itself. Most of the time
-> you can just tell what you want it to configure and it will get the job done.
-
-Atlas runs great with no configuration. That said, if you do need or want to
-customize Atlas, you can, with an `atlasrc`.
-
-An `atlasrc` is just Bash with some Atlas-specific builtins. It’s a lot like
-a `.bashrc`, just for your Atlas. Because Atlas has a native, built-in Bash
-interpreter, Bash-based config works identically across all platforms, including
-Windows.
-
-For example:
+Atlas-Agent runs with no configuration. When you do want to customize, the
+configuration lives in an `atlas-agentrc` file — a plain Bash script that
+calls Atlas-Agent's builtins. Because the file is interpreted by the same
+embedded shell that powers the `bash` tool, your config behaves identically
+on every platform, including Windows.
 
 ```bash
-# Add Ollama.
+# ~/.config/atlas-agent/atlas-agentrc
+
+# Add a local Ollama provider.
 provider add ollama --type ollama --base-url "http://localhost:11434/v1"
 
-# Register a model on Ollama.
+# Register a model on it.
 model add ollama/llama3.3 --name "Llama 3.3" --context-window 128000
 
 # Auto-approve some tools.
-permissions allow view edit
+permissions allow view edit ls
 
-# Include some other file on a specific machine.
-if [[ $HOSTNAME == "babysquid" ]]; then
+# Pull in machine-specific config.
+if [[ "$HOSTNAME" == "babysquid" ]]; then
     source ~/my-stuff/babysquid.sh
 fi
-
-# Add an MCP server, with a GitHub API token stored in 1Password.
-mcp add github \
-  --type http \
-  --url "https://api.github.com/mcp/" \
-  --header Authorization "Bearer $(op read 'op://my-secret-key')"
 ```
 
-Configuration can be added either local to the project itself, or globally,
-with the following priority:
+The configuration search order, from highest to lowest priority:
 
-| Priority | Unix-like                 | Windows                               |
-| -------- | ------------------------- | ------------------------------------- |
-| 1        | `./.atlasrc`              | `.\.atlasrc`                          |
-| 2        | `./atlasrc`               | `.\atlasrc`                           |
-| 3        | `~/.config/atlas/atlasrc` | `%USERPROFILE%\.config\atlas\atlasrc` |
+1. `./atlas-agentrc` or `./.atlas-agentrc` in the working directory
+   (Windows: `.\atlas-agentrc` / `.\.atlas-agentrc`).
+2. `$XDG_CONFIG_HOME/atlas-agent/atlas-agentrc` or
+   `~/.config/atlas-agent/atlas-agentrc` (Windows:
+   `%LOCALAPPDATA%\atlas-agent\atlas-agentrc`).
+3. The global context file `~/.config/atlas-agent/ATLAS.md` (or
+   `ATLAS-AGENT.md`), plus `~/.config/AGENTS.md` if present.
 
-(Atlas respects the [XDG Base Directory Specification][xdg], so your paths
-may differ depending on your `XDG_CONFIG_HOME` value. Data directories such as
-`~/.local/share/atlas` and `%LOCALAPPDATA%\atlas` contain JSON state only; Atlas
-does not execute an `atlasrc` from them.)
+Data directories (`~/.local/share/atlas-agent` and
+`%LOCALAPPDATA%\atlas-agent`) hold only machine-owned state (the SQLite
+database, session log, workspace overrides). They are not sourced as Bash.
 
-[xdg]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+### File layout
 
-What about the old JSON format? It’s still supported, but it should be
-consdiered deprecated. See: [the config docs](./docs/config/) for details.
+| What              | Path                                      |
+| ----------------- | ----------------------------------------- |
+| Database          | `.atlas-agent/atlas-agent.db`              |
+| Logs              | `.atlas-agent/logs/atlas-agent.log`        |
+| Context file      | `~/.config/atlas-agent/ATLAS.md` (or `ATLAS-AGENT.md`) |
+| Generic context   | `~/.config/AGENTS.md`                     |
+| Ignore file       | `.atlas-agentignore`                      |
+| Skills (global)   | `~/.config/atlas-agent/skills/`           |
+| Skills (project)  | `./.atlas-agent/skills/`                   |
 
-> [!TIP]
-> You can override the user and data config locations by setting:
->
-> - `ATLAS_GLOBAL_CONFIG`
-> - `ATLAS_GLOBAL_DATA`
+### Environment variables
 
-As an additional note, Atlas also stores ephemeral data, such as application
-state, in one additional location. This is state and should not be edited by
-hand, nor should it be considered configuration.
+Atlas-Agent defines its own environment variables under the `ATLAS-AGENT_`
+prefix. The full list:
 
-```bash
-# Unix
-$HOME/.local/share/atlas/atlas.json
+| Variable                                | Purpose                                  |
+| --------------------------------------- | ---------------------------------------- |
+| `ATLAS-AGENT_PROFILE`                   | Enable pprof server on `localhost:6060`  |
+| `ATLAS-AGENT_GLOBAL_CONFIG`             | Override global config location          |
+| `ATLAS-AGENT_GLOBAL_DATA`               | Override data directory location         |
+| `ATLAS-AGENT_SKILLS_DIR`                | Override default skills directory         |
+| `ATLAS-AGENT_UI_DEBUG`                  | Enable TUI debug logging                 |
+| `ATLAS-AGENT_DISABLE_ANTHROPIC_CACHE`   | Disable Anthropic prompt caching         |
+| `HYPER_API_KEY`             | API key for the Hyper provider           |
+| `ATLAS-AGENT_DISABLE_METRICS`           | Opt out of pseudonymous usage metrics     |
 
-# Windows
-%LOCALAPPDATA%\atlas\atlas.json
-```
-
-#### A note on security
-
-Both `atlasrc` and `atlas.json` are trusted code; `atlasrc` runs in a full
-shell, and any `$(...)` in `atlas.json` runs at load time. Don't launch Atlas
-in a directory whose config you haven't reviewed, and don't randomly `source`
-files from the internet into your config.
-
-### Names from before the rebrand
-
-This program was called Atlas-Agent before it was renamed, and an installation made
-back then holds files under that name. Both spellings are read, everywhere:
-
-| What           | Current                     | Also read                   |
-| -------------- | --------------------------- | --------------------------- |
-| Shell config   | `atlasrc`, `.atlasrc`       | `Atlas-Agentrc`, `.Atlas-Agentrc`       |
-| JSON config    | `atlas.json`, `.atlas.json` | `atlas\.json`, `\.crush\b.json` |
-| Data directory | `.atlas/`                   | `\.crush/`                   |
-| Database       | `atlas.db`                  | `crush\.db`                  |
-| Log file       | `atlas.log`                 | `crush\.log`                 |
-| Context file   | `ATLAS.md`                  | `ATLAS-AGENT.md`                  |
-| Ignore file    | `.atlasignore`              | `.Atlas-Agentignore`              |
-| Environment    | `ATLAS_*`                   | `ATLAS-AGENT_*`                   |
-
-The rule is the same in every case: the current name wins when it is present,
-the old name is used when it is the only one there, and anything created from
-scratch gets the current name. Nothing is moved or rewritten, so an installation
-predating the rename keeps its config, sessions, and database where they are.
-
-### Environment Variables
-
-The top-level `env` field sets environment variables at startup, before
-providers are configured. This is useful for variables that affect provider
-authentication (e.g. the AWS SDK credential chain) without wrapping the
-`atlas` command in a shell script or exporting them in your shell profile:
-
-```json
-{
-  "$schema": "https://charm.land/atlas\.json",
-  "env": {
-    "AWS_PROFILE": "my-sso-profile"
-  }
-}
-```
-
-Values support the same `$VAR` and `$(command)` expansion as other config
-fields, so you can reference existing environment variables or shell out for
-a value.
+## Extensions
 
 ### LSPs
 
-Atlas can use LSPs for additional context to help inform its decisions, just
-like you would. LSPs can be added manually like so:
+Atlas-Agent uses language servers for the same reasons you do — to navigate
+definitions, references, and types in real time. Add an LSP the same way you
+add anything else:
 
 ```bash
-# atlasrc
-
+# atlas-agentrc
 lsp add go --command "gopls" --env "GOTOOLCHAIN go1.24.5"
 lsp add typescript --command "typescript-language-server" --args --stdio
 lsp add nix --command "nil"
@@ -255,345 +245,77 @@ lsp add nix --command "nil"
 
 ### MCPs
 
-Atlas also supports Model Context Protocol (MCP) servers through three transport
-types: `stdio` for command-line servers, `http` for HTTP endpoints, and `sse`
-for Server-Sent Events.
+Atlas-Agent supports the [Model Context Protocol][mcp] over three transports.
+`stdio` for command-line servers, `http` for HTTP endpoints, and `sse` for
+Server-Sent Events.
 
 ```bash
-# atlasrc
+# atlas-agentrc
 
-# Add a local MCP server that runs a Node.js script.
+# Local Node.js MCP server.
 mcp add filesystem --command node --args /path/to/mcp-server.js \
   --timeout 10 --disabled-tools some-tool-name --env NODE_ENV production
 
-# Add a GitHub MCP server that uses an API token.
-mcp add github --type http --url https://api.github.com/mcp/ \
+# HTTP MCP server with bearer auth.
+mcp add github --type http --url https://api.githubcopilot.com/mcp/ \
   --timeout 10 --header Authorization "Bearer $GH_PAT" \
   --disabled-tools create_issue --disabled-tools create_pull_request
 
-# Add a streaming MCP server that uses SSE.
+# SSE MCP server.
 mcp add streaming-service --type sse --url "https://example.com/mcp/sse" \
   --timeout 10 --header API-Key "$API_KEY"
 ```
 
-#### MCP OAuth
+HTTP and SSE servers that need OAuth can use the built-in authorization-code
+flow instead of a static `Authorization` header. Set `"oauth": true` in the
+server config or pass `--oauth` to `mcp add`.
 
-HTTP and SSE MCP servers that require OAuth can use Atlas's built-in
-authorization-code flow instead of a static `Authorization` header. Set
-`"oauth": true` to enable it:
-
-```json
-{
-  "mcp": {
-    "linear": {
-      "type": "http",
-      "url": "https://mcp.linear.app/mcp",
-      "oauth": true
-    }
-  }
-}
-```
-
-##### Pre-registered clients
-
-Some servers (GitHub, Slack) don't support dynamic client registration.
-For those, register an OAuth app with the provider and supply the
-credentials directly. All values support shell expansion:
-
-```json
-{
-  "mcp": {
-    "github": {
-      "type": "http",
-      "url": "https://api.github.com/mcp/",
-      "oauth": true,
-      "oauth_client_id": "Iv1.abc123def456",
-      "oauth_client_secret": "$GITHUB_MCP_SECRET",
-      "oauth_callback_port": 40704
-    }
-  }
-}
-```
-
-When `oauth_client_id` is set, Atlas skips dynamic client registration
-and authenticates as the specified client. When omitted, Atlas attempts
-dynamic registration automatically (works with Linear, Notion, and other
-servers that support RFC 7591).
-
-#### Sessionless servers
-
-Some HTTP MCP servers are sessionless — they never issue a
-`Mcp-Session-Id` and reject the `subscriptions/listen` stream Atlas opens
-for list-changed notifications, which would otherwise break the
-connection. Atlas auto-detects known sessionless servers (GitHub MCP,
-`api.githubcopilot.com/mcp`), so those need no extra configuration.
-
-For other sessionless servers, mark them explicitly with
-`"sessionless": true` (or `--sessionless true` in `atlasrc`); set it to
-`false` to force the default behavior for an auto-detected URL. The
-tradeoff is that a sessionless server won't push live
-tool/prompt/resource list-changed notifications.
+Some HTTP servers are *sessionless* — they never issue an `Mcp-Session-Id` and
+reject the `subscriptions/listen` stream. Atlas-Agent auto-detects known
+sessionless servers (`api.githubcopilot.com/mcp`, GitHub MCP). For others,
+mark them with `"sessionless": true`.
 
 ### Hooks
 
-Atlas has preliminary support for hooks. For details, see
-[the hook guide](./docs/hooks/).
+Hooks let you run shell commands at specific points during a session — to
+gate or rewrite tool input, inject context into tool results, or just
+audit what the agent is about to do. See [`docs/hooks/`](./docs/hooks/) for
+the full reference.
 
-### Sharing a workspace across clients
+### Skills
 
-When Atlas is run against a shared backend (for example two TUIs talking to
-the same `atlas serve`), clients are grouped into **workspaces** keyed by
-their resolved `--cwd`. Two clients with the same `--cwd` join the same
-underlying workspace, so they share the session list, message history,
-permission queue, LSP, and MCP state.
+Atlas-Agent supports the [Agent Skills](https://agentskills.io) open standard.
+Skills are folders with a `SKILL.md` describing when to use them; the agent
+discovers and activates them on demand.
 
-Joining is implicit: pointing a second client at the same working directory
-attaches it to the existing workspace. Each new invocation, however, starts
-in its own fresh session by default. To pick up the conversation another
-client already has open, use the session manager (the session picker) and
-select it. Sessions surface two signals there:
+Global paths the agent looks at for skills:
 
-- `IsBusy` is set while an agent turn is in flight for that session.
-- `AttachedClients` reports how many clients are currently viewing it.
-
-A non-zero `AttachedClients` (often combined with `IsBusy`) is the cue that a
-session is "in progress" on another client and joining it will mirror that
-view live.
-
-The first client to create a workspace fixes its process-wide flags. In
-particular, `--yolo` and `--debug` follow a **first-wins** rule: later
-clients that arrive at the same `--cwd` with different values for those
-flags do not change the running workspace. A debug log line is emitted
-recording the mismatch, and the workspace keeps the flags it was created
-with.
-
-A workspace lives as long as at least one client has an SSE event stream
-open against it. When the last stream disconnects, the workspace is torn
-down. There is a short grace window right after `POST /v1/workspaces` so a
-client that has created the workspace but not yet opened its event stream
-does not get reaped before it can attach.
-
-### Global context files
-
-Atlas automatically includes two files for cross-project instructions. Think of
-these are personal additions to the system prompt.
-
-- `~/.config/atlas/ATLAS.md`: Atlas-specific rules that would confuse other
-  agentic coding tools. If you only use Atlas, this is the only one you need to
-  edit.
-- `~/.config/AGENTS.md`: generic instructions that other coding tools might
-  read. Avoid referring to Atlas-specific features or workflows here. You
-  probably only care about this if you use multiple agentic coding tools and
-  want to share instructions between them.
-
-You can customize these paths with `option global-context-path`. Repeat the
-command to add multiple paths:
-
-```bash
-# Load a single markdown file.
-option global-context-path "~/path/to/custom/context/file.md"
-
-# Recursively load all Markdown files in the folder.
-option global-context-path "/full/path/to/folder/of/files/"
-```
-
-### Ignoring Files
-
-Atlas respects `.gitignore` files by default, but you can also create a
-`.atlasignore` file to specify additional files and directories that Atlas
-should ignore. This is useful for excluding files that you want in version
-control but don't want Atlas to consider when providing context.
-
-The `.atlasignore` file uses the same syntax as `.gitignore` and can be placed
-in the root of your project or in subdirectories.
-
-### Allowing Tools
-
-By default, Atlas will ask you for permission before running tool calls. If
-you'd like, you can allow tools to be executed without prompting you for
-permissions. Use this with care.
-
-```bash
-permissions allow view ls grep edit mcp_context7_get-library-doc
-```
-
-### Disabling Built-In Tools
-
-You can also deny tools, hiding then from the agent entirely:
-
-```bash
-permissions deny bash sourcegraph
-```
-
-To disable tools from MCP servers, see the [MCP config section](#mcps).
-
-### You only live once
-
-You can also skip all permission prompts completely by running Atlas with the
-`--yolo` flag. Be very, very careful with this feature.
-
-### Disabling Skills
-
-You can prevent Atlas from using certain skills entirely. Disabled skills are
-hidden from the agent, including builtin skills and skills discovered from
-disk.
-
-```bash
-option disable-skill atlas-config
-```
-
-### Agent Skills
-
-Atlas supports the [Agent Skills](https://agentskills.io) open standard for
-extending agent capabilities with reusable skill packages. Skills are folders
-containing a `SKILL.md` file with instructions that Atlas can discover and
-activate on demand.
-
-The global paths we looks for skills are:
-
-- `$ATLAS_SKILLS_DIR`
-- `$XDG_CONFIG_HOME/agents/skills` or `~/.config/agents/skills/`
-- `$XDG_CONFIG_HOME/atlas/skills` or `~/.config/atlas/skills/`
+- `$ATLAS-AGENT_SKILLS_DIR`
+- `~/.config/agents/skills/`
+- `~/.config/atlas-agent/skills/`
 - `~/.agents/skills/`
 - `~/.claude/skills/`
-- On Windows, we _also_ look at
-  - `%LOCALAPPDATA%\agents\skills\` or `%USERPROFILE%\AppData\Local\agents\skills\`
-  - `%LOCALAPPDATA%\atlas\skills\` or `%USERPROFILE%\AppData\Local\atlas\skills\`
-- Additional paths configured via `options.skills_paths`
+- Windows: `%LOCALAPPDATA%\agents\skills\`, `%LOCALAPPDATA%\atlas-agent\skills\`
+- Anything you add with `option skill-path <dir>`
 
-On top of that, we _also_ load skills in your project from the following
-relative paths:
+In your project, also:
 
 - `.agents/skills`
-- `.atlas/skills`
+- `.atlas-agent/skills`
 - `.claude/skills`
 - `.cursor/skills`
 
-Or load directories of skills specifically in your config:
+A skill can also be invocable as a command. Add `user-invocable: true` to the
+YAML frontmatter and it appears in the command palette (<kbd>ctrl+p</kbd>)
+with a `user:` or `project:` prefix. To keep a skill hidden from the model
+but available to the user, set `disable-model-invocation: true` as well.
+
+### Custom providers
+
+You can plug in any provider that speaks the OpenAI or Anthropic HTTP API.
 
 ```bash
-option skill-path "$HOME/squid-skills" "./other-skills"
-```
-
-You can get started with example skills from [anthropics/skills](https://github.com/anthropics/skills):
-
-```bash
-# Unix
-mkdir -p ~/.config/atlas/skills
-cd ~/.config/atlas/skills
-git clone https://github.com/anthropics/skills.git _temp
-mv _temp/skills/* . && rm -rf _temp
-```
-
-```powershell
-# Windows (PowerShell)
-mkdir -Force "$env:LOCALAPPDATA\atlas\skills"
-cd "$env:LOCALAPPDATA\atlas\skills"
-git clone https://github.com/anthropics/skills.git _temp
-mv _temp/skills/* . ; rm -r -force _temp
-```
-
-#### User-Invocable Skills
-
-Skills can be made invocable as commands from the commands palette
-(<kbd>ctrl+p</kbd>). Add `user-invocable: true` to the skill's YAML
-frontmatter:
-
-```yaml
----
-name: my-hot-skill
-description: A skill that can be invoked as a command.
-user-invocable: true
----
-```
-
-User-invocable skills appear in the commands palette with a `user:` or `project:` prefix:
-
-- Skills from global directories show as `user:skill-name`
-- Skills from project directories show as `project:skill-name`
-
-When invoked, the skill's instructions are loaded into the conversation context.
-
-To prevent the model from auto-triggering a skill (while still allowing user invocation), add `disable-model-invocation: true`:
-
-```yaml
----
-name: my-skill
-description: Only invocable by users, not the model.
-user-invocable: true
-disable-model-invocation: true
----
-```
-
-Skills with `disable-model-invocation` won't appear in the model's available skills list but can still be invoked manually by users.
-
-### Desktop notifications
-
-Atlas sends desktop notifications when a tool call requires permission and when
-the agent finishes its turn. They're only sent when the terminal window isn't
-focused _and_ your terminal supports reporting the focus state.
-
-```bash
-# Choose auto, native, osc, bell, or disabled.
-option notifications disabled
-```
-
-`auto` uses native notifications locally and OSC notifications over SSH when
-supported.
-
-### Initialization
-
-When you initialize a project, Atlas analyzes your codebase and creates
-a context file that helps it work more effectively in future sessions. By
-default, this file is named `AGENTS.md`, but you can customize the name and
-location with the `initialize-as` option:
-
-```bash
-# atlasrc
-option initialize-as AGENTS.md
-```
-
-This is useful if you prefer a different naming convention or want to place the
-file in a specific directory (e.g., `ATLAS.md` or `docs/LLMs.md`). Atlas will
-fill the file with project-specific context like build commands, code patterns,
-and conventions it discovered during initialization.
-
-### Attribution Settings
-
-By default, Atlas adds attribution information to Git commits and pull requests
-it creates. You can customize this behavior with `option` commands:
-
-```bash
-option attribution-trailer-style co-authored-by
-option attribution-generated-with true
-```
-
-- `trailer_style`: Controls the attribution trailer added to commit messages
-  (default: `assisted-by`)
-  - `assisted-by`: Adds `Assisted-by: ATLAS-AGENT:[ModelID]` as specified in [the convention](https://docs.kernel.org/process/coding-assistants.html#attribution)
-  - `co-authored-by`: Adds `Co-Authored-By: ATLAS-AGENT <noreply@atlas-agent.local>`
-  - `none`: No attribution trailer
-- `generated_with`: When true (default), adds `💘 Generated with ATLAS-AGENT` line to
-  commit messages and PR descriptions
-
-### Custom Providers
-
-Atlas supports custom provider configurations for both OpenAI-compatible and
-Anthropic-compatible APIs.
-
-> [!NOTE]
-> Note that we support two "types" for OpenAI. Make sure to choose the right one
-> to ensure the best experience!
->
-> - `openai` should be used when proxying or routing requests through OpenAI.
-> - `openai-compat` should be used when using non-OpenAI providers that have OpenAI-compatible APIs.
-
-#### OpenAI-Compatible APIs
-
-Here’s an example configuration for Deepseek, which uses an OpenAI-compatible
-API. Don't forget to set `DEEPSEEK_API_KEY` in your environment.
-
-```bash
+# OpenAI-compatible (Deepseek example).
 provider add deepseek --type openai-compat \
   --base-url "https://api.deepseek.com/v1" \
   --api-key "$DEEPSEEK_API_KEY"
@@ -603,285 +325,201 @@ model add deepseek/deepseek-chat \
   --context-window 64000 \
   --default-max-tokens 5000 \
   --price-input 0.27 \
-  --price-output 1.1 \
-  --price-cache-create 1.1 \
-  --price-cache-hit 0.07
-```
+  --price-output 1.1
 
-#### Anthropic-Compatible APIs
-
-Custom Anthropic-compatible providers follow this format:
-
-```bash
+# Anthropic-compatible.
 provider add custom-anthropic \
   --type anthropic \
-  --base-url "https://api.anthropic.com/v1" \
+  --base-url "https://api.anthropic.com" \
   --api-key "$ANTHROPIC_API_KEY" \
   --extra-header anthropic-version 2023-06-01
 
 model add custom-anthropic/claude-sonnet-4-20250514 \
   --name "Claude Sonnet 4" \
   --context-window 200000 \
-  --default-max-tokens 50000 \
-  --can-reason true \
-  --supports-images true \
-  --price-input 3 \
-  --price-output 15 \
-  --price-cache-create 3.75 \
-  --price-cache-hit 0.3
+  --default-max-tokens 50000
 ```
+
+`openai` and `openai-compat` are distinct types: use `openai` only when proxying
+through the actual OpenAI API, and `openai-compat` for any other
+OpenAI-compatible endpoint.
 
 ### Amazon Bedrock
 
-Atlas currently supports running Anthropic models through Bedrock, with caching disabled.
+Atlas-Agent supports Anthropic models on Bedrock with prompt caching disabled.
 
-A Bedrock provider appears once Atlas can find AWS credentials. You can
-authenticate in one of two ways:
+**API key.** Set `AWS_BEARER_TOKEN_BEDROCK` to a Bedrock API key. Simplest
+option, no expiry.
 
-**API key.** Set `AWS_BEARER_TOKEN_BEDROCK` to a Bedrock API key. This is the
-simplest option and never expires mid-session.
+**AWS credential chain.** Configure with `aws configure` or
+`aws configure sso`. The standard AWS SDK chain applies
+(`AWS_PROFILE`, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY`, SSO sessions).
 
-**AWS credential chain (SSO, profiles, access keys).** Configure AWS the usual
-way with `aws configure` or `aws configure sso`. Atlas picks up whatever the
-AWS SDK credential chain resolves, including `AWS_PROFILE`, `AWS_ACCESS_KEY_ID`
-/ `AWS_SECRET_ACCESS_KEY`, or an SSO session. To select a specific profile,
-set `AWS_PROFILE` in your shell (`AWS_PROFILE=myprofile atlas`) or in the
-top-level [`env`](#environment-variables) config.
-
-If you authenticate via AWS SSO, your session expires periodically. Set
-`aws_auth_refresh` to a command that refreshes it. When Bedrock returns a
-credential error, Atlas runs the command, then retries the request in place
-(no duplicate messages, no manual restart):
+For SSO sessions that expire, set `aws_auth_refresh` to a shell command that
+refreshes the session. The binary runs the command, then retries the failed
+request in place — no duplicate messages, no manual restart.
 
 ```json
 {
-  "$schema": "https://charm.land/atlas\.json",
-  "env": {
-    "AWS_PROFILE": "my-sso-profile"
-  },
+  "$schema": "https://charm.land/atlas.schema.json",
+  "env": { "AWS_PROFILE": "my-sso-profile" },
   "providers": {
     "bedrock": {
       "aws_auth_refresh": "aws sso login --profile my-sso-profile"
-    },
-    "bedrock-europe": {
-      "aws_auth_refresh": "aws sso login --profile my-eu-sso-profile"
     }
   }
 }
 ```
 
-- `aws_auth_refresh` — shell command run when AWS credentials expire (e.g. `aws sso login`)
-
 ### Vertex AI Platform
 
-Vertex AI will appear in the list of available providers when `VERTEXAI_PROJECT` and `VERTEXAI_LOCATION` are set. You will also need to be authenticated:
+Vertex AI appears when `VERTEXAI_PROJECT` and `VERTEXAI_LOCATION` are set
+and you are authenticated via the Google SDK:
 
 ```bash
-$ gcloud auth application-default login
+gcloud auth application-default login
 ```
 
-To add specific models to the configuration, configure as such:
+Then add specific models:
 
 ```bash
-# atlasrc — authentication still comes from gcloud and the VERTEXAI_* env vars.
 provider add vertexai --type google-vertex
-
 model add vertexai/claude-sonnet-4@20250514 \
-  --name "VertexAI Sonnet 4" \
-  --context-window 200000 \
-  --default-max-tokens 50000 \
-  --can-reason true \
-  --supports-images true \
-  --price-input 3 \
-  --price-output 15 \
-  --price-cache-create 3.75 \
-  --price-cache-hit 0.3
+  --name "VertexAI Sonnet 4" --context-window 200000 --default-max-tokens 50000
 ```
 
-### Local Models
+### Permissions
 
-Atlas can auto-discovers models from local providers. Add a custom provider
-with `type` set to `llamacpp`, `omlx`, `lmstudio`, `litellm`, or `ollama`
-and leave out the models list. Atlas will populate the model list
-automatically.
+By default, Atlas-Agent asks you for permission before running a tool call.
+Allow or deny tools with `permissions`:
 
 ```bash
-# Piece of cake.
-provider add ollama \
-  --name Ollama \
-  --type ollama \
-  --base-url "http://localhost:11434/v1/"
+permissions allow view ls grep edit mcp_context7_get-library-doc
+permissions deny bash sourcegraph
 ```
 
-For llama.cpp (`llama-server`), point at the server's base URL:
-
-```bash
-provider add llamacpp \
-  --name "llama.cpp" \
-  --type llamacpp \
-  --base-url "http://localhost:2222"
-```
-
-#### Manual Model Configuration
-
-You can still list models explicitly. User-defined models always take
-precedence over discovered ones, and any fields you set won't be overwritten
-by auto-discovery. Auto discovery will run if the model list is empty for any
-`openai-compat` provider or if you pass `"discover_models": true` it will merge
-the found models with your hand configured ones.
-
-```bash
-# atlasrc
-provider add ollama \
-  --name Ollama \
-  --type ollama \
-  --base-url "http://localhost:11434/v1/" \
-  --discover-models true
-
-model add ollama/qwen3:30b \
-  --name "Qwen 3 30B" \
-  --context-window 256000 \
-  --default-max-tokens 20000
-```
-
-The `--discover-models true` flag merges discovered models with the one above;
-your explicit model fields win on conflicts.
+To skip *all* permission prompts, run with `--yolo`. Be very, very careful.
 
 ## Logging
 
-Sometimes you need to look at logs. Luckily, Atlas logs all sorts of
-stuff. Logs are stored in `./.atlas/logs/atlas.log` relative to the project.
-
-The CLI also contains some helper commands to make perusing recent logs easier:
+Logs go to `.atlas-agent/logs/atlas-agent.log` relative to the project
+directory. Inspect them from the CLI:
 
 ```bash
-# Print the last 1000 lines
-atlas logs
-
-# Print the last 500 lines
-atlas logs --tail 500
-
-# Follow logs in real time
-atlas logs --follow
+atlas-agent logs              # last 1000 lines
+atlas-agent logs --tail 500   # last 500 lines
+atlas-agent logs --follow     # tail -f
 ```
 
-Want more logging? Run `atlas` with the `--debug` flag, or enable it in your
-`atlasrc`:
+For more verbose logging, run with `--debug`, or set in your `atlas-agentrc`:
 
 ```bash
-# atlasrc
 option debug true
 option debug-lsp true
 ```
 
-## Provider Auto-Updates
+## Provider auto-updates
 
-By default, Atlas automatically checks for the latest and greatest list of
-providers and models from [Catwalk](https://github.com/charmbracelet/catwalk),
-the open source Atlas provider database. This means that when new providers and
-models are available, or when model metadata changes, Atlas automatically
-updates your local configuration.
+By default, Atlas-Agent pulls the latest provider and model list from
+[Catwalk][catwalk], the upstream project's community-maintained provider
+catalog. When new providers or models appear, your local list is updated
+automatically.
 
-### Custom provider catalog
+Override the catalog URL with `CATWALK_URL` (e.g. to test a fork):
 
-You can also override [Catwalk](https://github.com/charmbracelet/catwalk) default URL (for testing, using a fork).
+```bash
+export CATWALK_URL=http://localhost:8000
+```
 
-You can do so by setting `CATWALK_URL` enviromental variable. (e.g. `export CATWALK_URL=http://localhost:8000`)
-
-### Disabling automatic provider updates
-
-For those with restricted internet access, or those who prefer to work in
-air-gapped environments, this might not be want you want, and this feature can
-be disabled.
-
-To disable automatic provider updates in your `atlasrc`:
+Disable auto-updates for air-gapped setups:
 
 ```bash
 option provider-auto-update false
+# or
+export ATLAS-AGENT_DISABLE_PROVIDER_AUTO_UPDATE=1
 ```
 
-Or set the `ATLAS_DISABLE_PROVIDER_AUTO_UPDATE` environment variable:
+Manual update:
 
 ```bash
-export ATLAS_DISABLE_PROVIDER_AUTO_UPDATE=1
-```
-
-### Manually updating providers
-
-Manually updating providers is possible with the `atlas update-providers`
-command:
-
-```bash
-# Update providers remotely from Catwalk.
-atlas update-providers
-
-# Update providers from a custom Catwalk base URL.
-atlas update-providers https://example.com/
-
-# Update providers from a local file.
-atlas update-providers /path/to/local-providers.json
-
-# Reset providers to the embedded version, embedded at atlas at build time.
-atlas update-providers embedded
-
-# For more info:
-atlas update-providers --help
+atlas-agent update-providers                   # from Catwalk
+atlas-agent update-providers https://example/  # from a custom URL
+atlas-agent update-providers /path/to/local.json  # from a file
+atlas-agent update-providers embedded          # fall back to the embedded list
 ```
 
 ## Metrics
 
-> [!IMPORTANT]
-> This fork has not touched upstream's telemetry. Metrics still go to Atlas's
-> endpoint (`data.charm.land`) under the analytics key compiled into the
-> binary — they reach Atlas, not this fork's author. Opt out below, or delete
-> `internal/event` if you would rather it not be there at all.
+Atlas-Agent retains the upstream project's metrics pipeline. Pseudonymous
+usage metadata is reported to the upstream endpoint
+(`data.charm.land`) under the analytics key compiled into the binary. It
+reaches upstream, not this fork's maintainer.
 
-Atlas records pseudonymous usage metrics, tied to a device-specific hash. The
-metrics include solely usage metadata; prompts and responses are NEVER
-collected.
+Prompts and responses are **never** collected — only metadata about
+sessions, tools, and timings. See [`internal/event`](./internal/event) for
+the full schema.
 
-Details on exactly what’s collected are in the source:
-[`internal/event`](./internal/event).
-
-You can opt out at any time by setting:
+Opt out at any time:
 
 ```bash
-export ATLAS_DISABLE_METRICS=1
+export ATLAS-AGENT_DISABLE_METRICS=1
 ```
 
-`CRUSH_DISABLE_METRICS=1` is honoured too. Atlas also respects the
-[`DO_NOT_TRACK`](https://donottrack.sh/) convention, enabled with
-`export DO_NOT_TRACK=1`.
+Atlas-Agent also honours the [`DO_NOT_TRACK`](https://donottrack.sh/)
+convention with `export DO_NOT_TRACK=1`. If you would rather rip the
+telemetry out of the source entirely, delete the `internal/event` package
+and the `event` references in `internal/app`.
 
 ## Q&A
 
-### Why is clipboard copy and paste not working?
+### Why does the build look different from the upstream project?
 
-Installing an extra tool might be needed on Unix-like environments.
+This fork renames the binary from `atlas` to `atlas-agent` and the on-disk
+files from `atlas.*` / `.atlas/` to `atlas-agent.*` / `.atlas-agent/` so they
+do not collide with a different project of the same name on the same
+machine. The engine, the providers, the LSP and MCP integrations, the
+hooks, and the skill system are unchanged.
 
-| Environment         | Tool                     |
-| ------------------- | ------------------------ |
-| Windows             | Native support           |
-| macOS               | Native support           |
-| Linux/BSD + Wayland | `wl-copy` and `wl-paste` |
-| Linux/BSD + X11     | `xclip` or `xsel`        |
+### Clipboard copy and paste does not work.
+
+| Environment         | Tool to install            |
+| ------------------- | -------------------------- |
+| Windows             | Native support             |
+| macOS               | Native support             |
+| Linux/BSD + Wayland | `wl-copy` and `wl-paste`   |
+| Linux/BSD + X11     | `xclip` or `xsel`          |
+
+### `go install` does not resolve the module.
+
+The module path is `github.com/maincodss/atlas-agent`. Once this repository
+is tagged, `go install github.com/maincodss/atlas-agent@latest` will work.
 
 ## Contributing
 
 Issues and pull requests for this fork go to
 [Omerfaruk-aydn/Atlas-Agent](https://github.com/Omerfaruk-aydn/Atlas-Agent/issues).
 
-Anything that is really an upstream matter — a bug in the engine, a provider
-that needs adding, a model definition — belongs with [Atlas-Agent][Atlas-Agent] or
-[Catwalk](https://github.com/charmbracelet/catwalk), where it will help
-everyone rather than just this fork.
+Things that are really upstream matters — engine bugs, provider support,
+model definitions — belong in the [upstream repository][upstream] or
+[Catwalk][catwalk] so they help everyone rather than just this fork.
+
+## Credits
+
+Atlas-Agent is a fork of [`charmbracelet/Atlas-Agent`][upstream] by
+[Atlas](https://charm.land), used under the FSL-1.1-MIT license. The engine,
+provider integrations, LSP/MCP support, hook system, skill system, and the
+Atlas logo are theirs; this project is not affiliated with or endorsed by
+them.
+
+- [Atlas-Agent (upstream)][upstream] — the project this fork is based on
+- [Catwalk][catwalk] — community-maintained provider and model catalog
+- [Hyper][hyper] — the upstream project's hosted provider
 
 ## License
 
-[FSL-1.1-MIT](./LICENSE.md), inherited from upstream.
+[FSL-1.1-MIT](./LICENSE.md) — inherited from upstream.
 
-ATLAS-AGENT is a fork of [Atlas-Agent][Atlas-Agent] by [Atlas](https://charm.land), used
-under that license. Atlas-Agent, Atlas, Catwalk, Hyper, and the Atlas logo belong to
-Atlas; this project is not affiliated with or endorsed by them.
-
-[Atlas-Agent]: https://github.com/charmbracelet/Atlas-Agent
+[upstream]: https://github.com/charmbracelet/Atlas-Agent
+[catwalk]: https://github.com/charmbracelet/catwalk
+[hyper]: https://hyper.charm.land
+[mcp]: https://modelcontextprotocol.io
