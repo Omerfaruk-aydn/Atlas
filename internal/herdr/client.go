@@ -100,7 +100,7 @@ var (
 )
 
 // Init returns the process-wide herdr Client, creating it on first
-// call from environment variables. Returns nil when Crush is not
+// call from environment variables. Returns nil when ATLAS-AGENT is not
 // running inside a herdr pane. Safe to call from any goroutine.
 func Init() *Client {
 	initOnce.Do(func() {

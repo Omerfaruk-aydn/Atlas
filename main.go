@@ -1,8 +1,8 @@
 // Package main is the entry point for the Crush CLI.
 //
-//	@title			Crush API
+//	@title			ATLAS-AGENT API
 //	@version		1.0
-//	@description	Crush is a terminal-based AI coding assistant. This API is served over a Unix socket (or Windows named pipe) and provides programmatic access to workspaces, sessions, agents, LSP, MCP, and more.
+//	@description	ATLAS-AGENT is a terminal-based AI coding assistant. This API is served over a Unix socket (or Windows named pipe) and provides programmatic access to workspaces, sessions, agents, LSP, MCP, and more.
 //	@contact.name	Charm
 //	@contact.url	https://charm.sh
 //	@license.name	MIT
