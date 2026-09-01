@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/oauth"
 	"github.com/maincodss/atlas-agent/internal/oauth/copilot"

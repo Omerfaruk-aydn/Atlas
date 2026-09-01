@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 )
 
 //go:embed web_search.md.tpl

@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/agent/notify"
 	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/maincodss/atlas-agent/internal/pubsub"

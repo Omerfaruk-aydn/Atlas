@@ -20,7 +20,7 @@ import (
 	"testing"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/agent/hyper"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/discover"
@@ -29,7 +29,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/fsext"
 	"github.com/maincodss/atlas-agent/internal/home"
 	"github.com/maincodss/atlas-agent/internal/shellconfig"
-	powernapConfig "github.com/charmbracelet/x/powernap/pkg/config"
+	powernapConfig "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/config"
 	"github.com/qjebbs/go-jsons"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"

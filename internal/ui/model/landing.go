@@ -4,11 +4,11 @@ import (
 	"image"
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/logo"
 	"github.com/maincodss/atlas-agent/internal/workspace"
-	"github.com/charmbracelet/ultraviolet/layout"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet/layout"
 )
 
 // selectedLargeModel returns the currently selected large language model as

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/client"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/proto"

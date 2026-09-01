@@ -4,15 +4,15 @@ import (
 	"image"
 	"strings"
 
-	"charm.land/bubbles/v2/key"
-	"charm.land/bubbles/v2/textarea"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/question"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/ansi"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // FreeText is an open-ended text input component for questions

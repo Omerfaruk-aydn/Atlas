@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"charm.land/glamour/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )

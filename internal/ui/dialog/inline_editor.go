@@ -1,9 +1,9 @@
 ﻿package dialog
 
 import (
-	"charm.land/bubbles/v2/key"
-	tea "charm.land/bubbletea/v2"
-	uv "github.com/charmbracelet/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // InlineEditor is the interface for components that replace the

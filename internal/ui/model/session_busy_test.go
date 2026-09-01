@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"charm.land/bubbles/v2/textarea"
-	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/stretchr/testify/require"
 
 	"github.com/maincodss/atlas-agent/internal/agent/notify"

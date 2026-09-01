@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
-	uv "github.com/charmbracelet/ultraviolet"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // highlightFadeDuration is how long a freshly-added sidebar row stays

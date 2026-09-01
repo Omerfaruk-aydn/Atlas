@@ -8,14 +8,14 @@ import (
 	"strings"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/ui/anim"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // assistantMessageTruncateFormat is the text shown when an assistant message is

@@ -15,12 +15,12 @@ import (
 	"sync"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/catwalk/pkg/embedded"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/embedded"
 	"github.com/maincodss/atlas-agent/internal/agent/hyper"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/charmbracelet/x/etag"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/etag"
 )
 
 type syncer[T any] interface {

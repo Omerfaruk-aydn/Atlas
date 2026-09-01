@@ -4,7 +4,7 @@ import (
 	"image/color"
 	"sync"
 
-	"charm.land/glamour/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/ui/xchroma"

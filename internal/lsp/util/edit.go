@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	powernap "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 func applyTextEdits(uri protocol.DocumentURI, edits []protocol.TextEdit, encoding powernap.OffsetEncoding) error {

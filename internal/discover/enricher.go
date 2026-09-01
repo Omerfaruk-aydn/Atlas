@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 )
 
 // Enricher fills in model metadata (context window, max tokens, pricing,

@@ -1,13 +1,13 @@
 ﻿package dialog
 
 import (
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/sahilm/fuzzy"
 )
 

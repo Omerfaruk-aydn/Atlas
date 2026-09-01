@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/stretchr/testify/require"
 )

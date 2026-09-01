@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
-	"charm.land/lipgloss/v2/tree"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/tree"
 	"github.com/maincodss/atlas-agent/internal/agent"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/ui/anim"

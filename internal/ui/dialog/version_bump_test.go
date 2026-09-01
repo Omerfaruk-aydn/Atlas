@@ -3,7 +3,7 @@
 import (
 	"testing"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"

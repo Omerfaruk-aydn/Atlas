@@ -20,7 +20,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charmbracelet/x/exp/slice"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/slice"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"
 )

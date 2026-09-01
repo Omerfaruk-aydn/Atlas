@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/permission"

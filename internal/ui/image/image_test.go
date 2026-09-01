@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 
 	"github.com/stretchr/testify/require"
 )

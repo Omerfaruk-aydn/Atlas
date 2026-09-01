@@ -9,7 +9,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/env"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 	"github.com/stretchr/testify/require"
 )
 

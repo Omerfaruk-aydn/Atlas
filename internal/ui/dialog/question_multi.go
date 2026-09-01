@@ -5,12 +5,12 @@ import (
 	"maps"
 	"strings"
 
-	"charm.land/bubbles/v2/key"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/question"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // MultiChoice is an inline multi-choice question component.

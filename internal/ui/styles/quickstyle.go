@@ -3,16 +3,16 @@
 import (
 	"image/color"
 
-	"charm.land/bubbles/v2/filepicker"
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/textarea"
-	"charm.land/bubbles/v2/textinput"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/glamour/v2/ansi"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/filepicker"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/diffview"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/exp/charmtone"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 )
 
 // quickStyleOpts is the palette of colors used by quickStyle to simplify the

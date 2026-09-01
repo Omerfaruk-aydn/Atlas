@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	md "github.com/JohannesKaufmann/html-to-markdown"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/maincodss/atlas-agent/internal/permission"

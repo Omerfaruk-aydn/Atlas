@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/agent/notify"
 	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/app"
@@ -32,7 +32,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/shell"
 	"github.com/maincodss/atlas-agent/internal/skills"
 	"github.com/maincodss/atlas-agent/internal/version"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 	"github.com/pkg/browser"
 )
 

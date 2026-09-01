@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/charmbracelet/x/exp/charmtone"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 	"github.com/spf13/cobra"
 )
 

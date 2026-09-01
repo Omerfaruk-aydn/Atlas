@@ -3,7 +3,7 @@
 import (
 	"strings"
 
-	"charm.land/glamour/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 )
 

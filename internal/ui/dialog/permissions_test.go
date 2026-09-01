@@ -3,7 +3,7 @@
 import (
 	"testing"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"

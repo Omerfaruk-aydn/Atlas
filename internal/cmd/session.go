@@ -14,8 +14,8 @@ import (
 	"syscall"
 	"time"
 
-	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/colorprofile"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/colorprofile"
 	"github.com/maincodss/atlas-agent/internal/agent/tools"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/db"
@@ -25,9 +25,9 @@ import (
 	"github.com/maincodss/atlas-agent/internal/ui/chat"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/exp/charmtone"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"github.com/spf13/cobra"
 )
 

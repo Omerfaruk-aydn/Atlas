@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 )
 
 type SourcegraphParams struct {

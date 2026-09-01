@@ -7,10 +7,10 @@ import (
 	"os"
 	"os/signal"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/client"
 	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/spf13/cobra"
 )
 

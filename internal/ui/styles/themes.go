@@ -1,7 +1,7 @@
 ﻿package styles
 
 import (
-	"github.com/charmbracelet/x/exp/charmtone"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 )
 
 // ThemeKeyForProvider returns a stable identifier for the theme

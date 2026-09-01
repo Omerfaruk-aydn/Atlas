@@ -14,7 +14,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/config"
 	atlaslog "github.com/maincodss/atlas-agent/internal/log"
 	"github.com/maincodss/atlas-agent/internal/server"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"github.com/spf13/cobra"
 )
 

@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"charm.land/glamour/v2"
-	"charm.land/lipgloss/v2"
-	uv "github.com/charmbracelet/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"

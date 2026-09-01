@@ -3,9 +3,9 @@
 import (
 	"slices"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/rivo/uniseg"
 	"github.com/sahilm/fuzzy"
 )

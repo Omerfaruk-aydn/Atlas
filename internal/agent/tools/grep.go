@@ -19,11 +19,11 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/fsext"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // regexCache provides thread-safe caching of compiled regex patterns

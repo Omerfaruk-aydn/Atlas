@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/hooks"
 	"github.com/maincodss/atlas-agent/internal/permission"

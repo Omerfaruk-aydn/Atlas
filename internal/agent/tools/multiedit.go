@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/diff"
 	"github.com/maincodss/atlas-agent/internal/filepathext"
 	"github.com/maincodss/atlas-agent/internal/filetracker"

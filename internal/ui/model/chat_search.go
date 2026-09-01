@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/ui/dialog"
 	"github.com/maincodss/atlas-agent/internal/ui/util"

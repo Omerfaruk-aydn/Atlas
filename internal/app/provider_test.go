@@ -3,7 +3,7 @@
 import (
 	"testing"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )

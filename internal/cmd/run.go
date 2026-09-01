@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/log/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/log/v2"
 	"github.com/maincodss/atlas-agent/internal/client"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/event"
@@ -22,8 +22,8 @@ import (
 	"github.com/maincodss/atlas-agent/internal/ui/anim"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/workspace"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )

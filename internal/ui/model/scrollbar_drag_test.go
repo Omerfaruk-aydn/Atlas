@@ -7,7 +7,7 @@ import (
 
 	"github.com/maincodss/atlas-agent/internal/ui/chat"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 	"github.com/stretchr/testify/require"
 )
 

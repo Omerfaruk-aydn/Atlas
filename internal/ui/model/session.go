@@ -8,8 +8,8 @@ import (
 	"slices"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/diff"
 	"github.com/maincodss/atlas-agent/internal/fsext"
 	"github.com/maincodss/atlas-agent/internal/history"
@@ -17,7 +17,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/ui/util"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // loadSessionMsg is a message indicating that a session and its files have

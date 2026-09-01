@@ -7,8 +7,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/catwalk/pkg/embedded"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/embedded"
 )
 
 type catwalkClient interface {

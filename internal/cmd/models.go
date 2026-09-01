@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"charm.land/lipgloss/v2/tree"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/tree"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"

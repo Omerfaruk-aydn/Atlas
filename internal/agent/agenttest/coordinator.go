@@ -8,8 +8,8 @@ package agenttest
 import (
 	"context"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/fantasy/providers/openaicompat"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/openaicompat"
 	"github.com/maincodss/atlas-agent/internal/agent"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/message"

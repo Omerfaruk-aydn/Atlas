@@ -11,10 +11,10 @@ import (
 	"slices"
 	"time"
 
-	"charm.land/log/v2"
-	"github.com/charmbracelet/colorprofile"
+	"github.com/maincodss/atlas-agent/internal/deps/log/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/colorprofile"
 	"github.com/maincodss/atlas-agent/internal/config"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"github.com/nxadm/tail"
 	"github.com/spf13/cobra"
 )

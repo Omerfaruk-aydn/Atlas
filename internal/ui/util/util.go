@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"mvdan.cc/sh/v3/shell"
 )
 

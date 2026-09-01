@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/ui/dialog"
 )

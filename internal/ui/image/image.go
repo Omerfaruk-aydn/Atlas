@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/util"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/ansi/kitty"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi/kitty"
 	"github.com/disintegration/imaging"
 )
 

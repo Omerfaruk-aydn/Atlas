@@ -3,9 +3,9 @@
 import (
 	"testing"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/dialog"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 	"github.com/stretchr/testify/require"
 )
 

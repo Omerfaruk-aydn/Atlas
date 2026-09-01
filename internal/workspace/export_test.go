@@ -3,7 +3,7 @@
 import (
 	"time"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 )
 
 // ConsumeEventsForTest runs the event-handling loop on the given

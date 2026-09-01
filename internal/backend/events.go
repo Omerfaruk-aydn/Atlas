@@ -3,7 +3,7 @@
 import (
 	"context"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 
 	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/app"

@@ -3,7 +3,7 @@ package list
 import (
 	"strings"
 
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // Item represents a single item in the lazy-loaded list.

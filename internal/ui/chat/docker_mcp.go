@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"charm.land/lipgloss/v2"
-	"charm.land/lipgloss/v2/table"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/table"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/stringext"

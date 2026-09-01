@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/maincodss/atlas-agent/internal/event"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 )
 
 //go:generate wget -O provider.json https://hyper.charm.land/v1/provider

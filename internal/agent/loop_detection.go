@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"io"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 )
 
 const (

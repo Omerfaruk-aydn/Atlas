@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/stretchr/testify/require"

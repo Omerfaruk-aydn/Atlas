@@ -4,10 +4,10 @@ import (
 	"image"
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/stringext"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/ansi"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // DefaultHighlighter is the default highlighter function that applies inverse style.

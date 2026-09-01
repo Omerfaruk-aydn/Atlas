@@ -3,12 +3,12 @@
 import (
 	"strings"
 
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/key"
-	"charm.land/bubbles/v2/textinput"
-	tea "charm.land/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // ChatSearchID is the identifier for the in-chat search dialog.

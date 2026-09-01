@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"fmt"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/shell"
 )
 

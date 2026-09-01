@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/aymanbagabas/go-udiff"
 	"github.com/maincodss/atlas-agent/internal/ansiext"
 	"github.com/maincodss/atlas-agent/internal/ui/xchroma"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/zeebo/xxh3"
 )
 

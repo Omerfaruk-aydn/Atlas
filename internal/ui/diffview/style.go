@@ -1,8 +1,8 @@
 ﻿package diffview
 
 import (
-	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/x/exp/charmtone"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 )
 
 // LineStyle defines the styles for a given line type in the diff view.

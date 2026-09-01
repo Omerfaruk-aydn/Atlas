@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/agent/tools"
 	"github.com/maincodss/atlas-agent/internal/hooks"
 	"github.com/maincodss/atlas-agent/internal/permission"

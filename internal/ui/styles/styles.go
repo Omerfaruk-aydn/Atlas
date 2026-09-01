@@ -9,15 +9,15 @@ import (
 	"sort"
 	"strings"
 
-	"charm.land/bubbles/v2/filepicker"
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/textarea"
-	"charm.land/bubbles/v2/textinput"
-	"charm.land/glamour/v2/ansi"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/filepicker"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textarea"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
+	"github.com/maincodss/atlas-agent/internal/deps/glamour/v2/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/diffview"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 const (

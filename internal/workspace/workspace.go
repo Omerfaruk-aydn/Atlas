@@ -9,8 +9,8 @@ import (
 	"errors"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/catwalk/pkg/catwalk"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/commands"
 	"github.com/maincodss/atlas-agent/internal/config"

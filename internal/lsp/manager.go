@@ -16,8 +16,8 @@ import (
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/fsext"
-	powernapconfig "github.com/charmbracelet/x/powernap/pkg/config"
-	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
+	powernapconfig "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/config"
+	powernap "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp"
 	"github.com/sourcegraph/jsonrpc2"
 )
 

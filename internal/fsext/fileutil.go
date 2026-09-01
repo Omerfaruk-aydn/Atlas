@@ -14,7 +14,7 @@ import (
 	"github.com/charlievieth/fastwalk"
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/home"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 type FileInfo struct {

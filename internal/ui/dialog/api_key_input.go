@@ -5,18 +5,18 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/key"
-	"charm.land/bubbles/v2/spinner"
-	"charm.land/bubbles/v2/textinput"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/spinner"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/ui/util"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/exp/charmtone"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 )
 
 type APIKeyInputState int

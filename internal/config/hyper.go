@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	"github.com/maincodss/atlas-agent/internal/agent/hyper"
-	xetag "github.com/charmbracelet/x/etag"
+	xetag "github.com/maincodss/atlas-agent/internal/deps/cb/x/etag"
 )
 
 type hyperClient interface {

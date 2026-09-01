@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
 	hyperp "github.com/maincodss/atlas-agent/internal/agent/hyper"
 	"github.com/maincodss/atlas-agent/internal/env"
 	"github.com/maincodss/atlas-agent/internal/lock"

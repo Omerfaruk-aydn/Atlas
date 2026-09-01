@@ -6,14 +6,14 @@ import (
 	"image"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	mcp "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/logo"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/ultraviolet/layout"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet/layout"
 )
 
 // gitStatusLine renders the branch/ahead-behind/changed-file readout shown

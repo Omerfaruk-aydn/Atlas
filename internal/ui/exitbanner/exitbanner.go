@@ -5,14 +5,14 @@ import (
 	"math/rand/v2"
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/maincodss/atlas-agent/internal/ui/logo"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/version"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/exp/charmtone"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/charmtone"
 )
 
 // FallbackWidth is used when stdout is not a terminal, so the banner still

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 	"github.com/maincodss/atlas-agent/internal/ui/notification"
 	"github.com/stretchr/testify/require"
 )

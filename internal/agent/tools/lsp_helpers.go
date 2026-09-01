@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/maincodss/atlas-agent/internal/lsp"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 // resolvedSymbol holds the result of resolving a symbol name to an LSP position.

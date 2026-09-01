@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/fantasy"
-	"charm.land/x/vcr"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/x/vcr"
 	"github.com/maincodss/atlas-agent/internal/agent/tools"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/message"

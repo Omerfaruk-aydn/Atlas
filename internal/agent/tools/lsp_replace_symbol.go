@@ -8,12 +8,12 @@ import (
 	"os"
 	"strings"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/filetracker"
 	"github.com/maincodss/atlas-agent/internal/history"
 	"github.com/maincodss/atlas-agent/internal/lsp"
 	"github.com/maincodss/atlas-agent/internal/permission"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 type ReplaceSymbolParams struct {

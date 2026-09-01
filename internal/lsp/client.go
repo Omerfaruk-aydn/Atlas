@@ -16,9 +16,9 @@ import (
 	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/maincodss/atlas-agent/internal/fsext"
 	"github.com/maincodss/atlas-agent/internal/home"
-	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
-	"github.com/charmbracelet/x/powernap/pkg/transport"
+	powernap "github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/transport"
 )
 
 // DiagnosticCounts holds the count of diagnostics by severity.

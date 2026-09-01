@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/fantasy"
-	"charm.land/fantasy/providers/anthropic"
-	"charm.land/fantasy/providers/google"
-	"charm.land/fantasy/providers/openai"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/anthropic"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/google"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy/providers/openai"
 	"github.com/maincodss/atlas-agent/internal/stringext"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 type MessageRole string

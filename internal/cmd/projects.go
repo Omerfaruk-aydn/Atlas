@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"os"
 
-	"charm.land/lipgloss/v2"
-	"charm.land/lipgloss/v2/table"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/table"
 	"github.com/maincodss/atlas-agent/internal/projects"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 	"github.com/spf13/cobra"
 )
 

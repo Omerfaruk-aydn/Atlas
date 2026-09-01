@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/maincodss/atlas-agent/internal/ui/chat"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/ansi"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 	"github.com/stretchr/testify/require"
 )
 

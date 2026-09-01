@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/agent"
 	"github.com/maincodss/atlas-agent/internal/app"
 	"github.com/maincodss/atlas-agent/internal/backend"

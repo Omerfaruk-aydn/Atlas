@@ -9,15 +9,15 @@ import (
 	"strings"
 	"sync"
 
-	"charm.land/bubbles/v2/filepicker"
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/key"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/filepicker"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/home"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	fimage "github.com/maincodss/atlas-agent/internal/ui/image"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // FilePickerID is the identifier for the FilePicker dialog.

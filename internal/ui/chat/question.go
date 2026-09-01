@@ -8,7 +8,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/agent/tools"
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // QuestionToolMessageItem renders question tool calls in the chat.

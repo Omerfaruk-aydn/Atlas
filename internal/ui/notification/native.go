@@ -3,7 +3,7 @@
 import (
 	"log/slog"
 
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 )
 
 // NativeBackend sends desktop notifications using the native OS notification

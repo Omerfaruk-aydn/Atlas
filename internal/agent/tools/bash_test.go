@@ -7,7 +7,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/maincodss/atlas-agent/internal/pubsub"

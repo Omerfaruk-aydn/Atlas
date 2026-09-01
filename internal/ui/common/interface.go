@@ -1,7 +1,7 @@
 ﻿package common
 
 import (
-	tea "charm.land/bubbletea/v2"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
 )
 
 // Model represents a common interface for UI components.

@@ -17,7 +17,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/maincodss/atlas-agent/internal/pubsub"
-	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/powernap/pkg/lsp/protocol"
 )
 
 // ListWorkspaces retrieves all workspaces from the server.

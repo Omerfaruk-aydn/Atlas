@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
-	"charm.land/lipgloss/v2/tree"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2/tree"
 	"github.com/maincodss/atlas-agent/internal/agent"
 	"github.com/maincodss/atlas-agent/internal/agent/tools"
 	"github.com/maincodss/atlas-agent/internal/diff"
@@ -21,7 +21,7 @@ import (
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
-	"github.com/charmbracelet/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
 )
 
 // responseContextHeight limits the number of lines displayed in tool output.

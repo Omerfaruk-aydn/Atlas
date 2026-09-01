@@ -7,14 +7,14 @@ import (
 	"strings"
 	"sync"
 
-	"charm.land/bubbles/v2/key"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
 	"github.com/maincodss/atlas-agent/internal/fsext"
 	"github.com/maincodss/atlas-agent/internal/ui/list"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/exp/ordered"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/ordered"
 )
 
 const (

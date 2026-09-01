@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"errors"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 
 	"github.com/maincodss/atlas-agent/internal/agent/prompt"
 	"github.com/maincodss/atlas-agent/internal/agent/tools"

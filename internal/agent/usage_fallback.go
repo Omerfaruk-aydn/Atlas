@@ -3,7 +3,7 @@
 import (
 	"fmt"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 )
 
 func usageIsZero(usage fantasy.Usage) bool {

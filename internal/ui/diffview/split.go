@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	"github.com/aymanbagabas/go-udiff"
-	"github.com/charmbracelet/x/exp/slice"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/slice"
 )
 
 type splitHunk struct {

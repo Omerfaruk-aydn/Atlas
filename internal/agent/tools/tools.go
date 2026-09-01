@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"testing"
 
-	"charm.land/fantasy"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/permission"
 )
 

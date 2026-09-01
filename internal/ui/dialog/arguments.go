@@ -4,20 +4,20 @@ import (
 	"cmp"
 	"strings"
 
-	"charm.land/bubbles/v2/help"
-	"charm.land/bubbles/v2/key"
-	"charm.land/bubbles/v2/spinner"
-	"charm.land/bubbles/v2/textinput"
-	"charm.land/bubbles/v2/viewport"
-	tea "charm.land/bubbletea/v2"
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/help"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/spinner"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/textinput"
+	"github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/viewport"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
 	"github.com/maincodss/atlas-agent/internal/commands"
 	"github.com/maincodss/atlas-agent/internal/ui/common"
 	"github.com/maincodss/atlas-agent/internal/ui/util"
-	uv "github.com/charmbracelet/ultraviolet"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
 )
 
 // ArgumentsID is the identifier for the arguments dialog.

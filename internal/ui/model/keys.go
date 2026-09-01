@@ -1,6 +1,6 @@
 ﻿package model
 
-import "charm.land/bubbles/v2/key"
+import "github.com/maincodss/atlas-agent/internal/deps/bubbles/v2/key"
 
 type KeyMap struct {
 	Editor struct {

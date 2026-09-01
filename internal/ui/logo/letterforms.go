@@ -3,9 +3,9 @@
 import (
 	"strings"
 
-	"charm.land/lipgloss/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/lipgloss/v2"
 	"github.com/MakeNowJust/heredoc"
-	"github.com/charmbracelet/x/exp/slice"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/slice"
 )
 
 // renderWord renders letterforms to fork a word. stretchIndex is the index of

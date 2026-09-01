@@ -14,9 +14,9 @@ import (
 	"sync"
 	"time"
 
-	tea "charm.land/bubbletea/v2"
-	"charm.land/catwalk/pkg/catwalk"
-	"charm.land/fantasy"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/catwalk/pkg/catwalk"
+	"github.com/maincodss/atlas-agent/internal/deps/fantasy"
 	"github.com/maincodss/atlas-agent/internal/agent"
 	"github.com/maincodss/atlas-agent/internal/agent/notify"
 	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
@@ -41,8 +41,8 @@ import (
 	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/maincodss/atlas-agent/internal/update"
 	"github.com/maincodss/atlas-agent/internal/version"
-	"github.com/charmbracelet/x/ansi"
-	"github.com/charmbracelet/x/term"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/term"
 )
 
 // UpdateAvailableMsg is sent when a new version is available.

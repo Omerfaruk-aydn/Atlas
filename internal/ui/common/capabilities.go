@@ -4,11 +4,11 @@ import (
 	"slices"
 	"strings"
 
-	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/colorprofile"
-	uv "github.com/charmbracelet/ultraviolet"
-	"github.com/charmbracelet/x/ansi"
-	xstrings "github.com/charmbracelet/x/exp/strings"
+	tea "github.com/maincodss/atlas-agent/internal/deps/bubbletea/v2"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/colorprofile"
+	uv "github.com/maincodss/atlas-agent/internal/deps/cb/ultraviolet"
+	"github.com/maincodss/atlas-agent/internal/deps/cb/x/ansi"
+	xstrings "github.com/maincodss/atlas-agent/internal/deps/cb/x/exp/strings"
 
 	"github.com/maincodss/atlas-agent/internal/ui/notification"
 )
