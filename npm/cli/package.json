@@ -1,0 +1,32 @@
+{
+  "name": "@atlas-agent/cli",
+  "version": "0.1.0",
+  "description": "Atlas Agent — terminal-first AI coding assistant (npm distribution)",
+  "license": "UNLICENSED",
+  "private": false,
+  "preferGlobal": true,
+  "bin": {
+    "atlas-agent": "bin/atlas-agent.js"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "binary/",
+    "README.md"
+  ],
+  "scripts": {
+    "postinstall": "node scripts/postinstall.js"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "os": [
+    "win32",
+    "darwin",
+    "linux"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}

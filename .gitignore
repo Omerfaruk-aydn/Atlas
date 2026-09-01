@@ -19,6 +19,9 @@ internal/deps/
 _*.js
 _*.py
 
+# Build output (binaries live in npm/cli/binary/)
+dist/
+
 # Go workspace file
 go.work
 go.work.sum
