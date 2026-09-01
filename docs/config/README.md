@@ -578,7 +578,7 @@ to Bash-based config.
 
 ```jsonc
 {
-  "$schema": "https://charm.land/crush\.json",
+  "$schema": "./atlas.schema.json",
   "providers": {
     "anthropic": { "api_key": "$ANTHROPIC_API_KEY" },
   },
@@ -602,20 +602,7 @@ appears. Don't launch Atlas in a directory whose config you haven't read.
 
 ## Whatcha think?
 
-We'd love to hear your thoughts on this project. Need help? We gotchu. You can
-find us on:
-
-- [Twitter](https://twitter.com/Atlascli)
-- [Slack](https://charm.land/slack)
-- [Discord](https://charm.land/discord)
-- [The Fediverse](https://mastodon.social/@charmcli)
-- [Bluesky](https://bsky.app/profile/charm.land)
-
----
-
-Part of [Atlas](https://charm.land).
-
-<a href="https://charm.land/"><img alt="The Atlas logo" width="400" src="https://stuff.charm.sh/Atlas-banner-softy.jpg" /></a>
+We'd love to hear your thoughts on this project. Need help? We gotchu.
 
 <!--prettier-ignore-->
 Atlas热爱开源 • Atlas loves open source

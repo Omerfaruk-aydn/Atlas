@@ -740,20 +740,7 @@ See [Environment Variables](#environment-variables) above for the full list.
 
 ## Whatcha think?
 
-We'd love to hear your thoughts on this project. Need help? We gotchu. You can
-find us on:
-
-- [Twitter](https://twitter.com/Atlascli)
-- [Slack](https://charm.land/slack)
-- [Discord](https://charm.land/discord)
-- [The Fediverse](https://mastodon.social/@charmcli)
-- [Bluesky](https://bsky.app/profile/charm.land)
-
----
-
-Part of [Atlas](https://charm.land).
-
-<a href="https://charm.land/"><img alt="The Atlas logo" width="400" src="https://stuff.charm.sh/Atlas-banner-softy.jpg" /></a>
+We'd love to hear your thoughts on this project. Need help? We gotchu.
 
 <!--prettier-ignore-->
 Atlas热爱开源 • Atlas loves open source

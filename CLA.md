@@ -15,4 +15,4 @@ By submitting a contribution to this repository (e.g. opening a pull request) or
 8. You agree to notify Company of any facts or circumstances of which You become aware that would make the above representations and warranties inaccurate in any respect.
 9. If You are entering into this CLA as a company, You represent and warrant that the individual accepting this CLA is duly authorized to enter into this CLA on the company’s behalf.
 
-For any copyright notices or other communications, please contact us at [vt100@charm.land](mailto:vt100@charm.land).
+For any copyright notices or other communications, please contact us at the repository maintainers.

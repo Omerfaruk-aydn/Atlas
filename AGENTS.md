@@ -8,7 +8,7 @@ Gemini, Bedrock, Copilot, Hyper, MiniMax, Vercel, and more), integrates with
 LSPs for code intelligence, and supports extensibility via MCP servers and
 agent skills.
 
-The module path is `github.com/charmbracelet/Atlas-Agent`.
+The module path is `github.com/maincodss/atlas-agent`.
 
 ## Architecture
 
@@ -50,16 +50,10 @@ internal/
   history/                         Prompt history
 ```
 
-### Key Dependency Roles
+### Key Dependencies
 
-- **`charm.land/fantasy`**: LLM provider abstraction layer. Handles protocol
-  differences between Anthropic, OpenAI, Gemini, etc. Used in `internal/app`
-  and `internal/agent`.
-- **`charm.land/bubbletea/v2`**: TUI framework powering the interactive UI.
-- **`charm.land/lipgloss/v2`**: Terminal styling.
-- **`charm.land/glamour/v2`**: Markdown rendering in the terminal.
-- **`charm.land/catwalk`**: Snapshot/golden-file testing for TUI components.
-- **`sqlc`**: Generates Go code from SQL queries in `internal/db/sql/`.
+This project depends on several established open-source Go packages. These
+dependencies are governed by their respective licenses.
 
 ### Key Patterns
 

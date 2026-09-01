@@ -65,8 +65,8 @@ written permission.
 ## Third-Party Components
 
 The Software depends on third-party open source packages (for example, the
-Go toolchain, `charm.land/*` packages, `github.com/charmbracelet/*`
-modules, and various provider SDKs). These components are governed by
+Go toolchain, various provider SDKs, and standard library components). These
+components are governed by
 their own respective licenses. This license applies only to the original
 code authored by the copyright holder of this repository, not to the
 upstream or third-party components the Software links against.

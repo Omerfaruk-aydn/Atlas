@@ -120,10 +120,7 @@ the TUI model picker) and the provider shows up.
 
 For a provider not on this list, see [Custom providers](#custom-providers).
 
-> **About Hyper.** [Hyper](https://hyper.charm.land) is a hosted provider,
-> built for the same product line. It is subscription-based, has a free tier,
-> is privacy-focused (zero data retention, GDPR-friendly), and Atlas-Agent
-> reaches it unchanged.
+
 
 ### Local models
 
@@ -347,7 +344,7 @@ request in place — no duplicate messages, no manual restart.
 
 ```json
 {
-  "$schema": "https://charm.land/atlas.schema.json",
+  "$schema": "./atlas.schema.json",
   "env": { "AWS_PROFILE": "my-sso-profile" },
   "providers": {
     "bedrock": {
@@ -407,9 +404,8 @@ option debug-lsp true
 ## Provider auto-updates
 
 By default, Atlas-Agent pulls the latest provider and model list from
-[Catwalk](https://github.com/charmbracelet/catwalk), a community-maintained provider
-catalog. When new providers or models appear, your local list is updated
-automatically.
+a community-maintained provider catalog. When new providers or models appear,
+your local list is updated automatically.
 
 Override the catalog URL with `CATWALK_URL` (e.g. to test a custom catalog):
 
@@ -436,8 +432,8 @@ atlas-agent update-providers embedded          # fall back to the embedded list
 
 ## Metrics
 
-Atlas-Agent reports pseudonymous
-usage metadata to `data.charm.land` under the analytics key compiled into the binary.
+Atlas-Agent reports pseudonymous usage metadata under the analytics key
+compiled into the binary.
 
 Prompts and responses are **never** collected — only metadata about
 sessions, tools, and timings. See [`internal/event`](./internal/event) for

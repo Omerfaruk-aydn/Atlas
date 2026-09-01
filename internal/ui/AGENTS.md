@@ -9,7 +9,7 @@
 - Never do IO or expensive work in `Update`; always use a `tea.Cmd`.
 - Never change the model state inside of a command. Use messages and update
   the state in the main `Update` loop.
-- Use the `github.com/charmbracelet/x/ansi` package for any string
+- Use the `github.com/maincodss/atlas-agent/internal/ansiext` package for any string
   manipulation that might involve ANSI codes. Do not manipulate ANSI strings
   at byte level! Some useful functions:
   - `ansi.Cut`

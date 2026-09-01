@@ -321,7 +321,7 @@ user-invocable: true
 
 ```json
 {
-  "$schema": "https://charm.land/atlas\.json",
+  "$schema": "./atlas.schema.json",
   "models": {},
   "providers": {},
   "mcp": {},
