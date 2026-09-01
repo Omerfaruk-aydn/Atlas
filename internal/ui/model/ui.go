@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime"
@@ -209,6 +210,13 @@ type UI struct {
 
 	// isCanceling tracks whether the user has pressed escape once to cancel.
 	isCanceling bool
+
+	// pendingUpdate, when non-nil, points at the most recent
+	// app.UpdateAvailableMsg currently rendered in the status bar. While
+	// set, the global keyboard handler intercepts "u" to launch the
+	// self-update command without sending the keystroke to the chat
+	// composer. Cleared when the banner expires.
+	pendingUpdate *app.UpdateAvailableMsg
 
 	// bangMode tracks whether the editor is in bang (!) shell mode.
 	bangMode     bool
@@ -1537,21 +1545,25 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		cmds = append(cmds, clearInfoMsgCmd(ttl))
 	case app.UpdateAvailableMsg:
-		text := fmt.Sprintf("ATLAS-AGENT update available: v%s → v%s.", msg.CurrentVersion, msg.LatestVersion)
+		text := fmt.Sprintf("ATLAS-AGENT update available: v%s → v%s. Press U to update or run 'atlas-agent update'.", msg.CurrentVersion, msg.LatestVersion)
 		if msg.IsDevelopment {
-			text = fmt.Sprintf("This is a development version of ATLAS-AGENT. The latest version is v%s.", msg.LatestVersion)
+			text = fmt.Sprintf("This is a development version of ATLAS-AGENT. The latest version is v%s. Run 'atlas-agent update' to upgrade.", msg.LatestVersion)
 		}
-		ttl := 10 * time.Second
+		ttl := 30 * time.Second
 		m.status.SetInfoMsg(util.InfoMsg{
 			Type: util.InfoTypeUpdate,
 			Msg:  text,
 			TTL:  ttl,
 		})
+		// Track the banner so the keyboard handler can intercept the
+		// "u" keypress while it is on screen.
+		m.pendingUpdate = &msg
 		cmds = append(cmds, clearInfoMsgCmd(ttl))
 	case workspace.ConnectionEvent:
 		cmds = append(cmds, m.handleConnectionEvent(msg)...)
 	case util.ClearStatusMsg:
 		m.status.ClearInfoMsg()
+		m.pendingUpdate = nil
 	case completions.CompletionItemsLoadedMsg:
 		if m.completionsOpen {
 			m.completions.SetItems(msg.Files, msg.Resources)
@@ -2689,6 +2701,32 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				return true
 			}
 			cmds = append(cmds, tea.Suspend)
+			return true
+		case m.pendingUpdate != nil && key.Matches(msg, key.NewBinding(key.WithKeys("u"))):
+			// "U" while the update banner is on screen launches the
+			// self-update subcommand in a foreground subprocess so the
+			// user can watch npm download the new binary. After the
+			// child exits, we clear the banner and surface a status
+			// line — but we deliberately keep the same UpdateAvailableMsg
+			// pointer so a follow-up restart (or a failed update) can
+			// be re-attempted by pressing "U" again.
+			pending := m.pendingUpdate
+			latest := pending.LatestVersion
+			exe, err := os.Executable()
+			if err != nil {
+				cmds = append(cmds, util.ReportError(err))
+				return true
+			}
+			// Hide the banner for the duration of the upgrade; otherwise
+			// the TUI keeps re-painting it over the npm output.
+			m.status.ClearInfoMsg()
+			cmd := exec.Command(exe, "update")
+			cmds = append(cmds, tea.ExecProcess(cmd, func(runErr error) tea.Msg {
+				if runErr != nil {
+					return util.NewErrorMsg(fmt.Errorf("update failed: %w", runErr))
+				}
+				return util.NewInfoMsg(fmt.Sprintf("Updated to v%s — restart Atlas Agent to use it.", latest))
+			}))
 			return true
 		case key.Matches(msg, m.keyMap.ToggleYolo):
 			mode := m.toggleYoloMode()

@@ -77,6 +77,7 @@ func init() {
 		loginCmd,
 		statsCmd,
 		sessionCmd,
+		updateCmd,
 		cornersCmd,
 	)
 }
