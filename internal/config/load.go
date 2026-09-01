@@ -238,6 +238,17 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 				p.APIKey = config.APIKey
 			}
 			if len(config.Models) > 0 {
+				// Index the embedded (catwalk) catalog so user-provided
+				// models with the same ID can backfill any catwalk metadata
+				// fields they don't set. Without this, an existing DB row
+				// from a previous release that lacked supports_attachments
+				// would silently win over a freshly-fixed catwalk config
+				// (e.g. MiniMax-M3).
+				catwalkByID := make(map[string]catwalk.Model, len(p.Models))
+				for _, m := range p.Models {
+					catwalkByID[m.ID] = m
+				}
+
 				models := []catwalk.Model{}
 				seen := make(map[string]bool)
 
@@ -248,6 +259,24 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 					seen[model.ID] = true
 					if model.Name == "" {
 						model.Name = model.ID
+					}
+					if cw, ok := catwalkByID[model.ID]; ok {
+						// Backfill catwalk metadata that the user did not
+						// set (zero-value false / empty string / nil
+						// slice). The user's own values, when set, still
+						// win.
+						if !model.SupportsImages {
+							model.SupportsImages = cw.SupportsImages
+						}
+						if !model.CanReason {
+							model.CanReason = cw.CanReason
+						}
+						if model.CanReason && model.DefaultReasoningEffort == "" {
+							model.DefaultReasoningEffort = cw.DefaultReasoningEffort
+						}
+						if model.CanReason && len(model.ReasoningLevels) == 0 {
+							model.ReasoningLevels = cw.ReasoningLevels
+						}
 					}
 					models = append(models, model)
 				}
