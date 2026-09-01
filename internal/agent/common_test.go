@@ -50,14 +50,14 @@ type modelPair struct {
 // openAICompatBuilder builds a model for an OpenAI-compatible provider.
 // Originally wired to Hyper (now removed); the same shape works against any
 // OpenAI-compatible endpoint, so the test suite can run against a
-// user-configured provider URL via ATLAS-AGENT_TEST_BASE_URL.
+// user-configured provider URL via ATLAS_AGENT_TEST_BASE_URL.
 func openAICompatBuilder(model string) builderFunc {
 	return func(t *testing.T, r *vcr.Recorder) (fantasy.LanguageModel, error) {
-		base := os.Getenv("ATLAS-AGENT_TEST_BASE_URL")
+		base := os.Getenv("ATLAS_AGENT_TEST_BASE_URL")
 		if base == "" {
 			base = "https://api.openai.com/v1"
 		}
-		key := os.Getenv("ATLAS-AGENT_TEST_API_KEY")
+		key := os.Getenv("ATLAS_AGENT_TEST_API_KEY")
 		if key == "" {
 			key = os.Getenv("OPENAI_API_KEY")
 		}

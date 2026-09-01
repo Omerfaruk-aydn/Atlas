@@ -1,4 +1,4 @@
-﻿package chat
+package chat
 
 import (
 	"bytes"
@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/attachments"
@@ -190,9 +190,21 @@ func (m *UserMessageItem) ID() string {
 
 // imagePreviewCols/Rows bound the inline preview rendered below an image
 // attachment's chip.
+//
+// These numbers are the preview's entire resolution. A half-block cell
+// carries two stacked pixels, so the mosaic is imagePreviewCols wide by
+// imagePreviewRows*2 tall in pixels - at the original 24x12 every picture
+// arrived as a 24x24 thumbnail regardless of how much room the terminal
+// had, which is what made attachments look like mosaics rather than
+// photographs. Rows is half of Cols so the pixel grid stays square.
+//
+// The ceiling is the message column (maxTextWidth, 120), not the terminal;
+// 48 leaves the preview comfortably inside it even on a narrow window
+// while quadrupling the pixel count. A terminal that speaks the Kitty
+// graphics protocol never gets here - it draws real pixels instead.
 const (
-	imagePreviewCols = 24
-	imagePreviewRows = 12
+	imagePreviewCols = 48
+	imagePreviewRows = 24
 )
 
 // renderAttachments renders the attachment chips, followed by an inline

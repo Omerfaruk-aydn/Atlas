@@ -12,7 +12,7 @@ func TestRegisterAndList(t *testing.T) {
 
 	// Override the projects file path for testing
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	// Test registering a project
 	err := Register("/home/user/project1", "/home/user/project1/.atlas")
@@ -62,7 +62,7 @@ func TestRegisterAndList(t *testing.T) {
 func TestRegisterUpdatesExisting(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	// Register a project
 	err := Register("/home/user/project1", "/home/user/project1/.atlas")
@@ -99,7 +99,7 @@ func TestRegisterUpdatesExisting(t *testing.T) {
 func TestLoadEmptyFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	// List before any projects exist
 	projects, err := List()
@@ -115,7 +115,7 @@ func TestLoadEmptyFile(t *testing.T) {
 func TestProjectsFilePath(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	expected := filepath.Join(tmpDir, "Atlas-Agent", "projects.json")
 	actual := projectsFilePath()
@@ -128,7 +128,7 @@ func TestProjectsFilePath(t *testing.T) {
 func TestRegisterWithParentDataDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	// Register a project where .atlas is in a parent directory.
 	// e.g., working in /home/user/monorepo/packages/app but .atlas is at /home/user/monorepo/.atlas
@@ -158,7 +158,7 @@ func TestRegisterWithParentDataDir(t *testing.T) {
 func TestRegisterWithExternalDataDir(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(tmpDir, "Atlas-Agent"))
 
 	// Register a project where .atlas is in a completely different location.
 	// e.g., project at /home/user/project but data stored at /var/data/Atlas-Agent/myproject

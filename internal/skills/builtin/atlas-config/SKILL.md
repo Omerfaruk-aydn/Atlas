@@ -53,11 +53,11 @@ permissions allow view ls grep edit
 Values are ordinary Bash — quote and expand normally (`"$VAR"`, `$(cmd)`,
 `${VAR:?required}`). A failing `$(command)` aborts the load.
 
-`ATLAS-AGENT_VERSION` is exported into the script so you can feature-detect the
+`ATLAS_AGENT_VERSION` is exported into the script so you can feature-detect the
 running ATLAS-AGENT (it is the literal `devel` for local builds):
 
 ```bash
-[[ "$ATLAS-AGENT_VERSION" != devel ]] && lsp add gopls --command gopls
+[[ "$ATLAS_AGENT_VERSION" != devel ]] && lsp add gopls --command gopls
 ```
 
 ## Commands
@@ -308,11 +308,11 @@ user-invocable: true
 
 ## Environment variables
 
-- `ATLAS-AGENT_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
+- `ATLAS_AGENT_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
   `devel` for local builds).
-- `ATLAS-AGENT_GLOBAL_CONFIG` — override global config location.
-- `ATLAS-AGENT_GLOBAL_DATA` — override data directory location.
-- `ATLAS-AGENT_SKILLS_DIR` — override default skills directory.
+- `ATLAS_AGENT_GLOBAL_CONFIG` — override global config location.
+- `ATLAS_AGENT_GLOBAL_DATA` — override data directory location.
+- `ATLAS_AGENT_SKILLS_DIR` — override default skills directory.
 
 ## Legacy JSON format
 

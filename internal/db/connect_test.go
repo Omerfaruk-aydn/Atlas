@@ -162,7 +162,7 @@ func TestConnect_SkipLockEnvBypassesAcquisition(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(release)
 
-	t.Setenv("ATLAS-AGENT_SKIP_DATADIR_LOCK", "1")
+	t.Setenv("ATLAS_AGENT_SKIP_DATADIR_LOCK", "1")
 
 	conn, err := Connect(context.Background(), dataDir, WithDataDirLock(true))
 	require.NoError(t, err, "skip-lock env should bypass contention")

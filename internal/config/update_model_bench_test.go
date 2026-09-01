@@ -15,8 +15,8 @@ func BenchmarkUpdatePreferredModel(b *testing.B) {
 	dir := b.TempDir()
 	configPath := filepath.Join(dir, "atlas.json")
 
-	b.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", dir)
-	b.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
+	b.Setenv("ATLAS_AGENT_GLOBAL_CONFIG", dir)
+	b.Setenv("ATLAS_AGENT_GLOBAL_DATA", dir)
 	resetProviderState()
 	b.Cleanup(resetProviderState)
 
@@ -77,8 +77,8 @@ func BenchmarkReloadFromDisk(b *testing.B) {
 	dir := b.TempDir()
 	configPath := filepath.Join(dir, "atlas.json")
 
-	b.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", dir)
-	b.Setenv("ATLAS-AGENT_GLOBAL_DATA", dir)
+	b.Setenv("ATLAS_AGENT_GLOBAL_CONFIG", dir)
+	b.Setenv("ATLAS_AGENT_GLOBAL_DATA", dir)
 	resetProviderState()
 	b.Cleanup(resetProviderState)
 

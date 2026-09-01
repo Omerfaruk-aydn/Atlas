@@ -1,18 +1,18 @@
-﻿// Package exitbanner renders what ATLAS-AGENT prints after the TUI exits.
+// Package exitbanner renders what ATLAS-AGENT prints after the TUI exits.
 package exitbanner
 
 import (
 	"math/rand/v2"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 )
 
 // FallbackWidth is used when stdout is not a terminal, so the banner still
@@ -68,7 +68,7 @@ func logoSection(contentWidth int) string {
 		lipgloss.NewStyle().Width(contentWidth).Render("Thanks for using ATLAS-AGENT! "+randomExitMessage())
 }
 
-// sessionResumeLines returns the "Session  <title>\nContinue atlas -s <hash>"
+// sessionResumeLines returns the "Session  <title>\nContinue <binary> -s <hash>"
 // pair used by the exit banner.
 func sessionResumeLines(sess *session.Session, contentWidth int) string {
 	title := strings.ReplaceAll(sess.Title, "\n", " ")
@@ -82,7 +82,17 @@ func sessionResumeLines(sess *session.Session, contentWidth int) string {
 	hash := session.HashID(sess.ID)[:7]
 	label := lipgloss.NewStyle().Foreground(charmtone.Charple)
 	sessionLine := label.Render("Session  ") + title
-	continueLine := label.Render("Continue ") + "atlas -s " + hash
+
+	// The command has to stay intact to be worth printing, so when it does
+	// not fit the decorative label is what gives way. The command name is
+	// not fixed (see version.BinaryName), so this line can be longer than
+	// the frame it was written for, and one line wider than contentWidth
+	// pads every other line out with it.
+	command := version.BinaryName() + " -s " + hash
+	continueLine := label.Render("Continue ") + command
+	if lipgloss.Width("Continue ")+lipgloss.Width(command) > contentWidth {
+		continueLine = ansi.Truncate(command, contentWidth, "…")
+	}
 	return sessionLine + "\n" + continueLine
 }
 

@@ -61,3 +61,6 @@ manpages/
 completions/atlas.*sh
 .prettierignore
 .task
+
+# Transient credential-helper file written by git during a push
+.git-askpass-temp.cmd

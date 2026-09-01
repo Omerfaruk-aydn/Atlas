@@ -50,8 +50,8 @@ func TestLookupConfigs_BoundedByProject(t *testing.T) {
 	// the developer's real config.
 	globalDir := t.TempDir()
 	dataDir := t.TempDir()
-	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", globalDir)
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", dataDir)
+	t.Setenv("ATLAS_AGENT_GLOBAL_CONFIG", globalDir)
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", dataDir)
 
 	t.Run("does not pick up atlas.json above non-git project", func(t *testing.T) {
 		parent := t.TempDir()
@@ -1857,7 +1857,7 @@ func TestConfig_configureProvidersDisableDefaultProviders(t *testing.T) {
 
 func TestConfig_setDefaultsDisableDefaultProvidersEnvVar(t *testing.T) {
 	t.Run("sets option from environment variable", func(t *testing.T) {
-		t.Setenv("ATLAS-AGENT_DISABLE_DEFAULT_PROVIDERS", "true")
+		t.Setenv("ATLAS_AGENT_DISABLE_DEFAULT_PROVIDERS", "true")
 
 		cfg := &Config{}
 		cfg.setDefaults("/tmp", "")

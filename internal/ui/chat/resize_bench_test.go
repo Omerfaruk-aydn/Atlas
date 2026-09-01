@@ -13,17 +13,17 @@ import (
 )
 
 // BenchmarkResizeSession reproduces the resize re-render path over a real
-// session's messages. Point ATLAS-AGENT_BENCH_SESSION at a full session id and
-// ATLAS-AGENT_BENCH_DATADIR at the Atlas-Agent data dir (defaults to ./.atlas).
+// session's messages. Point ATLAS_AGENT_BENCH_SESSION at a full session id and
+// ATLAS_AGENT_BENCH_DATADIR at the Atlas-Agent data dir (defaults to ./.atlas).
 //
-//	ATLAS-AGENT_BENCH_SESSION=e6368d820207a406 go test ./internal/ui/chat/ \
+//	ATLAS_AGENT_BENCH_SESSION=e6368d820207a406 go test ./internal/ui/chat/ \
 //	  -run x -bench BenchmarkResizeSession -benchtime 20x -cpuprofile /tmp/cpu.out
 func BenchmarkResizeSession(b *testing.B) {
-	sessionID := os.Getenv("ATLAS-AGENT_BENCH_SESSION")
+	sessionID := os.Getenv("ATLAS_AGENT_BENCH_SESSION")
 	if sessionID == "" {
-		b.Skip("set ATLAS-AGENT_BENCH_SESSION to a full session id")
+		b.Skip("set ATLAS_AGENT_BENCH_SESSION to a full session id")
 	}
-	dataDir := os.Getenv("ATLAS-AGENT_BENCH_DATADIR")
+	dataDir := os.Getenv("ATLAS_AGENT_BENCH_DATADIR")
 	if dataDir == "" {
 		dataDir = ".atlas"
 	}

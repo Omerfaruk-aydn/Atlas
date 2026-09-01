@@ -21,7 +21,13 @@ if (!fs.existsSync(bin)) {
   process.exit(1);
 }
 
-const child = spawn(bin, process.argv.slice(2), { stdio: 'inherit' });
+// The binary is named for its platform (atlas-agent-windows-x64.exe), so it
+// cannot work out what the user typed to reach it. Tell it, or its resume
+// hint names a command that does not exist on this machine.
+const child = spawn(bin, process.argv.slice(2), {
+  stdio: 'inherit',
+  env: { ...process.env, ATLAS_AGENT_INVOKED_AS: 'atlas-agent' },
+});
 child.on('exit', (code) => process.exit(code ?? 0));
 child.on('error', (err) => {
   console.error(`Atlas Agent: failed to launch: ${err.message}`);

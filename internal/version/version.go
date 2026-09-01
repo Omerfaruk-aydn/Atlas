@@ -1,9 +1,11 @@
-﻿package version
+package version
 
 import (
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strconv"
+	"strings"
 )
 
 // Build-time parameters set via -ldflags.
@@ -51,3 +53,37 @@ func deriveBuildID() string {
 	}
 	return strconv.FormatInt(fi.ModTime().UnixNano(), 36)
 }
+
+// BinaryName returns the command name to use in user-facing hints, such as
+// the resume line printed on exit.
+//
+// It cannot be a constant. The published command is atlas-agent, a local
+// build is usually atlas, and the npm wrapper launches a file named after
+// the platform (atlas-agent-windows-x64.exe) — so a hardcoded name is
+// wrong for someone. A resume hint naming a command that does not exist is
+// worse than no hint at all, which is what "atlas -s <id>" was for every
+// npm install.
+//
+// The launcher states the name it was invoked as; otherwise the running
+// executable's own name is the best available answer.
+func BinaryName() string {
+	if v, ok := os.LookupEnv(invokedAsEnv); ok && v != "" {
+		return v
+	}
+	name := filepath.Base(os.Args[0])
+	if ext := filepath.Ext(name); strings.EqualFold(ext, ".exe") {
+		name = strings.TrimSuffix(name, ext)
+	}
+	if name == "" || name == "." || name == string(filepath.Separator) {
+		return defaultBinaryName
+	}
+	return name
+}
+
+const (
+	// invokedAsEnv lets a wrapper script report the name the user actually
+	// typed, which the process it spawns cannot otherwise know.
+	invokedAsEnv = "ATLAS_AGENT_INVOKED_AS"
+
+	defaultBinaryName = "atlas-agent"
+)

@@ -69,7 +69,7 @@ type connectOptions struct {
 // WithDataDirLock toggles acquisition of the per-data-directory lock
 // for this Connect call. The lock is off by default so local-mode
 // invocations do not regress today's behavior; the server's
-// workspace-bootstrap path opts in. ATLAS-AGENT_SKIP_DATADIR_LOCK still
+// workspace-bootstrap path opts in. ATLAS_AGENT_SKIP_DATADIR_LOCK still
 // bypasses acquisition even when this option is set.
 func WithDataDirLock(enable bool) ConnectOption {
 	return func(o *connectOptions) { o.lockDataDir = enable }

@@ -633,7 +633,7 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
-	if str, ok := appenv.Lookup("ATLAS-AGENT_ENABLE_PROVIDER_AUTO_UPDATE"); ok {
+	if str, ok := appenv.Lookup("ENABLE_PROVIDER_AUTO_UPDATE"); ok {
 		// Opt-in flag: set to "1"/"true" to fetch the provider catalog from
 		// CATWALK_URL on startup. The embedded catalog is the default.
 		enable, _ := strconv.ParseBool(str)

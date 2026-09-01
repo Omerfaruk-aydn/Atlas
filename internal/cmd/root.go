@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
-	
+
 	"io"
 	"io/fs"
 	"log/slog"
@@ -22,14 +22,19 @@ import (
 	"strings"
 	"time"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	fang "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-cli/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
+	fang "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-cli/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	atlaslog "github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
@@ -43,11 +48,6 @@ import (
 	ui "github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/model"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
-	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/spf13/cobra"
 )
 
@@ -83,34 +83,34 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "atlas",
+	Use:   version.BinaryName(),
 	Short: "A terminal-first AI assistant for software development",
 	Long:  "A glamorous, terminal-first AI assistant for software development and adjacent tasks",
-	Example: `
+	Example: fmt.Sprintf(`
 # Run in interactive mode
-atlas
+%[1]s
 
 # Run non-interactively
-atlas run "Guess my 5 favorite Pokémon"
+%[1]s run "Guess my 5 favorite Pokémon"
 
 # Run a non-interactively with pipes and redirection
-cat README.md | atlas run "make this more glamorous" > GLAMOROUS_README.md
+cat README.md | %[1]s run "make this more glamorous" > GLAMOROUS_README.md
 
 # Run with debug logging in a specific directory
-atlas --debug --cwd /path/to/project
+%[1]s --debug --cwd /path/to/project
 
 # Run in yolo mode (auto-accept all permissions; use with care)
-atlas --yolo
+%[1]s --yolo
 
 # Run with custom data directory
-atlas --data-dir /path/to/custom/.atlas
+%[1]s --data-dir /path/to/custom/.atlas
 
 # Continue a previous session
-atlas --session {session-id}
+%[1]s --session {session-id}
 
 # Continue the most recent session
-atlas --continue
-  `,
+%[1]s --continue
+  `, version.BinaryName()),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		sessionID, _ := cmd.Flags().GetString("session")
 		continueLast, _ := cmd.Flags().GetBool("continue")
@@ -235,7 +235,7 @@ func supportsProgressBar() bool {
 }
 
 // useClientServer returns true when the client/server architecture is
-// enabled via the ATLAS-AGENT_CLIENT_SERVER environment variable.
+// enabled via the ATLAS_AGENT_CLIENT_SERVER environment variable.
 func useClientServer() bool {
 	v, _ := strconv.ParseBool(appenv.Get("CLIENT_SERVER"))
 	return v
@@ -259,7 +259,7 @@ func setupWorkspaceWithProgressBar(cmd *cobra.Command) (workspace.Workspace, fun
 }
 
 // setupWorkspace returns a Workspace and cleanup function. When
-// ATLAS-AGENT_CLIENT_SERVER=1, it connects to a server process and returns a
+// ATLAS_AGENT_CLIENT_SERVER=1, it connects to a server process and returns a
 // ClientWorkspace. Otherwise it creates an in-process app.App and
 // returns an AppWorkspace.
 func setupWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error) {
@@ -645,7 +645,7 @@ func safeHostName(hostURL *url.URL) string {
 }
 
 // serverReadyTimeout returns the total budget for the readiness probe.
-// Overridable via ATLAS-AGENT_SERVER_READY_TIMEOUT (parsed as a Go duration).
+// Overridable via ATLAS_AGENT_SERVER_READY_TIMEOUT (parsed as a Go duration).
 func serverReadyTimeout() time.Duration {
 	const def = 10 * time.Second
 	v := appenv.Get("SERVER_READY_TIMEOUT")

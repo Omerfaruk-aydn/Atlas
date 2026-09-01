@@ -46,7 +46,7 @@ type dataDirLock struct {
 // includes whatever owner info that process wrote.
 //
 // Acquisition is skipped (returning a no-op lock) when
-// ATLAS-AGENT_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
+// ATLAS_AGENT_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
 // as an escape hatch for hostile filesystems that do not implement
 // advisory locking; it should not be used in normal operation.
 func acquireDataDirLock(dataDir string) (*dataDirLock, error) {

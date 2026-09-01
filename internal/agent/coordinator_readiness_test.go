@@ -14,7 +14,7 @@ import (
 )
 
 // TestBuildAgentReadinessSurvivesCallerCancellation is a regression test for
-// the ATLAS-AGENT_CLIENT_SERVER=1 "new session hangs" bug.
+// the ATLAS_AGENT_CLIENT_SERVER=1 "new session hangs" bug.
 //
 // buildAgent starts readiness goroutines that build the system prompt and the
 // initial tool list. Several server entry points build an agent from a

@@ -1,12 +1,13 @@
-﻿package exitbanner
+package exitbanner
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/stretchr/testify/require"
 )
 
@@ -40,7 +41,7 @@ func TestRender(t *testing.T) {
 			name:   "compact with a session prints only the resume lines",
 			banner: config.ExitBannerCompact,
 			sess:   testSession(),
-			want:   []string{"Session", "Fix the flaky test", "Continue", "atlas -s "},
+			want:   []string{"Session", "Fix the flaky test", "Continue", version.BinaryName() + " -s "},
 			// No logo, and no padding around the two lines.
 			notWant: []string{"Thanks for using ATLAS-AGENT!"},
 		},

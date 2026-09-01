@@ -31,8 +31,8 @@ func loadAtlasAgentShErr(t *testing.T, script string) (*config.ConfigStore, erro
 	t.Setenv("HOME", isolated)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(isolated, ".config"))
 	t.Setenv("XDG_DATA_HOME", filepath.Join(isolated, ".local", "share"))
-	t.Setenv("ATLAS-AGENT_GLOBAL_CONFIG", filepath.Join(isolated, ".config", "Atlas-Agent"))
-	t.Setenv("ATLAS-AGENT_GLOBAL_DATA", filepath.Join(isolated, ".local", "share", "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_CONFIG", filepath.Join(isolated, ".config", "Atlas-Agent"))
+	t.Setenv("ATLAS_AGENT_GLOBAL_DATA", filepath.Join(isolated, ".local", "share", "Atlas-Agent"))
 
 	workDir := t.TempDir()
 	dataDir := t.TempDir()

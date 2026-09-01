@@ -18,7 +18,7 @@ import (
 func isolateHyperCredentials(t *testing.T) {
 	t.Helper()
 	t.Setenv("HYPER_API_KEY", "")
-	t.Setenv("ATLAS-AGENT_HYPER_API_KEY", "")
+	t.Setenv("ATLAS_AGENT_HYPER_API_KEY", "")
 }
 
 // writeTokenToDisk persists token as the hyper provider credential in the
