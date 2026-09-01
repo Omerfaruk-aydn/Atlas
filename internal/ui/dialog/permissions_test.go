@@ -1,18 +1,18 @@
-package dialog
+﻿package dialog
 
 import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
 func newTestPermissions(t *testing.T) *Permissions {
 	t.Helper()
-	s := styles.CharmtonePantera()
+	s := styles.AtlasPantera()
 	com := &common.Common{Styles: &s}
 	perm := permission.PermissionRequest{
 		ID:         "perm-test",

@@ -1,36 +1,36 @@
----
+﻿---
 name: atlas-config
-description: Use when the user needs help configuring ATLAS-AGENT — writing crushrc (the Bash config format) or crush.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
+description: Use when the user needs help configuring ATLAS-AGENT — writing Atlas-Agentrc (the Bash config format) or crush\.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
 ---
 
 # ATLAS-AGENT Configuration
 
 ATLAS-AGENT supports two config formats:
 
-- **`crushrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
+- **`Atlas-Agentrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
   **Preferred.** Because it is real Bash you get includes, secrets,
   conditionals, and variables for free.
-- **`crush.json`** — static JSON. Fully supported; see
+- **`crush\.json`** — static JSON. Fully supported; see
   [Legacy JSON format](#legacy-json-format).
 
 Both are discovered together and deep-merged. Priority (highest to lowest):
 
-1. `.crushrc` / `crushrc` / `.crush.json` / `crush.json` (project-local,
-   closer-to-cwd wins; Windows uses `.\.crushrc` / `.\crushrc`)
-2. `$XDG_CONFIG_HOME/crush/crushrc` or `~/.config/crush/crushrc`
-   (`%XDG_CONFIG_HOME%\crush\crushrc` or
-   `%USERPROFILE%\.config\crush\crushrc` on Windows)
+1. `.Atlas-Agentrc` / `Atlas-Agentrc` / `\.crush\b.json` / `crush\.json` (project-local,
+   closer-to-cwd wins; Windows uses `.\.Atlas-Agentrc` / `.\Atlas-Agentrc`)
+2. `$XDG_CONFIG_HOME/Atlas-Agent/Atlas-Agentrc` or `~/.config/Atlas-Agent/Atlas-Agentrc`
+   (`%XDG_CONFIG_HOME%\Atlas-Agent\Atlas-Agentrc` or
+   `%USERPROFILE%\.config\Atlas-Agent\Atlas-Agentrc` on Windows)
 
-Data directories (`~/.local/share/crush` and `%LOCALAPPDATA%\crush`) contain
-machine-owned JSON state only; ATLAS-AGENT does not discover or execute a `crushrc`
+Data directories (`~/.local/share/Atlas-Agent` and `%LOCALAPPDATA%\Atlas-Agent`) contain
+machine-owned JSON state only; ATLAS-AGENT does not discover or execute a `Atlas-Agentrc`
 from those locations.
 
-If a directory has both `crushrc` and `crush.json`, they merge (`crushrc` wins
+If a directory has both `Atlas-Agentrc` and `crush\.json`, they merge (`Atlas-Agentrc` wins
 on conflicts) and ATLAS-AGENT logs a warning.
 
-## crushrc at a glance
+## Atlas-Agentrc at a glance
 
-A `crushrc` is a plain Bash script executed at load time with the same embedded
+A `Atlas-Agentrc` is a plain Bash script executed at load time with the same embedded
 shell the `bash` tool uses. It builds config by calling builtins (`provider`,
 `model`, `mcp`, `lsp`, `hook`, `permissions`, `option`). Statements run top to
 bottom; later statements win, and `remove`/`reset` operate on anything defined
@@ -39,7 +39,7 @@ earlier or pulled in via `source`.
 ```bash
 #!/usr/bin/env bash
 # Includes and secrets are just Bash.
-source ~/.config/crush/shared.sh
+source ~/.config/Atlas-Agent/shared.sh
 
 provider add anthropic --api-key "$ANTHROPIC_API_KEY"
 
@@ -94,7 +94,7 @@ model large [<provider>/<id>] [flags]  # set the large slot; no arg prints it
 model small [<provider>/<id>] [flags]  # set the small slot; no arg prints it
 ```
 
-- `<provider>/<id>` is the same form `crush models` prints. A missing slash is
+- `<provider>/<id>` is the same form `Atlas-Agent models` prints. A missing slash is
   an error. `model add` requires the provider to already exist.
 - `model add` flags: `--name`, `--context-window N`, `--default-max-tokens N`,
   `--can-reason BOOL`, `--supports-images BOOL`, `--price-input F`,
@@ -157,7 +157,7 @@ intend to remove it later. See [Hooks runtime](#hooks-runtime) for how hooks
 execute (stdin payload, env vars, decisions).
 
 ```bash
-hook add PreToolUse --matcher "^bash$" --command ".crush/hooks/no-haskell.sh" --name no-haskell
+hook add PreToolUse --matcher "^bash$" --command "\.crush/hooks/no-haskell.sh" --name no-haskell
 ```
 
 ### permissions
@@ -205,7 +205,7 @@ option ui exit-banner compact
 ```
 
 > [!IMPORTANT] These skill paths are loaded by default and do NOT need
-> `skill-path`: `.agents/skills`, `.crush/skills`, `.claude/skills`,
+> `skill-path`: `.agents/skills`, `\.crush/skills`, `.claude/skills`,
 > `.cursor/skills`.
 
 ## Hooks runtime
@@ -308,7 +308,7 @@ user-invocable: true
 
 ## Environment variables
 
-- `CRUSH_VERSION` — exported into `crushrc` at load; the running ATLAS-AGENT version (or
+- `CRUSH_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
   `devel` for local builds).
 - `CRUSH_GLOBAL_CONFIG` — override global config location.
 - `CRUSH_GLOBAL_DATA` — override data directory location.
@@ -316,12 +316,12 @@ user-invocable: true
 
 ## Legacy JSON format
 
-`crush.json` is the original static format. It still works and merges with
-`crushrc`. Basic structure:
+`crush\.json` is the original static format. It still works and merges with
+`Atlas-Agentrc`. Basic structure:
 
 ```json
 {
-  "$schema": "https://charm.land/crush.json",
+  "$schema": "https://charm.land/crush\.json",
   "models": {},
   "providers": {},
   "mcp": {},
@@ -334,9 +334,9 @@ user-invocable: true
 
 The `$schema` property enables IDE autocomplete but is optional.
 
-### crushrc ↔ crush.json mapping
+### Atlas-Agentrc ↔ crush\.json mapping
 
-| crushrc                             | crush.json                                             |
+| Atlas-Agentrc                             | crush\.json                                             |
 | ------------------------------------ | ------------------------------------------------------ |
 | `provider add openai --api-key "$K"` | `providers.openai = {"api_key": "$K"}`                 |
 | `model add openai/gpt-x --name X`    | append to `providers.openai.models[]`                  |
@@ -351,10 +351,10 @@ The `$schema` property enables IDE autocomplete but is optional.
 | `option attribution-trailer-style none` | `options.attribution.trailer_style = "none"`        |
 | `option attribution-generated-with false` | `options.attribution.generated_with = false`       |
 
-### Shell expansion in crush.json
+### Shell expansion in crush\.json
 
 In JSON, only selected string fields are run through the embedded shell at load
-time (in `crushrc`, everything is native Bash so this table does not apply):
+time (in `Atlas-Agentrc`, everything is native Bash so this table does not apply):
 
 | Surface                                                         | Expansion                          |
 | --------------------------------------------------------------- | ---------------------------------- |
@@ -371,7 +371,7 @@ the request.
 
 ### Security note
 
-Both formats are trusted code. `crushrc` runs entirely, and any `$(...)` in
-`crush.json` runs at load time, with the invoking user's shell privileges,
+Both formats are trusted code. `Atlas-Agentrc` runs entirely, and any `$(...)` in
+`crush\.json` runs at load time, with the invoking user's shell privileges,
 before the UI appears. Don't launch ATLAS-AGENT in a directory whose config you
 haven't reviewed.

@@ -1,11 +1,11 @@
-package chat
+﻿package chat
 
 import (
 	"encoding/json"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // GenericToolMessageItem is a message item that represents an unknown tool call.

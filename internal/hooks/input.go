@@ -1,4 +1,4 @@
-package hooks
+﻿package hooks
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/shell"
 	"github.com/tidwall/gjson"
 )
 
@@ -52,7 +52,7 @@ func BuildPayload(eventName, sessionID, cwd, toolName, toolInputJSON string) []b
 // It includes all current process env vars plus hook-specific ones.
 func BuildEnv(eventName, toolName, sessionID, cwd, projectDir, toolInputJSON string) []string {
 	env := os.Environ()
-	env = append(env, shell.CrushEnvMarkers()...)
+	env = append(env, shell.AtlasAgentEnvMarkers()...)
 	env = append(
 		env,
 		fmt.Sprintf("CRUSH_EVENT=%s", eventName),
@@ -76,7 +76,7 @@ func BuildEnv(eventName, toolName, sessionID, cwd, projectDir, toolInputJSON str
 }
 
 // parseStdout parses the JSON output from a hook command's stdout.
-// Supports both Crush format and Claude Code format (hookSpecificOutput).
+// Supports both Atlas-Agent format and Claude Code format (hookSpecificOutput).
 func parseStdout(stdout string) HookResult {
 	stdout = strings.TrimSpace(stdout)
 	if stdout == "" {

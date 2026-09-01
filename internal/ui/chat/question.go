@@ -1,13 +1,13 @@
-package chat
+﻿package chat
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/agent/tools"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/agent/tools"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 )
 

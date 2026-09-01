@@ -1,12 +1,12 @@
-package chat
+﻿package chat
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/diffdetect"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/diffdetect"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 type parsedDiffFile struct {

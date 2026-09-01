@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"cmp"
@@ -17,9 +17,9 @@ import (
 
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/catwalk/pkg/embedded"
-	"github.com/charmbracelet/crush/internal/agent/hyper"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/home"
+	"github.com/maincodss/atlas-agent/internal/agent/hyper"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/home"
 	"github.com/charmbracelet/x/etag"
 )
 
@@ -37,21 +37,21 @@ var (
 func cachePathFor(name string) string {
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
 	if xdgDataHome != "" {
-		return preferExisting(filepath.Join(xdgDataHome, appName, name+".json"))
+		return filepath.Join(xdgDataHome, appName, name+".json")
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/crush/`
-	// for linux and macOS, it should be in `$HOME/.local/share/crush/`
+	// for windows, it should be in `%LOCALAPPDATA%/Atlas-Agent/`
+	// for linux and macOS, it should be in `$HOME/.local/share/Atlas-Agent/`
 	if runtime.GOOS == "windows" {
 		localAppData := os.Getenv("LOCALAPPDATA")
 		if localAppData == "" {
 			localAppData = filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local")
 		}
-		return preferExisting(filepath.Join(localAppData, appName, name+".json"))
+		return filepath.Join(localAppData, appName, name+".json")
 	}
 
-	return preferExisting(filepath.Join(home.Dir(), ".local", "share", appName, name+".json"))
+	return filepath.Join(home.Dir(), ".local", "share", appName, name+".json")
 }
 
 // UpdateProviders updates the Catwalk providers list from a specified source.
@@ -198,7 +198,7 @@ func Providers(cfg *Config, opts ...HyperTokenRefresher) ([]catwalk.Provider, er
 			items, err := catwalkSyncer.Get(ctx)
 			if err != nil {
 				catwalkURL := fmt.Sprintf("%s/v2/providers", cmp.Or(os.Getenv("CATWALK_URL"), defaultCatwalkURL))
-				catwalkErr = fmt.Errorf("Crush was unable to fetch an updated list of providers from %s. Consider setting CRUSH_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this Crush release. You can also update providers manually. For more info see crush update-providers --help.\n\nCause: %w", catwalkURL, err) //nolint:staticcheck
+				catwalkErr = fmt.Errorf("Atlas-Agent was unable to fetch an updated list of providers from %s. Consider setting CRUSH_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this Atlas-Agent release. You can also update providers manually. For more info see Atlas-Agent update-providers --help.\n\nCause: %w", catwalkURL, err) //nolint:staticcheck
 			}
 			providers.Append(items...)
 		})
@@ -227,7 +227,7 @@ func Providers(cfg *Config, opts ...HyperTokenRefresher) ([]catwalk.Provider, er
 			// the user's config: dropping it signs a logged-in user out.
 			item, err := hyperSyncer.Get(ctx)
 			if err != nil {
-				hyperErr = fmt.Errorf("Crush was unable to fetch updated information from Hyper: %w", err) //nolint:staticcheck
+				hyperErr = fmt.Errorf("Atlas-Agent was unable to fetch updated information from Hyper: %w", err) //nolint:staticcheck
 			}
 			hyperProvider = item
 		})
@@ -292,7 +292,7 @@ func (c cache[T]) Store(v T) error {
 		return fmt.Errorf("failed to marshal provider data: %w", err)
 	}
 
-	// Written through a temporary file and renamed into place. Several Crush
+	// Written through a temporary file and renamed into place. Several Atlas-Agent
 	// instances start independently and race to refresh this cache, and a
 	// truncating write would let one of them read a half-written catalog and
 	// silently fall back to the bundled copy.

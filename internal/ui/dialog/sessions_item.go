@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/dustin/go-humanize"
 	"github.com/rivo/uniseg"

@@ -1,4 +1,4 @@
-package lsp
+﻿package lsp
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/fsext"
-	"github.com/charmbracelet/crush/internal/home"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/home"
 	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 	"github.com/charmbracelet/x/powernap/pkg/transport"

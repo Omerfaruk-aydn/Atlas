@@ -1,18 +1,18 @@
-package backend
+﻿package backend
 
 import (
 	"context"
 	"errors"
 	"fmt"
 
-	"github.com/charmbracelet/crush/internal/agent"
-	mcptools "github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/commands"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/agent"
+	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/commands"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/skills"
 )
 
 // publishConfigChanged publishes a ConfigChanged event on the workspace's

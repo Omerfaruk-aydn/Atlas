@@ -1,4 +1,4 @@
-package client
+﻿package client
 
 import (
 	"bufio"
@@ -13,10 +13,10 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )
 

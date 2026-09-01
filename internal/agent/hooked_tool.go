@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"log/slog"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/agent/tools"
-	"github.com/charmbracelet/crush/internal/hooks"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/agent/tools"
+	"github.com/maincodss/atlas-agent/internal/hooks"
+	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/tidwall/sjson"
 )
 

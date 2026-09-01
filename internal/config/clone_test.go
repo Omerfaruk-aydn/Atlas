@@ -1,9 +1,9 @@
-package config
+﻿package config
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/stretchr/testify/require"
 )
 

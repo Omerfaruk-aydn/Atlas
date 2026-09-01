@@ -1,4 +1,4 @@
-package chat
+﻿package chat
 
 import (
 	"fmt"
@@ -9,13 +9,13 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/anim"
-	"github.com/charmbracelet/crush/internal/ui/attachments"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/anim"
+	"github.com/maincodss/atlas-agent/internal/ui/attachments"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // MessageLeftPaddingTotal is the total width that is taken up by the border +

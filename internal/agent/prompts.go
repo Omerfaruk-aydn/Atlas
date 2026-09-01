@@ -1,11 +1,11 @@
-package agent
+﻿package agent
 
 import (
 	"context"
 	_ "embed"
 
-	"github.com/charmbracelet/crush/internal/agent/prompt"
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/agent/prompt"
+	"github.com/maincodss/atlas-agent/internal/config"
 )
 
 //go:embed templates/coder.md.tpl

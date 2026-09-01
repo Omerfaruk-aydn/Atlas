@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/filetracker"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/filetracker"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )
 

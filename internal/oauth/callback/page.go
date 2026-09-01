@@ -1,4 +1,4 @@
-// Package callback renders the browser page a user lands on at the end of
+﻿// Package callback renders the browser page a user lands on at the end of
 // an OAuth redirect flow.
 //
 // The page is the only part of authorization the user sees outside the
@@ -91,7 +91,7 @@ func Write(w io.Writer, r Result) error {
 		CSS              template.CSS
 		JS               template.JS
 		Heartbit         template.HTML
-		Charm            template.HTML
+		Atlas            template.HTML
 		Favicon          template.URL
 	}{
 		Subject:          r.Subject,
@@ -99,7 +99,7 @@ func Write(w io.Writer, r Result) error {
 		ErrorDescription: r.ErrorDescription,
 		CSS:              template.CSS(css),
 		JS:               template.JS(js),
-		Charm:            template.HTML(logo),
+		Atlas:            template.HTML(logo),
 	}
 
 	// The artwork reflects the outcome: a smiling heart on success, a

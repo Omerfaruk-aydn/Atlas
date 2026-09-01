@@ -1,4 +1,4 @@
-package fsext
+﻿package fsext
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/crush/internal/home"
+	"github.com/maincodss/atlas-agent/internal/home"
 )
 
 // Lookup searches for a target files or directories starting from dir

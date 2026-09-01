@@ -1,14 +1,14 @@
-package config_test
+﻿package config_test
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
 func TestShellConfigMCPAdd(t *testing.T) {
-	store := loadCrushSh(t, `mcp add github --type http --url "https://api.githubcopilot.com/mcp/" --header Authorization "Bearer xyz"
+	store := loadAtlasAgentSh(t, `mcp add github --type http --url "https://api.githubcopilot.com/mcp/" --header Authorization "Bearer xyz"
 mcp add fs --command node --args server.js --args --stdio`)
 
 	mcps := store.Config().MCP
@@ -27,7 +27,7 @@ mcp add fs --command node --args server.js --args --stdio`)
 }
 
 func TestShellConfigMCPRemove(t *testing.T) {
-	store := loadCrushSh(t, `mcp add keep --command x
+	store := loadAtlasAgentSh(t, `mcp add keep --command x
 mcp add drop --command y
 mcp remove drop`)
 

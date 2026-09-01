@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"context"
@@ -10,13 +10,13 @@ import (
 	"strings"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/diff"
-	"github.com/charmbracelet/crush/internal/filepathext"
-	"github.com/charmbracelet/crush/internal/filetracker"
-	"github.com/charmbracelet/crush/internal/fsext"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/diff"
+	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/maincodss/atlas-agent/internal/filetracker"
+	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/permission"
 )
 
 type MultiEditOperation struct {

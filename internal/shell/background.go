@@ -1,4 +1,4 @@
-package shell
+﻿package shell
 
 import (
 	"bytes"
@@ -9,8 +9,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 )
 
 const (

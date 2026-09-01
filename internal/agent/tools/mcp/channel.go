@@ -1,4 +1,4 @@
-package mcp
+﻿package mcp
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )

@@ -1,4 +1,4 @@
-package skills
+﻿package skills
 
 import (
 	"embed"
@@ -54,7 +54,7 @@ func DiscoverBuiltinWithStates() ([]*Skill, []*SkillState) {
 			return nil
 		}
 
-		// Set paths using the crush prefix. Strip the leading "builtin/"
+		// Set paths using the Atlas-Agent prefix. Strip the leading "builtin/"
 		// so the path is relative to the embedded root
 		// (e.g., "crush://skills/atlas-config/SKILL.md").
 		relPath, _ := filepath.Rel("builtin", path)

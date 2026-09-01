@@ -1,10 +1,10 @@
-# NOTE(@andreynering): We should have a single entry per label, because if we
+﻿# NOTE(@andreynering): We should have a single entry per label, because if we
 # have multiple the action would only apply the label if ALL of them match.
 
 "area: ci":
   - "/^ci: /i"
 "area: atlas run":
-  - "/crush run/i"
+  - "/Atlas-Agent run/i"
   - "/headless/i"
   - "/non-interactive/i"
 "area: diff":

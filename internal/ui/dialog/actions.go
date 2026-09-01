@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"context"
@@ -9,16 +9,16 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/commands"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/session/rewind"
-	"github.com/charmbracelet/crush/internal/skills"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/commands"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/session/rewind"
+	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 )
 
 // ActionClose is a message to close the current dialog.

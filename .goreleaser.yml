@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
+﻿# yaml-language-server: $schema=https://goreleaser.com/static/schema-pro.json
 # vim: set ts=2 sw=2 tw=0 fo=jcroql
 version: 2
 
@@ -11,7 +11,7 @@ includes:
 metadata:
   mod_timestamp: "{{ .CommitTimestamp }}"
   license: "FSL-1.1-MIT"
-  homepage: "https://charm.sh/crush"
+  homepage: "https://charm.sh/Atlas-Agent"
   description: "A powerful terminal-based AI assistant for developers, providing intelligent coding assistance directly in your terminal."
   full_description: "A powerful terminal-based AI assistant for developers, providing intelligent coding assistance directly in your terminal."
   maintainers:
@@ -70,7 +70,7 @@ builds:
       - goos: windows
         goarch: arm
     ldflags:
-      - -s -w -X github.com/charmbracelet/crush/internal/version.Version={{.Version}}
+      - -s -w -X github.com/charmbracelet/Atlas-Agent/internal/version.Version={{.Version}}
     flags:
       - -trimpath
 
@@ -101,8 +101,8 @@ aur_sources:
     disable: "{{ with .Prerelease }}true{{ end }}"
     git_url: "ssh://aur@aur.archlinux.org/atlas.git"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
     makedepends:
       - go
       - git
@@ -116,7 +116,7 @@ aur_sources:
       export CGO_CXXFLAGS="${CXXFLAGS}"
       export CGO_LDFLAGS="${LDFLAGS}"
       export GOFLAGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
-      go build -ldflags="-w -s -buildid='' -linkmode=external -X github.com/charmbracelet/crush/internal/version.Version=v${pkgver}" .
+      go build -ldflags="-w -s -buildid='' -linkmode=external -X github.com/charmbracelet/Atlas-Agent/internal/version.Version=v${pkgver}" .
       ./atlas completion bash >./completions/atlas.bash
       ./atlas completion zsh >./completions/atlas.zsh
       ./atlas completion fish >./completions/atlas.fish
@@ -145,8 +145,8 @@ aurs:
     disable: "{{ with .Prerelease }}true{{ end }}"
     git_url: "ssh://aur@aur.archlinux.org/atlas-bin.git"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
     provides:
       - atlas
     conflicts:
@@ -180,7 +180,7 @@ aurs:
 
 furies:
   - disable: "{{ if (or .Prerelease .IsNightly) }}true{{ end }}"
-    account: "{{ with .Env.FURY_TOKEN }}charmcli{{ else }}{{ end }}"
+    account: "{{ with .Env.FURY_TOKEN }}Atlascli{{ else }}{{ end }}"
     secret_name: FURY_TOKEN
 
 brews:
@@ -190,8 +190,8 @@ brews:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     skip_upload: "{{ with .Prerelease }}true{{ end }}"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
     goarm: 7
     extra_install: |-
       bash_completion.install "completions/{{ .ProjectName }}.bash" => "{{ .ProjectName }}"
@@ -206,13 +206,13 @@ scoops:
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     skip_upload: "{{ with .Prerelease }}true{{ end }}"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
 
 npms:
-  - name: "@charmland/crush"
-    repository: "git+https://github.com/charmbracelet/crush.git"
-    bugs: https://github.com/charmbracelet/crush/issues
+  - name: "@charmland/Atlas-Agent"
+    repository: "git+https://github.com/charmbracelet/Atlas-Agent.git"
+    bugs: https://github.com/charmbracelet/Atlas-Agent/issues
     access: public
     disable: "{{ with .Prerelease }}true{{ end }}"
 
@@ -264,8 +264,8 @@ nix:
       name: nur
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
     license: fsl11Mit
     formatter: nixfmt
     skip_upload: "{{ with .Prerelease }}true{{ end }}"
@@ -275,19 +275,19 @@ nix:
 
 winget:
   - publisher: charmbracelet
-    copyright: Charmbracelet, Inc
+    copyright: Atlasbracelet, Inc
     publisher_url: https://charm.land
-    release_notes_url: "https://github.com/charmbracelet/crush/releases/tag/{{.Tag}}"
-    license_url: https://github.com/charmbracelet/crush/blob/main/LICENSE.md
+    release_notes_url: "https://github.com/charmbracelet/Atlas-Agent/releases/tag/{{.Tag}}"
+    license_url: https://github.com/charmbracelet/Atlas-Agent/blob/main/LICENSE.md
     skip_upload: "{{ with .Prerelease }}true{{ end }}"
     commit_author:
-      name: "Charm"
-      email: "charmcli@users.noreply.github.com"
+      name: "Atlas"
+      email: "Atlascli@users.noreply.github.com"
     repository:
       owner: "charmbracelet"
       name: winget-pkgs
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-      branch: "crush-{{.Version}}"
+      branch: "Atlas-Agent-{{.Version}}"
       pull_request:
         enabled: true
         draft: false

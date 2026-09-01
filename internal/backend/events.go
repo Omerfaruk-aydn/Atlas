@@ -1,14 +1,14 @@
-package backend
+﻿package backend
 
 import (
 	"context"
 
 	tea "charm.land/bubbletea/v2"
 
-	mcptools "github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 )
 
 // SubscribeEvents returns a per-caller event channel for a workspace.

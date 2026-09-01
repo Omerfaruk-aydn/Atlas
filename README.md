@@ -1,9 +1,9 @@
-# ATLAS-AGENT
+﻿# ATLAS-AGENT
 
 <p align="center">A terminal-first AI assistant for software development.<br />Your tools, your code, and your workflows, wired into your LLM of choice.</p>
 
 > [!NOTE]
-> ATLAS-AGENT is a fork of [Crush][crush] by [Charm](https://charm.land),
+> ATLAS-AGENT is a fork of [Atlas-Agent][Atlas-Agent] by [Atlas](https://charm.land),
 > rebranded and modified. The design and the engine are theirs; anything
 > broken here belongs to this fork. See [License](#license).
 
@@ -31,7 +31,7 @@ On Windows, `go build -o atlas.exe .`. Then put the binary somewhere on your
 `PATH`.
 
 `go install` does not work yet. The Go module is still declared as
-`github.com/charmbracelet/crush`, which does not match this repository's
+`github.com/charmbracelet/Atlas-Agent`, which does not match this repository's
 address, so the module path has to be renamed before that command can resolve.
 
 On Oracle Solaris, add `-tags sqlite3_dotlk` so the local database uses
@@ -45,8 +45,8 @@ On illumos (OpenIndiana, OmniOS) the plain build works. Only native OS
 notifications are unavailable there; terminal notifications (OSC) and the
 terminal bell still work.
 
-Upstream Crush *is* packaged, for every platform listed above. If you want the
-original rather than this fork, [get it there][crush].
+Upstream Atlas-Agent *is* packaged, for every platform listed above. If you want the
+original rather than this fork, [get it there][Atlas-Agent].
 
 ## Getting Started
 
@@ -54,12 +54,12 @@ The quickest way to get started is to pick a provider you already have an API
 key for: press <kbd>ctrl+l</kbd> to open the model picker, choose it, and paste
 the key.
 
-[Hyper][hyper] is Charm's own provider, built for upstream Crush and reachable
+[Hyper][hyper] is Atlas's own provider, built for upstream Atlas-Agent and reachable
 from here unchanged. It’s subscription-based with a free tier, privacy focused,
 with zero data retention (ZDR) and designed to comply with GDPR. [More on
 Hyper][hyper].
 
-<p><a href="https://hyper.charm.land"><img width="340" height="200" alt="Charm Hyper" src="https://github.com/user-attachments/assets/50875289-7992-454d-9f14-9f790413fb5e" /></a></p>
+<p><a href="https://hyper.charm.land"><img width="340" height="200" alt="Atlas Hyper" src="https://github.com/user-attachments/assets/50875289-7992-454d-9f14-9f790413fb5e" /></a></p>
 
 ## API Keys
 
@@ -71,7 +71,7 @@ That said, you can also set environment variables for preferred providers:
 
 | Environment Variable        | Provider                                           |
 | --------------------------- | -------------------------------------------------- |
-| `HYPER_API_KEY`             | [Charm Hyper][hyper]                               |
+| `HYPER_API_KEY`             | [Atlas Hyper][hyper]                               |
 | `ANTHROPIC_API_KEY`         | Anthropic                                          |
 | `OPENAI_API_KEY`            | OpenAI                                             |
 | `VERCEL_API_KEY`            | Vercel AI Gateway                                  |
@@ -111,7 +111,7 @@ Also note that Atlas can support nearly any provider, including
 Is there a provider you’d like to see in Atlas? Is there an existing model that needs an update?
 
 The default model listing comes from [Catwalk](https://github.com/charmbracelet/catwalk),
-Charm’s community-supported, open source catalogue of provider and model
+Atlas’s community-supported, open source catalogue of provider and model
 definitions. This fork uses it unchanged, so a model added there shows up here
 too — contributions go to Catwalk, not to this repository.
 
@@ -201,19 +201,19 @@ files from the internet into your config.
 
 ### Names from before the rebrand
 
-This program was called Crush before it was renamed, and an installation made
+This program was called Atlas-Agent before it was renamed, and an installation made
 back then holds files under that name. Both spellings are read, everywhere:
 
 | What           | Current                     | Also read                   |
 | -------------- | --------------------------- | --------------------------- |
-| Shell config   | `atlasrc`, `.atlasrc`       | `crushrc`, `.crushrc`       |
-| JSON config    | `atlas.json`, `.atlas.json` | `crush.json`, `.crush.json` |
-| Data directory | `.atlas/`                   | `.crush/`                   |
-| Database       | `atlas.db`                  | `crush.db`                  |
-| Log file       | `atlas.log`                 | `crush.log`                 |
-| Context file   | `ATLAS.md`                  | `CRUSH.md`                  |
-| Ignore file    | `.atlasignore`              | `.crushignore`              |
-| Environment    | `ATLAS_*`                   | `CRUSH_*`                   |
+| Shell config   | `atlasrc`, `.atlasrc`       | `Atlas-Agentrc`, `.Atlas-Agentrc`       |
+| JSON config    | `atlas.json`, `.atlas.json` | `crush\.json`, `\.crush\b.json` |
+| Data directory | `.atlas/`                   | `\.crush/`                   |
+| Database       | `atlas.db`                  | `crush\.db`                  |
+| Log file       | `atlas.log`                 | `crush\.log`                 |
+| Context file   | `ATLAS.md`                  | `ATLAS-AGENT.md`                  |
+| Ignore file    | `.atlasignore`              | `.Atlas-Agentignore`              |
+| Environment    | `ATLAS_*`                   | `ATLAS-AGENT_*`                   |
 
 The rule is the same in every case: the current name wins when it is present,
 the old name is used when it is the only one there, and anything created from
@@ -229,7 +229,7 @@ authentication (e.g. the AWS SDK credential chain) without wrapping the
 
 ```json
 {
-  "$schema": "https://charm.land/crush.json",
+  "$schema": "https://charm.land/crush\.json",
   "env": {
     "AWS_PROFILE": "my-sso-profile"
   }
@@ -655,7 +655,7 @@ credential error, Atlas runs the command, then retries the request in place
 
 ```json
 {
-  "$schema": "https://charm.land/crush.json",
+  "$schema": "https://charm.land/crush\.json",
   "env": {
     "AWS_PROFILE": "my-sso-profile"
   },
@@ -831,9 +831,9 @@ atlas update-providers --help
 ## Metrics
 
 > [!IMPORTANT]
-> This fork has not touched upstream's telemetry. Metrics still go to Charm's
+> This fork has not touched upstream's telemetry. Metrics still go to Atlas's
 > endpoint (`data.charm.land`) under the analytics key compiled into the
-> binary — they reach Charm, not this fork's author. Opt out below, or delete
+> binary — they reach Atlas, not this fork's author. Opt out below, or delete
 > `internal/event` if you would rather it not be there at all.
 
 Atlas records pseudonymous usage metrics, tied to a device-specific hash. The
@@ -872,7 +872,7 @@ Issues and pull requests for this fork go to
 [Omerfaruk-aydn/Atlas-Agent](https://github.com/Omerfaruk-aydn/Atlas-Agent/issues).
 
 Anything that is really an upstream matter — a bug in the engine, a provider
-that needs adding, a model definition — belongs with [Crush][crush] or
+that needs adding, a model definition — belongs with [Atlas-Agent][Atlas-Agent] or
 [Catwalk](https://github.com/charmbracelet/catwalk), where it will help
 everyone rather than just this fork.
 
@@ -880,8 +880,8 @@ everyone rather than just this fork.
 
 [FSL-1.1-MIT](./LICENSE.md), inherited from upstream.
 
-ATLAS-AGENT is a fork of [Crush][crush] by [Charm](https://charm.land), used
-under that license. Crush, Charm, Catwalk, Hyper, and the Charm logo belong to
-Charm; this project is not affiliated with or endorsed by them.
+ATLAS-AGENT is a fork of [Atlas-Agent][Atlas-Agent] by [Atlas](https://charm.land), used
+under that license. Atlas-Agent, Atlas, Catwalk, Hyper, and the Atlas logo belong to
+Atlas; this project is not affiliated with or endorsed by them.
 
-[crush]: https://github.com/charmbracelet/crush
+[Atlas-Agent]: https://github.com/charmbracelet/Atlas-Agent

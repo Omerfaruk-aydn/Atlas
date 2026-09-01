@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/log"
+	"github.com/maincodss/atlas-agent/internal/log"
 )
 
 var getRg = sync.OnceValue(func() string {

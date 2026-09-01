@@ -1,8 +1,8 @@
-package backend
+﻿package backend
 
 import (
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/proto"
 )
 
 // GrantPermission grants, denies, or persistently grants a permission

@@ -1,9 +1,9 @@
-package session
+﻿package session
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/db"
+	"github.com/maincodss/atlas-agent/internal/db"
 	"github.com/stretchr/testify/require"
 )
 

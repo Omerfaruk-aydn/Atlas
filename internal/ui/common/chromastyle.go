@@ -1,4 +1,4 @@
-package common
+﻿package common
 
 import (
 	"image/color"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/alecthomas/chroma/v2"
 	chromastyles "github.com/alecthomas/chroma/v2/styles"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // Building a chroma style from a theme (chroma.MustNewStyle) parses every

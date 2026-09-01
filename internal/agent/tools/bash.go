@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"bytes"
@@ -15,10 +15,10 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/fsext"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/shell"
 )
 
 type BashParams struct {

@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"context"
@@ -11,17 +11,17 @@ import (
 	"time"
 
 	"charm.land/log/v2"
-	"github.com/charmbracelet/crush/internal/client"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/event"
-	"github.com/charmbracelet/crush/internal/format"
-	"github.com/charmbracelet/crush/internal/herdr"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/anim"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/client"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/event"
+	"github.com/maincodss/atlas-agent/internal/format"
+	"github.com/maincodss/atlas-agent/internal/herdr"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/anim"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/term"
 	"github.com/google/uuid"

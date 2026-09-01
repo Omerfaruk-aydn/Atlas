@@ -1,11 +1,11 @@
-package mcp
+﻿package mcp
 
 import (
 	"bytes"
 	"encoding/base64"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

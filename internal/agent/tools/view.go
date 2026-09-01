@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"bufio"
@@ -17,11 +17,11 @@ import (
 	"unicode/utf8"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/filepathext"
-	"github.com/charmbracelet/crush/internal/filetracker"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/maincodss/atlas-agent/internal/filetracker"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/skills"
 )
 
 //go:embed view.md.tpl

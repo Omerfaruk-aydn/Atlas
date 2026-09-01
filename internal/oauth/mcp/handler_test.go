@@ -1,4 +1,4 @@
-package mcpoauth
+﻿package mcpoauth
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/oauth"
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/require"
@@ -754,7 +754,7 @@ func TestConnect_OneLoginOpensOneTab(t *testing.T) {
 		return redirect(u)
 	}
 
-	client := mcp.NewClient(&mcp.Implementation{Name: "crush", Version: "test"}, nil)
+	client := mcp.NewClient(&mcp.Implementation{Name: "Atlas-Agent", Version: "test"}, nil)
 	// The handshake itself fails by design; the tab count is the subject.
 	_, _ = client.Connect(t.Context(), &mcp.StreamableClientTransport{
 		Endpoint:     endpoint,

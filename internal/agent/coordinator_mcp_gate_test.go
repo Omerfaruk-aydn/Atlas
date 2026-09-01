@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/agent/prompt"
-	"github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/agent/prompt"
+	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -22,7 +22,7 @@ func newGateTestCoordinator(t *testing.T, interactive bool) *coordinator {
 
 	env := testEnv(t)
 
-	crushJSON := `{
+	AtlasJSON := `{
   "options": {"disable_default_providers": true, "disable_provider_auto_update": true},
   "providers": {"mock": {"id": "mock", "name": "Mock", "type": "openai",
     "base_url": "http://127.0.0.1:9/v1", "api_key": "test-key",
@@ -30,7 +30,7 @@ func newGateTestCoordinator(t *testing.T, interactive bool) *coordinator {
   "models": {"large": {"provider": "mock", "model": "mock-model"},
              "small": {"provider": "mock", "model": "mock-model"}}
 }`
-	require.NoError(t, os.WriteFile(filepath.Join(env.workingDir, "crush.json"), []byte(crushJSON), 0o644))
+	require.NoError(t, os.WriteFile(filepath.Join(env.workingDir, "atlas.json"), []byte(AtlasJSON), 0o644))
 
 	cfg, err := config.Init(env.workingDir, "", false)
 	require.NoError(t, err)

@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"cmp"
@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/skills"
 )
 
 const AtlasInfoToolName = "atlas_info"

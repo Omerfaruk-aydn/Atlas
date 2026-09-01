@@ -1,11 +1,11 @@
-package exitbanner
+﻿package exitbanner
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
 )

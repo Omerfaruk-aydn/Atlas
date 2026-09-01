@@ -1,4 +1,4 @@
-package history
+﻿package history
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/google/uuid"
 )
 

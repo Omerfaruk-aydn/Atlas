@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"bytes"
@@ -6,8 +6,8 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/charmbracelet/crush/internal/appenv"
-	"github.com/charmbracelet/crush/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/appenv"
+	
 	"io"
 	"io/fs"
 	"log/slog"
@@ -26,23 +26,23 @@ import (
 	fang "charm.land/fang/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/client"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/event"
-	"github.com/charmbracelet/crush/internal/lock"
-	atlaslog "github.com/charmbracelet/crush/internal/log"
-	"github.com/charmbracelet/crush/internal/projects"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/server"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/skills"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/exitbanner"
-	ui "github.com/charmbracelet/crush/internal/ui/model"
-	"github.com/charmbracelet/crush/internal/version"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/client"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/event"
+	"github.com/maincodss/atlas-agent/internal/lock"
+	atlaslog "github.com/maincodss/atlas-agent/internal/log"
+	"github.com/maincodss/atlas-agent/internal/projects"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/server"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/exitbanner"
+	ui "github.com/maincodss/atlas-agent/internal/ui/model"
+	"github.com/maincodss/atlas-agent/internal/version"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/exp/charmtone"
@@ -102,7 +102,7 @@ atlas --debug --cwd /path/to/project
 atlas --yolo
 
 # Run with custom data directory
-atlas --data-dir /path/to/custom/.crush
+atlas --data-dir /path/to/custom/.atlas
 
 # Continue a previous session
 atlas --session {session-id}
@@ -146,7 +146,7 @@ atlas --continue
 		if _, err := program.Run(); err != nil {
 			event.Error(err)
 			slog.Error("TUI run error", "error", err)
-			return errors.New("ATLAS-AGENT crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/charmbracelet/crush/issues/new?template=bug.yml") //nolint:staticcheck
+			return errors.New("ATLAS-AGENT crashed. If metrics are enabled, we were notified about it. If you'd like to report it, please copy the stacktrace above and open an issue at https://github.com/maincodss/atlas-agent/issues/new?template=bug.yml") //nolint:staticcheck
 		}
 		var banner config.ExitBanner
 		if cfg := com.Config(); cfg != nil {
@@ -234,7 +234,7 @@ func supportsProgressBar() bool {
 }
 
 // useClientServer returns true when the client/server architecture is
-// enabled via the CRUSH_CLIENT_SERVER environment variable.
+// enabled via the ATLAS-AGENT_CLIENT_SERVER environment variable.
 func useClientServer() bool {
 	v, _ := strconv.ParseBool(appenv.Get("CLIENT_SERVER"))
 	return v
@@ -258,7 +258,7 @@ func setupWorkspaceWithProgressBar(cmd *cobra.Command) (workspace.Workspace, fun
 }
 
 // setupWorkspace returns a Workspace and cleanup function. When
-// CRUSH_CLIENT_SERVER=1, it connects to a server process and returns a
+// ATLAS-AGENT_CLIENT_SERVER=1, it connects to a server process and returns a
 // ClientWorkspace. Otherwise it creates an in-process app.App and
 // returns an AppWorkspace.
 func setupWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error) {
@@ -311,9 +311,7 @@ func setupLocalWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error
 		return nil, nil, err
 	}
 
-	logFile := fsext.PreferExisting(
-		filepath.Join(cfg.Options.DataDirectory, "logs", "atlas.log"),
-		filepath.Join(cfg.Options.DataDirectory, "logs", "crush.log"))
+	logFile := filepath.Join(cfg.Options.DataDirectory, "logs", "atlas.log")
 	atlaslog.Setup(logFile, debug)
 
 	// Discover skills once before app.New. Local mode hosts a single
@@ -437,9 +435,7 @@ func connectToServer(cmd *cobra.Command) (*client.Client, *proto.Workspace, func
 	}
 
 	if ws.Config != nil {
-		logFile := fsext.PreferExisting(
-			filepath.Join(ws.Config.Options.DataDirectory, "logs", "atlas.log"),
-			filepath.Join(ws.Config.Options.DataDirectory, "logs", "crush.log"))
+		logFile := filepath.Join(ws.Config.Options.DataDirectory, "logs", "atlas.log")
 		atlaslog.Setup(logFile, debug)
 	}
 
@@ -512,9 +508,7 @@ func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 	// server log file. atlaslog.Setup uses sync.Once internally, so the
 	// later call from connectToServer becomes a no-op.
 	debug, _ := cmd.Flags().GetBool("debug")
-	logFile := fsext.PreferExisting(
-		filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log"),
-		filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log"))
+	logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log")
 	atlaslog.Setup(logFile, debug)
 
 	switch hostURL.Scheme {
@@ -578,7 +572,7 @@ func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 
 // spawnAndWaitReady serializes the spawn-and-wait-for-readiness sequence
 // across concurrent clients via an exclusive flock on
-// $XDG_CACHE_HOME/crush/server-<safeHost>/start.lock.
+// $XDG_CACHE_HOME/Atlas-Agent/server-<safeHost>/start.lock.
 //
 // After acquiring the lock it re-probes readiness so that a client that
 // blocked while another client was spawning can skip its own spawn and
@@ -650,7 +644,7 @@ func safeHostName(hostURL *url.URL) string {
 }
 
 // serverReadyTimeout returns the total budget for the readiness probe.
-// Overridable via CRUSH_SERVER_READY_TIMEOUT (parsed as a Go duration).
+// Overridable via ATLAS-AGENT_SERVER_READY_TIMEOUT (parsed as a Go duration).
 func serverReadyTimeout() time.Duration {
 	const def = 10 * time.Second
 	v := appenv.Get("SERVER_READY_TIMEOUT")
@@ -991,7 +985,7 @@ func ResolveCwd(cmd *cobra.Command) (string, error) {
 	return cwd, nil
 }
 
-func createDotCrushDir(dir string) error {
+func createDotAtlasAgentDir(dir string) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("failed to create data directory: %q %w", dir, err)
 	}

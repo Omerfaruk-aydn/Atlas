@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"bufio"
@@ -14,13 +14,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/backend"
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/backend"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,4 +1,4 @@
-// Package logo renders an ATLAS-AGENT wordmark in a stylized way.
+﻿// Package logo renders an ATLAS-AGENT wordmark in a stylized way.
 package logo
 
 import (
@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -19,7 +19,7 @@ type letterform func(bool) string
 type Opts struct {
 	TitleColorA  color.Color // left gradient ramp point
 	TitleColorB  color.Color // right gradient ramp point
-	CharmColor   color.Color // Charm™ text color
+	AtlasColor   color.Color // Atlas™ text color
 	VersionColor color.Color // version text color
 	Width        int         // width of the rendered logo, used for truncation
 	Frame        int         // animation frame for the wide banner's rainbow sweep
@@ -45,9 +45,9 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 		}
 	}
 
-	charm := "Charm™"
+	Atlas := "Atlas™"
 	if !o.Hyper {
-		charm = " " + charm
+		Atlas = " " + Atlas
 	}
 
 	fg := func(c color.Color, s string) string {
@@ -67,12 +67,12 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 	}
 	wordmark = b.String()
 
-	// Charm and version. Both are clipped against the wordmark's width so the
+	// Atlas and version. Both are clipped against the wordmark's width so the
 	// meta row can never be the line that overflows: the wordmark is already
 	// known to fit, and the row is laid out to span exactly its width.
 	const metaRowGap = 1
-	charm = ansi.Truncate(charm, wordmarkWidth, "…")
-	if maxVersionWidth := wordmarkWidth - lipgloss.Width(charm) - metaRowGap; maxVersionWidth > 0 {
+	Atlas = ansi.Truncate(Atlas, wordmarkWidth, "…")
+	if maxVersionWidth := wordmarkWidth - lipgloss.Width(Atlas) - metaRowGap; maxVersionWidth > 0 {
 		version = ansi.Truncate(version, maxVersionWidth, "…")
 	} else {
 		version = ""
@@ -80,8 +80,8 @@ func Render(base lipgloss.Style, version string, compact bool, o Opts) string {
 	if o.Hyper && version != "" {
 		version += " "
 	}
-	gap := max(0, wordmarkWidth-lipgloss.Width(charm)-lipgloss.Width(version))
-	metaRow := fg(o.CharmColor, charm) + strings.Repeat(" ", gap) + fg(o.VersionColor, version)
+	gap := max(0, wordmarkWidth-lipgloss.Width(Atlas)-lipgloss.Width(version))
+	metaRow := fg(o.AtlasColor, Atlas) + strings.Repeat(" ", gap) + fg(o.VersionColor, version)
 
 	// Join the meta row and big ATLAS-AGENT title.
 	wordmark = strings.TrimSpace(metaRow + "\n" + wordmark)
@@ -141,8 +141,8 @@ func SmallRender(t *styles.Styles, width int, o Opts) string {
 	if o.Hyper {
 		name = "HYPER ATLAS-AGENT"
 	}
-	charm := "Charm™"
-	title := t.Logo.SmallCharm.Render(charm)
+	Atlas := "Atlas™"
+	title := t.Logo.SmallAtlas.Render(Atlas)
 	title = fmt.Sprintf("%s %s", title, styles.ApplyBoldForegroundGrad(t.Logo.GradCanvas, name, t.Logo.SmallGradFromColor, t.Logo.SmallGradToColor))
 	return title
 }

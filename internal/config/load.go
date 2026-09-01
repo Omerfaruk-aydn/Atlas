@@ -1,7 +1,8 @@
-package config
+﻿package config
 
 import (
 	"cmp"
+	"github.com/maincodss/atlas-agent/internal/appenv"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,14 +21,14 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/agent/hyper"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/discover"
-	"github.com/charmbracelet/crush/internal/env"
-	"github.com/charmbracelet/crush/internal/filepathext"
-	"github.com/charmbracelet/crush/internal/fsext"
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/shellconfig"
+	"github.com/maincodss/atlas-agent/internal/agent/hyper"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/discover"
+	"github.com/maincodss/atlas-agent/internal/env"
+	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/maincodss/atlas-agent/internal/shellconfig"
 	powernapConfig "github.com/charmbracelet/x/powernap/pkg/config"
 	"github.com/qjebbs/go-jsons"
 	"github.com/tidwall/gjson"
@@ -55,7 +56,7 @@ func Load(workingDir, dataDir string, debug bool) (*ConfigStore, error) {
 		config:         cfg,
 		workingDir:     workingDir,
 		globalDataPath: GlobalConfigData(),
-		workspacePath:  preferExisting(filepath.Join(cfg.Options.DataDirectory, fmt.Sprintf("%s.json", appName))),
+		workspacePath:  filepath.Join(cfg.Options.DataDirectory, fmt.Sprintf("%s.json", appName)),
 		loadedPaths:    loadedPaths,
 	}
 
@@ -166,7 +167,7 @@ func Load(workingDir, dataDir string, debug bool) (*ConfigStore, error) {
 	// Capture initial staleness snapshot
 	// Capture initial staleness snapshot. Track every discovered config path,
 	// not just the ones that loaded, so a config file created after startup
-	// (e.g. a crushrc added mid-session) is detected as a change.
+	// (e.g. a atlasrc added mid-session) is detected as a change.
 	store.captureStalenessSnapshot(append(slices.Clone(configPaths), loadedPaths...))
 
 	return store, nil
@@ -182,10 +183,10 @@ func mustMarshalConfig(cfg *Config) []byte {
 	return data
 }
 
-func PushPopCrushEnv() func() {
+func PushPopAtlasAgentEnv() func() {
 	var found []string
 	for _, ev := range os.Environ() {
-		for _, prefix := range []string{envPrefix, legacyEnvPrefix} {
+		for _, prefix := range []string{appenv.Prefix} {
 			if !strings.HasPrefix(ev, prefix) {
 				continue
 			}
@@ -202,7 +203,7 @@ func PushPopCrushEnv() func() {
 	}
 
 	for _, ev := range found {
-		os.Setenv(ev, getEnv(ev))
+		os.Setenv(ev, appenv.Get(ev))
 	}
 
 	restore := func() {
@@ -215,7 +216,7 @@ func PushPopCrushEnv() func() {
 
 func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env env.Env, resolver VariableResolver, knownProviders []catwalk.Provider) error {
 	knownProviderNames := make(map[string]bool)
-	restore := PushPopCrushEnv()
+	restore := PushPopAtlasAgentEnv()
 	defer restore()
 
 	// When disable_default_providers is enabled, skip all default/embedded
@@ -533,7 +534,7 @@ func (c *Config) applyEnv(resolver VariableResolver) {
 // NormalizeOptions allocates Options and Options.TUI and fills in the option
 // defaults the UI relies on, so readers can dereference them without guarding.
 // Configs loaded from disk get this via setDefaults; configs arriving over the
-// wire from a Crush server need the same treatment before the UI reads them.
+// wire from a Atlas-Agent server need the same treatment before the UI reads them.
 //
 // DiffMode is deliberately left alone: the permissions dialog reads its zero
 // value as "choose split or unified from the terminal width".
@@ -555,11 +556,11 @@ func (c *Config) NormalizeOptions() {
 func (c *Config) setDefaults(workingDir, dataDir string) {
 	c.NormalizeOptions()
 	if len(c.Options.GlobalContextPaths) == 0 {
-		crushConfigDir := filepath.Dir(GlobalConfig())
+		AtlasConfigDir := filepath.Dir(GlobalConfig())
 		c.Options.GlobalContextPaths = []string{
-			filepath.Join(crushConfigDir, "ATLAS.md"),
-			filepath.Join(crushConfigDir, "CRUSH.md"),
-			filepath.Join(filepath.Dir(crushConfigDir), "AGENTS.md"),
+			filepath.Join(AtlasConfigDir, "ATLAS.md"),
+			filepath.Join(AtlasConfigDir, "ATLAS-AGENT.md"),
+			filepath.Join(filepath.Dir(AtlasConfigDir), "AGENTS.md"),
 		}
 	}
 	slices.Sort(c.Options.GlobalContextPaths)
@@ -568,11 +569,7 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	if dataDir != "" {
 		c.Options.DataDirectory = dataDir
 	} else if c.Options.DataDirectory == "" {
-		if path, ok := lookupDataDirectory(workingDir); ok {
-			c.Options.DataDirectory = path
-		} else {
-			c.Options.DataDirectory = filepath.Join(workingDir, defaultDataDirectory)
-		}
+		c.Options.DataDirectory = filepath.Join(workingDir, defaultDataDirectory)
 	}
 	c.Options.DataDirectory = filepath.Clean(filepathext.SmartJoin(workingDir, c.Options.DataDirectory))
 	if c.Providers == nil {
@@ -588,7 +585,7 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 		c.MCP = make(map[string]MCPConfig)
 	}
 	// Drop orphaned OAuth token entries left behind when a user removes
-	// an MCP from crush.json. See MCPConfig.isOrphanedToken.
+	// an MCP from atlas.json. See MCPConfig.isOrphanedToken.
 	for name, m := range c.MCP {
 		if m.isOrphanedToken() {
 			delete(c.MCP, name)
@@ -617,11 +614,11 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
-	if str, ok := lookupEnv("DISABLE_PROVIDER_AUTO_UPDATE"); ok {
+	if str, ok := appenv.Lookup("DISABLE_PROVIDER_AUTO_UPDATE"); ok {
 		c.Options.DisableProviderAutoUpdate, _ = strconv.ParseBool(str)
 	}
 
-	if str, ok := lookupEnv("DISABLE_DEFAULT_PROVIDERS"); ok {
+	if str, ok := appenv.Lookup("DISABLE_DEFAULT_PROVIDERS"); ok {
 		c.Options.DisableDefaultProviders, _ = strconv.ParseBool(str)
 	}
 
@@ -921,12 +918,12 @@ func resolveSelectedModels(cfg *Config, knownProviders []catwalk.Provider) (reso
 // lookupConfigs searches config files starting at cwd and walking up
 // through the current project. The upward walk stops at the git
 // working tree root when one can be detected, otherwise at cwd itself,
-// so an unrelated crush.json placed above the project is never picked
+// so an unrelated atlas.json placed above the project is never picked
 // up. Global user-level config locations are always included
 // regardless of the boundary.
 func lookupConfigs(cwd string) []string {
 	// Prepend global user config and machine-owned data JSON. Only the user
-	// config directory contributes a crushrc; the data directory is writable
+	// config directory contributes a atlasrc; the data directory is writable
 	// machine state and must never be executed as Bash. Missing files are
 	// skipped when loaded.
 	// Each global location is listed under both spellings, legacy first so
@@ -936,26 +933,24 @@ func lookupConfigs(cwd string) []string {
 	// whichever name it is created under.
 	configPaths := append(
 		[]string{systemConfigPath},
-		bothSpellings(
-			GlobalConfig(),
-			shellConfigSibling(GlobalConfig()),
-			GlobalConfigData(),
-		)...,
+		GlobalConfig(),
+		shellConfigSibling(GlobalConfig()),
+		GlobalConfigData(),
 	)
 
 	// Ordered high-to-low priority within a directory. LookupBounded returns
 	// matches in this order, and the later reverse + merge make the earliest
-	// listed name win on conflict. So: .crushrc beats crushrc, both beat the
-	// JSON configs, and .crush.json beats crush.json.
+	// listed name win on conflict. So: .atlasrc beats atlasrc, both beat the
+	// JSON configs, and .atlas.json beats atlas.json.
 	// Legacy spellings come after the current ones, so a directory holding
 	// both prefers the new name while a directory holding only the old one
 	// still loads.
-	configNames := withLegacyNames(
-		"."+appName+"rc",
-		appName+"rc",
-		"."+appName+".json",
-		appName+".json",
-	)
+	configNames := []string{
+		"." + appName + "rc",
+		appName + "rc",
+		"." + appName + ".json",
+		appName + ".json",
+	}
 
 	foundConfigs, err := fsext.LookupBounded(cwd, projectBoundary(cwd), configNames...)
 	if err != nil {
@@ -973,7 +968,7 @@ func loadFromConfigPaths(ctx context.Context, configPaths []string) (*Config, []
 	var configs [][]byte
 	var loaded []string
 
-	// Track directories that have both crush.json and crushrc to warn
+	// Track directories that have both atlas.json and atlasrc to warn
 	// about potential confusion, along with the top-level keys each
 	// defines so we can report conflicts.
 	jsonDirKeys := make(map[string]map[string]bool)
@@ -1018,7 +1013,7 @@ func loadFromConfigPaths(ctx context.Context, configPaths []string) (*Config, []
 		}
 	}
 
-	// Warn if both a JSON config and a crushrc exist in the same directory
+	// Warn if both a JSON config and a atlasrc exist in the same directory
 	// and define overlapping top-level keys. Disjoint coexistence is
 	// intentional and not worth warning about.
 	for dir, jKeys := range jsonDirKeys {
@@ -1034,7 +1029,7 @@ func loadFromConfigPaths(ctx context.Context, configPaths []string) (*Config, []
 		}
 		if len(conflicts) > 0 {
 			slices.Sort(conflicts)
-			slog.Warn("Found both a JSON config and a crushrc in the same directory; merging with crushrc taking precedence",
+			slog.Warn("Found both a JSON config and a atlasrc in the same directory; merging with atlasrc taking precedence",
 				"dir", dir, "conflicting_keys", strings.Join(conflicts, ", "))
 		}
 	}
@@ -1201,24 +1196,24 @@ func migrateDisableNotifications() {
 
 // GlobalConfig returns the global configuration file path for the application.
 func GlobalConfig() string {
-	if global := getEnv("GLOBAL_CONFIG"); global != "" {
-		return preferExisting(filepath.Join(global, fmt.Sprintf("%s.json", appName)))
+	if global := appenv.Get("GLOBAL_CONFIG"); global != "" {
+		return filepath.Join(global, fmt.Sprintf("%s.json", appName))
 	}
-	return preferExisting(filepath.Join(home.Config(), appName, fmt.Sprintf("%s.json", appName)))
+	return filepath.Join(home.Config(), appName, fmt.Sprintf("%s.json", appName))
 }
 
-// shellConfigSibling returns the crushrc path that sits alongside a given
-// crush.json path (same directory). Used so global config locations pick up a
+// shellConfigSibling returns the atlasrc path that sits alongside a given
+// atlas.json path (same directory). Used so global config locations pick up a
 // shell config, not just JSON.
 func shellConfigSibling(jsonPath string) string {
-	return preferExisting(filepath.Join(filepath.Dir(jsonPath), appName+"rc"))
+	return filepath.Join(filepath.Dir(jsonPath), appName+"rc")
 }
 
-// isShellConfig reports whether a config path is a shell config (crushrc or
-// the hidden .crushrc), as opposed to a JSON config.
+// isShellConfig reports whether a config path is a shell config (atlasrc or
+// the hidden .atlasrc), as opposed to a JSON config.
 func isShellConfig(path string) bool {
 	base := filepath.Base(path)
-	for _, name := range withLegacyNames(appName+"rc", "."+appName+"rc") {
+	for _, name := range []string{appName + "rc", "." + appName + "rc"} {
 		if base == name {
 			return true
 		}
@@ -1229,20 +1224,20 @@ func isShellConfig(path string) bool {
 // GlobalCacheDir returns the path to the global cache directory for the
 // application.
 func GlobalCacheDir() string {
-	if cache := getEnv("CACHE_DIR"); cache != "" {
+	if cache := appenv.Get("CACHE_DIR"); cache != "" {
 		return cache
 	}
 	if xdgCacheHome := os.Getenv("XDG_CACHE_HOME"); xdgCacheHome != "" {
-		return preferExisting(filepath.Join(xdgCacheHome, appName))
+		return filepath.Join(xdgCacheHome, appName)
 	}
 	if runtime.GOOS == "windows" {
 		localAppData := cmp.Or(
 			os.Getenv("LOCALAPPDATA"),
 			filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local"),
 		)
-		return preferExisting(filepath.Join(localAppData, appName, "cache"))
+		return filepath.Join(localAppData, appName, "cache")
 	}
-	return preferExisting(filepath.Join(home.Dir(), ".cache", appName))
+	return filepath.Join(home.Dir(), ".cache", appName)
 }
 
 // ProjectConfigs returns list of current project configs paths.
@@ -1253,25 +1248,25 @@ func ProjectConfigs(cwd string) []string {
 // GlobalConfigData returns the path to the main data directory for the application.
 // this config is used when the app overrides configurations instead of updating the global config.
 func GlobalConfigData() string {
-	if data := getEnv("GLOBAL_DATA"); data != "" {
-		return preferExisting(filepath.Join(data, fmt.Sprintf("%s.json", appName)))
+	if data := appenv.Get("GLOBAL_DATA"); data != "" {
+		return filepath.Join(data, fmt.Sprintf("%s.json", appName))
 	}
 	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); xdgDataHome != "" {
-		return preferExisting(filepath.Join(xdgDataHome, appName, fmt.Sprintf("%s.json", appName)))
+		return filepath.Join(xdgDataHome, appName, fmt.Sprintf("%s.json", appName))
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/crush/`
-	// for linux and macOS, it should be in `$HOME/.local/share/crush/`
+	// for windows, it should be in `%LOCALAPPDATA%/Atlas-Agent/`
+	// for linux and macOS, it should be in `$HOME/.local/share/Atlas-Agent/`
 	if runtime.GOOS == "windows" {
 		localAppData := cmp.Or(
 			os.Getenv("LOCALAPPDATA"),
 			filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local"),
 		)
-		return preferExisting(filepath.Join(localAppData, appName, fmt.Sprintf("%s.json", appName)))
+		return filepath.Join(localAppData, appName, fmt.Sprintf("%s.json", appName))
 	}
 
-	return preferExisting(filepath.Join(home.Dir(), ".local", "share", appName, fmt.Sprintf("%s.json", appName)))
+	return filepath.Join(home.Dir(), ".local", "share", appName, fmt.Sprintf("%s.json", appName))
 }
 
 // GlobalWorkspaceDir returns the path to the global server workspace
@@ -1342,7 +1337,7 @@ func computeWorktreeRoot(dir string) string {
 // projectBoundary returns the directory at which an upward configuration
 // search rooted at dir should stop. It is the git working tree root when
 // one can be detected, otherwise dir itself. Returning dir as a
-// fallback keeps Crush from silently adopting state files placed above
+// fallback keeps Atlas-Agent from silently adopting state files placed above
 // the current project.
 func projectBoundary(dir string) string {
 	if root := worktreeRoot(dir); root != "" {
@@ -1359,8 +1354,8 @@ func projectBoundary(dir string) string {
 // Skills in these directories are auto-discovered and their files can be read
 // without permission prompts.
 func GlobalSkillsDirs() []string {
-	if crushSkills := getEnv("SKILLS_DIR"); crushSkills != "" {
-		return []string{crushSkills}
+	if AtlasAgentSkills := appenv.Get("SKILLS_DIR"); AtlasAgentSkills != "" {
+		return []string{AtlasAgentSkills}
 	}
 
 	paths := []string{
@@ -1372,7 +1367,7 @@ func GlobalSkillsDirs() []string {
 		filepath.Join(home.Dir(), ".claude", "skills"),
 	}
 
-	// On Windows, also load from app data on top of `$HOME/.config/crush`.
+	// On Windows, also load from app data on top of `$HOME/.config/Atlas-Agent`.
 	// This is here mostly for backwards compatibility.
 	if runtime.GOOS == "windows" {
 		appData := cmp.Or(
@@ -1395,12 +1390,12 @@ func GlobalSkillsDirs() []string {
 // git-root lookups to prevent drift when a new convention is added.
 var projectSkillSubdirs = []string{
 	".agents/skills",
-	".crush/skills",
+	".atlas/skills",
 	".claude/skills",
 	".cursor/skills",
 }
 
-// ProjectSkillsDir returns the default project directories for which Crush
+// ProjectSkillsDir returns the default project directories for which Atlas-Agent
 // will look for skills. In addition to the working directory, it also
 // checks the git working tree root so that monorepo-level skills are
 // discovered when the user is inside a subdirectory.

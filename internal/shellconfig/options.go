@@ -1,4 +1,4 @@
-package shellconfig
+﻿package shellconfig
 
 import (
 	"context"
@@ -25,7 +25,7 @@ import (
 //
 // Examples:
 //
-//	option data-directory .crush
+//	option data-directory .atlas
 //	option context-path .cursorrules
 //	option reset skill-path
 //	option metrics false

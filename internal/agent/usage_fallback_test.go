@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/stretchr/testify/require"
 )
 

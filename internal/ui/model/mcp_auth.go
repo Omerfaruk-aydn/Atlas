@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/ui/dialog"
+	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/ui/dialog"
 )
 
 // isAuthTimeout reports whether an error indicates the OAuth flow was

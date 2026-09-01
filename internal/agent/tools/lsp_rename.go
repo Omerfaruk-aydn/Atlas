@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"cmp"
@@ -11,11 +11,11 @@ import (
 
 	"charm.land/fantasy"
 
-	"github.com/charmbracelet/crush/internal/filetracker"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/lsp"
-	lsputil "github.com/charmbracelet/crush/internal/lsp/util"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/filetracker"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	lsputil "github.com/maincodss/atlas-agent/internal/lsp/util"
+	"github.com/maincodss/atlas-agent/internal/permission"
 )
 
 type RenameParams struct {

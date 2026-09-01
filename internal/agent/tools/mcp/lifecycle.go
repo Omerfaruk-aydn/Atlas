@@ -1,4 +1,4 @@
-package mcp
+﻿package mcp
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 )
 
 // reinitAction describes how to reconcile one MCP server against the

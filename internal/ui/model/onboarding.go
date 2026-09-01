@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"fmt"
@@ -9,9 +9,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 )
 
 // markProjectInitializedCmd marks the current project as initialized in the config.

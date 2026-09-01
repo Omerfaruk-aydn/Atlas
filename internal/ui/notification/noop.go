@@ -1,4 +1,4 @@
-package notification
+﻿package notification
 
 import tea "charm.land/bubbletea/v2"
 

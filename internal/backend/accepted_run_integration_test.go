@@ -1,4 +1,4 @@
-package backend
+﻿package backend
 
 import (
 	"context"
@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/agent"
-	"github.com/charmbracelet/crush/internal/agent/agenttest"
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/agent"
+	"github.com/maincodss/atlas-agent/internal/agent/agenttest"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/stretchr/testify/require"
 )
 

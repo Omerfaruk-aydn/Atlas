@@ -1,11 +1,11 @@
-package model
+﻿package model
 
 import (
 	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,13 +1,13 @@
-package model
+﻿package model
 
 import (
 	"image"
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/logo"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/logo"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	"github.com/charmbracelet/ultraviolet/layout"
 )
 

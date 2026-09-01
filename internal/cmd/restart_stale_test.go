@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"encoding/json"
@@ -8,9 +8,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/client"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/maincodss/atlas-agent/internal/client"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/version"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )

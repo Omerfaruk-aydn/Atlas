@@ -1,13 +1,13 @@
-package model
+﻿package model
 
 import (
 	"fmt"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/dialog"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/dialog"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 )
 
 // resetChatSearch clears search state, e.g. when a different session loads.

@@ -1,4 +1,4 @@
-package shellconfig
+﻿package shellconfig
 
 import (
 	"testing"
@@ -30,7 +30,7 @@ lsp rm gopls`)
 func TestLSPUnknownSubcommand(t *testing.T) {
 	t.Parallel()
 
-	path := t.TempDir() + "/crushrc"
+	path := t.TempDir() + "/atlasrc"
 	_, err := LoadShellConfig(t.Context(), path, []byte(`lsp gopls --command gopls`))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "unknown subcommand")

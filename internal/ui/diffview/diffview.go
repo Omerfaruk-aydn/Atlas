@@ -1,4 +1,4 @@
-package diffview
+﻿package diffview
 
 import (
 	"fmt"
@@ -10,8 +10,8 @@ import (
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/aymanbagabas/go-udiff"
-	"github.com/charmbracelet/crush/internal/ansiext"
-	"github.com/charmbracelet/crush/internal/ui/xchroma"
+	"github.com/maincodss/atlas-agent/internal/ansiext"
+	"github.com/maincodss/atlas-agent/internal/ui/xchroma"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/zeebo/xxh3"
 )

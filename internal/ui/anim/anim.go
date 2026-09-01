@@ -1,4 +1,4 @@
-// Package anim provides an animated spinner.
+﻿// Package anim provides an animated spinner.
 package anim
 
 import (
@@ -15,7 +15,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/lucasb-eyer/go-colorful"
 
-	"github.com/charmbracelet/crush/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/csync"
 )
 
 const (

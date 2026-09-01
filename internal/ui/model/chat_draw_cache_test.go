@@ -1,10 +1,10 @@
-package model
+﻿package model
 
 import (
 	"strconv"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/ui/chat"
+	"github.com/maincodss/atlas-agent/internal/ui/chat"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"

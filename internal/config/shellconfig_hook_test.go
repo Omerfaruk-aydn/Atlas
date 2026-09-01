@@ -1,14 +1,14 @@
-package config_test
+﻿package config_test
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/hooks"
+	"github.com/maincodss/atlas-agent/internal/hooks"
 	"github.com/stretchr/testify/require"
 )
 
 func TestShellConfigHookAdd(t *testing.T) {
-	store := loadCrushSh(t, `hook add PreToolUse --matcher "^bash$" --command "echo hi" --name greet --timeout 10`)
+	store := loadAtlasAgentSh(t, `hook add PreToolUse --matcher "^bash$" --command "echo hi" --name greet --timeout 10`)
 
 	hs := store.Config().Hooks[hooks.EventPreToolUse]
 	require.Len(t, hs, 1)
@@ -19,7 +19,7 @@ func TestShellConfigHookAdd(t *testing.T) {
 }
 
 func TestShellConfigHookRemoveByName(t *testing.T) {
-	store := loadCrushSh(t, `hook add PreToolUse --command a --name keep
+	store := loadAtlasAgentSh(t, `hook add PreToolUse --command a --name keep
 hook add PreToolUse --command b --name drop
 hook remove PreToolUse --name drop`)
 
@@ -29,7 +29,7 @@ hook remove PreToolUse --name drop`)
 }
 
 func TestShellConfigHookClearEvent(t *testing.T) {
-	store := loadCrushSh(t, `hook add PreToolUse --command a --name a
+	store := loadAtlasAgentSh(t, `hook add PreToolUse --command a --name a
 hook add PreToolUse --command b --name b
 hook remove PreToolUse`)
 

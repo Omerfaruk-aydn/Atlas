@@ -1,4 +1,4 @@
-// Package styles define styling and theming for the project.
+﻿// Package styles define styling and theming for the project.
 package styles
 
 import (
@@ -16,7 +16,7 @@ import (
 	"charm.land/glamour/v2/ansi"
 	"charm.land/lipgloss/v2"
 	"github.com/alecthomas/chroma/v2"
-	"github.com/charmbracelet/crush/internal/ui/diffview"
+	"github.com/maincodss/atlas-agent/internal/ui/diffview"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
@@ -216,7 +216,7 @@ type Styles struct {
 
 	// Header
 	Header struct {
-		Charm             lipgloss.Style // Style for "Charm™" label
+		Atlas             lipgloss.Style // Style for "Atlas™" label
 		Diagonals         lipgloss.Style // Style for diagonal separators (╱)
 		Percentage        lipgloss.Style // Style for context percentage
 		HypercreditIcon   lipgloss.Style // Style for Hypercredit count (◆ N)
@@ -348,9 +348,9 @@ type Styles struct {
 		FieldColor         color.Color
 		TitleColorA        color.Color
 		TitleColorB        color.Color
-		CharmColor         color.Color
+		AtlasColor         color.Color
 		VersionColor       color.Color
-		SmallCharm         lipgloss.Style // "Charm™" label in SmallRender
+		SmallAtlas         lipgloss.Style // "Atlas™" label in SmallRender
 		SmallDiagonals     lipgloss.Style // Diagonal line fill in SmallRender
 		GradCanvas         lipgloss.Style // Blank canvas for gradient painting
 		SmallGradFromColor color.Color    // Small "ATLAS-AGENT" wordmark gradient start

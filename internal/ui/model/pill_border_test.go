@@ -1,10 +1,10 @@
-package model
+﻿package model
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/session"
 )
 
 // roundedBorderRunes are chars that only appear when a pill has a visible

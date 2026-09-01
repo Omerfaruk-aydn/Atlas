@@ -1,27 +1,27 @@
-package db
+﻿package db
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/charmbracelet/crush/internal/appenv"
+	"github.com/maincodss/atlas-agent/internal/appenv"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/lock"
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/maincodss/atlas-agent/internal/lock"
+	"github.com/maincodss/atlas-agent/internal/version"
 )
 
 // ErrDataDirLocked is returned by Connect when the data directory is
-// already in use by another crush process.
-var ErrDataDirLocked = errors.New("data directory already in use by another crush process")
+// already in use by another Atlas-Agent process.
+var ErrDataDirLocked = errors.New("data directory already in use by another Atlas-Agent process")
 
 // dataDirLockFile is the name of the lock file inside the data
-// directory. It lives next to crush.db so users can `ls` and find it.
-const dataDirLockFile = "crush.lock"
+// directory. It lives next to atlas.db so users can `ls` and find it.
+const dataDirLockFile = "Atlas-Agent.lock"
 
 // dataDirOwnerInfo is the JSON payload written into the lock file by
 // the process that currently owns it. It is purely informational; the
@@ -41,12 +41,12 @@ type dataDirLock struct {
 }
 
 // acquireDataDirLock takes an exclusive non-blocking lock on
-// {dataDir}/crush.lock. If the lock is already held by another
+// {dataDir}/Atlas-Agent.lock. If the lock is already held by another
 // process, it returns ErrDataDirLocked wrapped with a diagnostic that
 // includes whatever owner info that process wrote.
 //
 // Acquisition is skipped (returning a no-op lock) when
-// CRUSH_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
+// ATLAS-AGENT_SKIP_DATADIR_LOCK is set to a truthy value. This is intended
 // as an escape hatch for hostile filesystems that do not implement
 // advisory locking; it should not be used in normal operation.
 func acquireDataDirLock(dataDir string) (*dataDirLock, error) {

@@ -1,4 +1,4 @@
-package chat
+﻿package chat
 
 import (
 	"encoding/json"
@@ -8,10 +8,10 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/stringext"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/stringext"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // DockerMCPToolMessageItem is a message item that represents a Docker MCP tool call.

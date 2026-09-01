@@ -1,4 +1,4 @@
-package workspace
+﻿package workspace
 
 import (
 	"encoding/json"
@@ -13,14 +13,14 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/client"
-	"github.com/charmbracelet/crush/internal/commands"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/client"
+	"github.com/maincodss/atlas-agent/internal/commands"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 
@@ -803,7 +803,7 @@ func TestClientWorkspace_ShutdownFallsBackForLegacyServer(t *testing.T) {
 
 // TestClientWorkspace_AgentReadyErr_WorkspaceGone checks the status the
 // UI is given while recovery runs. A 404 from a live server used to print
-// "lost connection to the crush server: ... status code 404", which is
+// "lost connection to the Atlas-Agent server: ... status code 404", which is
 // both wrong and unactionable.
 func TestClientWorkspace_AgentReadyErr_WorkspaceGone(t *testing.T) {
 	t.Parallel()

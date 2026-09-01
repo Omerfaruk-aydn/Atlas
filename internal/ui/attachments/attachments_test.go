@@ -1,4 +1,4 @@
-package attachments
+﻿package attachments
 
 import (
 	"strings"
@@ -6,13 +6,13 @@ import (
 	"unicode/utf8"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
 func newTestRenderer() *Renderer {
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	return NewRenderer(
 		sty.Attachments.Normal,
 		sty.Attachments.Deleting,

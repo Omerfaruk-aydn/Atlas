@@ -1,4 +1,4 @@
-package fsext
+﻿package fsext
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/home"
+	"github.com/maincodss/atlas-agent/internal/home"
 	"github.com/stretchr/testify/require"
 )
 

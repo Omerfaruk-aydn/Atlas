@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/shell"
 	"github.com/stretchr/testify/require"
 )
 

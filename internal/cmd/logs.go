@@ -1,10 +1,10 @@
-package cmd
+﻿package cmd
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/charmbracelet/crush/internal/fsext"
+	
 	"io"
 	"os"
 	"path/filepath"
@@ -13,7 +13,7 @@ import (
 
 	"charm.land/log/v2"
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/charmbracelet/x/term"
 	"github.com/nxadm/tail"
 	"github.com/spf13/cobra"
@@ -56,9 +56,7 @@ var logsCmd = &cobra.Command{
 		if err != nil {
 			return fmt.Errorf("failed to load configuration: %v", err)
 		}
-		logsFile := fsext.PreferExisting(
-			filepath.Join(cfg.Config().Options.DataDirectory, "logs", "atlas.log"),
-			filepath.Join(cfg.Config().Options.DataDirectory, "logs", "crush.log"))
+		logsFile := filepath.Join(cfg.Config().Options.DataDirectory, "logs", "atlas.log")
 		_, err = os.Stat(logsFile)
 		if os.IsNotExist(err) {
 			log.Warn("Looks like you are not in an atlas project. No logs found.")

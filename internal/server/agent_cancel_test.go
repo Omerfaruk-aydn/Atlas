@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"bytes"
@@ -12,11 +12,11 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/agent"
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/backend"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/agent"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/backend"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

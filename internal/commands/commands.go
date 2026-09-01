@@ -1,4 +1,4 @@
-package commands
+﻿package commands
 
 import (
 	"context"
@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/maincodss/atlas-agent/internal/skills"
 )
 
 var namedArgPattern = regexp.MustCompile(`\$([A-Z][A-Z0-9_]*)`)
@@ -131,11 +131,11 @@ func buildCommandSources(cfg *config.Config) []commandSource {
 		// Pre-rebrand locations, still read so commands written before the
 		// rename keep working.
 		{
-			path:   filepath.Join(home.Config(), "crush", "commands"),
+			path:   filepath.Join(home.Config(), "Atlas-Agent", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{
-			path:   filepath.Join(home.Dir(), ".crush", "commands"),
+			path:   filepath.Join(home.Dir(), ".atlas", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{

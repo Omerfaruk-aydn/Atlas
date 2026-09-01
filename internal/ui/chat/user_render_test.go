@@ -1,12 +1,12 @@
-package chat
+﻿package chat
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 // newTestUserItem builds a UserMessageItem carrying text.
 func newTestUserItem(t *testing.T, text string) *UserMessageItem {
 	t.Helper()
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	msg := &message.Message{
 		ID:    "user-1",
 		Role:  message.User,
@@ -40,7 +40,7 @@ func renderedLines(t *testing.T, text string, width int) []string {
 }
 
 // TestUserMessagePreservesSingleLineBreaks is the regression test for
-// charmbracelet/crush#3502: a user submitting
+// charmbracelet/Atlas-Agent#3502: a user submitting
 //
 //	a
 //	b

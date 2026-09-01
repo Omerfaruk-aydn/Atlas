@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth/copilot"
-	"github.com/charmbracelet/crush/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth/copilot"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
 )
 
 func NewOAuthCopilot(

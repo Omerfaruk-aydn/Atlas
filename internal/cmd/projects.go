@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"encoding/json"
@@ -6,8 +6,8 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
-	"github.com/charmbracelet/crush/internal/projects"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/projects"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )

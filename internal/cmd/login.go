@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"os/signal"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/clipboard"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/oauth/copilot"
-	"github.com/charmbracelet/crush/internal/oauth/hyper"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/clipboard"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/oauth/copilot"
+	"github.com/maincodss/atlas-agent/internal/oauth/hyper"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
@@ -25,7 +25,7 @@ var loginCmd = &cobra.Command{
 The platform should be provided as an argument.
 Available platforms are: hyper, copilot.`,
 	Example: `
-# Authenticate with Charm Hyper
+# Authenticate with Atlas Hyper
 atlas login
 
 # Authenticate with GitHub Copilot

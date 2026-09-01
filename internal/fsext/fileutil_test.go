@@ -1,4 +1,4 @@
-package fsext
+﻿package fsext
 
 import (
 	"fmt"
@@ -200,7 +200,7 @@ func TestGlobWithDoubleStar(t *testing.T) {
 	t.Run("respects basic ignore patterns", func(t *testing.T) {
 		testDir := t.TempDir()
 
-		rootIgnore := filepath.Join(testDir, ".crushignore")
+		rootIgnore := filepath.Join(testDir, ".Atlasignore")
 
 		require.NoError(t, os.WriteFile(rootIgnore, []byte("*.tmp\nbackup/\n"), 0o644))
 

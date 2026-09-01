@@ -1,4 +1,4 @@
-package copilot
+﻿package copilot
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/oauth"
 )
 
 const (

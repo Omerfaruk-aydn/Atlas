@@ -1,10 +1,10 @@
-package agent
+﻿package agent
 
 import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/event"
+	"github.com/maincodss/atlas-agent/internal/event"
 )
 
 func (a *sessionAgent) eventPromptSent(sessionID string) {

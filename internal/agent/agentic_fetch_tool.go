@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"context"
@@ -11,9 +11,9 @@ import (
 
 	"charm.land/fantasy"
 
-	"github.com/charmbracelet/crush/internal/agent/prompt"
-	"github.com/charmbracelet/crush/internal/agent/tools"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/agent/prompt"
+	"github.com/maincodss/atlas-agent/internal/agent/tools"
+	"github.com/maincodss/atlas-agent/internal/permission"
 )
 
 //go:embed templates/agentic_fetch.md
@@ -99,7 +99,7 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				return tools.NewPermissionDeniedResponse(c.permissions), nil
 			}
 
-			tmpDir, err := os.MkdirTemp(c.cfg.Config().Options.DataDirectory, "crush-fetch-*")
+			tmpDir, err := os.MkdirTemp(c.cfg.Config().Options.DataDirectory, "Atlas-Agent-fetch-*")
 			if err != nil {
 				return fantasy.NewTextErrorResponse(fmt.Sprintf("Failed to create temporary directory: %s", err)), nil
 			}

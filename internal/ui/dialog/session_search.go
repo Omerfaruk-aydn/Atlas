@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"strings"
@@ -7,9 +7,9 @@ import (
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

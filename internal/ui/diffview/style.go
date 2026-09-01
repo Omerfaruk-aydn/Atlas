@@ -1,4 +1,4 @@
-package diffview
+﻿package diffview
 
 import (
 	"charm.land/lipgloss/v2"

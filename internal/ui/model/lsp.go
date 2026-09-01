@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"fmt"
@@ -9,10 +9,10 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )
 

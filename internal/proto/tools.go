@@ -1,11 +1,11 @@
-package proto
+﻿package proto
 
 // The wire schema for per-tool permission parameters is owned by the
 // tool itself, not duplicated here. We alias the canonical types so
 // there is exactly one source of truth and so values survive a
 // round-trip across the client/server boundary as the same Go type
 // the UI asserts on.
-import "github.com/charmbracelet/crush/internal/agent/tools"
+import "github.com/maincodss/atlas-agent/internal/agent/tools"
 
 // ToolResponseType represents the type of tool response.
 type ToolResponseType string

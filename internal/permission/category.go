@@ -1,4 +1,4 @@
-package permission
+﻿package permission
 
 // ToolCategory classifies a tool by risk, driving ModeAutoAcceptEdits and
 // ModePlan's decisions in Request(). This intentionally lives in the
@@ -40,8 +40,8 @@ var toolCategories = map[string]ToolCategory{
 	"lsp_references":      CategoryReadOnly,
 	"lsp_diagnostics":     CategoryReadOnly,
 	"sourcegraph":         CategoryReadOnly,
-	"crush_info":          CategoryReadOnly,
-	"crush_logs":          CategoryReadOnly,
+	"Atlas-Agent_info":          CategoryReadOnly,
+	"Atlas-Agent_logs":          CategoryReadOnly,
 	"todos":               CategoryReadOnly,
 	"question":            CategoryReadOnly,
 	"job_output":          CategoryReadOnly,

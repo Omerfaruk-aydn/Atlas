@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/agent/hyper"
+	"github.com/maincodss/atlas-agent/internal/agent/hyper"
 	xetag "github.com/charmbracelet/x/etag"
 )
 

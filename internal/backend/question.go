@@ -1,8 +1,8 @@
-package backend
+﻿package backend
 
 import (
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/question"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/question"
 )
 
 // AnswerQuestion submits answers for a question. The returned bool

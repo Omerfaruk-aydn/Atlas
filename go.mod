@@ -1,4 +1,4 @@
-module github.com/charmbracelet/crush
+module github.com/maincodss/atlas-agent
 
 go 1.26.6
 

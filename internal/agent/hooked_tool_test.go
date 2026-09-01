@@ -1,13 +1,13 @@
-package agent
+﻿package agent
 
 import (
 	"context"
 	"testing"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/hooks"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/hooks"
+	"github.com/maincodss/atlas-agent/internal/permission"
 	"github.com/stretchr/testify/require"
 )
 

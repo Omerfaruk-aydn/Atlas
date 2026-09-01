@@ -1,10 +1,10 @@
-package app
+﻿package app
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	xstrings "github.com/charmbracelet/x/exp/strings"
 )
 
@@ -45,7 +45,7 @@ func findModels(providers map[string]config.ProviderConfig, largeModel, smallMod
 	} {
 		if pf.filter != "" {
 			if _, ok := providers[pf.filter]; !ok {
-				return nil, nil, fmt.Errorf("%s model: provider %q not found in configuration. Use 'crush models' to list available models", pf.label, pf.filter)
+				return nil, nil, fmt.Errorf("%s model: provider %q not found in configuration. Use 'Atlas-Agent models' to list available models", pf.label, pf.filter)
 			}
 		}
 	}

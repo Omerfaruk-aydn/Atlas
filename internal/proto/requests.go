@@ -1,11 +1,11 @@
-package proto
+﻿package proto
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth"
 )
 
 // ConfigSetRequest represents a request to set a config field.

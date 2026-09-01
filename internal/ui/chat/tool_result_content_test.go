@@ -1,10 +1,10 @@
-package chat
+﻿package chat
 
 import (
 	"encoding/json"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 func TestHumanizedToolName(t *testing.T) {
@@ -56,7 +56,7 @@ func TestLooksLikeMarkdown(t *testing.T) {
 func TestRenderToolResultTextContent(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	styPtr := &sty
 	widths := toolResultContentWidths{Body: 80, Diff: 82}
 

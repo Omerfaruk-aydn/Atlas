@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"cmp"
@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/filepathext"
-	"github.com/charmbracelet/crush/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/maincodss/atlas-agent/internal/permission"
 )
 
 type DownloadParams struct {

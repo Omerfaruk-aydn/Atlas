@@ -1,4 +1,4 @@
-package shellconfig
+﻿package shellconfig
 
 import (
 	"testing"
@@ -44,7 +44,7 @@ hook remove PreToolUse`)
 func TestHookAddRequiresCommand(t *testing.T) {
 	t.Parallel()
 
-	path := t.TempDir() + "/crushrc"
+	path := t.TempDir() + "/atlasrc"
 	_, err := LoadShellConfig(t.Context(), path, []byte(`hook add PreToolUse --name x`))
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "--command is required")

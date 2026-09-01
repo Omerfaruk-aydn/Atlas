@@ -1,10 +1,10 @@
-package history
+﻿package history
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/stretchr/testify/require"
 )
 

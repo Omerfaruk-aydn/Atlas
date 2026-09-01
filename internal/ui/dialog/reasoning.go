@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"errors"
@@ -7,10 +7,10 @@ import (
 	"charm.land/bubbles/v2/key"
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/sahilm/fuzzy"
 )

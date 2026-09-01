@@ -1,4 +1,4 @@
-// Package rewind lets the user jump back to an earlier point in a
+﻿// Package rewind lets the user jump back to an earlier point in a
 // conversation and have the working directory's files restored to their
 // state as of that point, without losing anything: the target session is
 // never modified or deleted, only forked.
@@ -10,9 +10,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/session"
 )
 
 // Result is what ForkAt produced: the new session plus a summary of the

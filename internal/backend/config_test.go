@@ -1,4 +1,4 @@
-package backend
+﻿package backend
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -1,10 +1,10 @@
-package model
+﻿package model
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/ui/dialog"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/ui/dialog"
 	"github.com/stretchr/testify/require"
 )
 

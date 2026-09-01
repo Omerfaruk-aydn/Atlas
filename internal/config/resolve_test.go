@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/env"
+	"github.com/maincodss/atlas-agent/internal/env"
 	"github.com/stretchr/testify/require"
 )
 

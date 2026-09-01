@@ -1,4 +1,4 @@
-package event
+﻿package event
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/maincodss/atlas-agent/internal/version"
 	"github.com/posthog/posthog-go"
 )
 
@@ -40,7 +40,7 @@ var (
 func SetNonInteractive(nonInteractive bool) {
 	baseProps = baseProps.
 		Set(nonInteractiveAttrName, nonInteractive).
-		Set(nonInteractiveNestedAttrName, nonInteractive && os.Getenv("CRUSH") == "1")
+		Set(nonInteractiveNestedAttrName, nonInteractive && os.Getenv("ATLAS-AGENT") == "1")
 }
 
 func SetContinueBySessionID(continueBySessionID bool) {

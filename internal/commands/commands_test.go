@@ -1,4 +1,4 @@
-package commands
+﻿package commands
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/skills"
 	"github.com/stretchr/testify/require"
 )
 

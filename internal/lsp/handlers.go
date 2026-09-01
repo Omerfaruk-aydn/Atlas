@@ -1,11 +1,11 @@
-package lsp
+﻿package lsp
 
 import (
 	"context"
 	"encoding/json"
 	"log/slog"
 
-	"github.com/charmbracelet/crush/internal/lsp/util"
+	"github.com/maincodss/atlas-agent/internal/lsp/util"
 	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )

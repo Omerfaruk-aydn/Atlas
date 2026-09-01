@@ -1,4 +1,4 @@
-package notification
+﻿package notification
 
 import (
 	"encoding/base64"

@@ -1,4 +1,4 @@
-package update
+﻿package update
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	githubApiUrl = "https://api.github.com/repos/charmbracelet/crush/releases/latest"
-	userAgent    = "crush/1.0"
+	githubApiUrl = "https://api.github.com/repos/charmbracelet/Atlas-Agent/releases/latest"
+	userAgent    = "Atlas-Agent/1.0"
 )
 
 // Default is the default [Client].

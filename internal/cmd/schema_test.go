@@ -1,11 +1,11 @@
-package cmd
+﻿package cmd
 
 import (
 	"encoding/json"
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/invopop/jsonschema"
 	"github.com/stretchr/testify/require"
 )

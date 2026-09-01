@@ -1,4 +1,4 @@
-package format
+﻿package format
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/ui/anim"
+	"github.com/maincodss/atlas-agent/internal/ui/anim"
 	"github.com/charmbracelet/x/ansi"
 )
 

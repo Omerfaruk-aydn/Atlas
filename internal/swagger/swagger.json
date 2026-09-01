@@ -1,15 +1,15 @@
-{
+﻿{
     "swagger": "2.0",
     "info": {
         "description": "ATLAS-AGENT is a terminal-based AI coding assistant. This API is served over a Unix socket (or Windows named pipe) and provides programmatic access to workspaces, sessions, agents, LSP, MCP, and more.",
         "title": "ATLAS-AGENT API",
         "contact": {
-            "name": "Charm",
+            "name": "Atlas",
             "url": "https://charm.sh"
         },
         "license": {
             "name": "MIT",
-            "url": "https://github.com/charmbracelet/crush/blob/main/LICENSE"
+            "url": "https://github.com/charmbracelet/Atlas-Agent/blob/main/LICENSE"
         },
         "version": "1.0"
     },
@@ -2022,7 +2022,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_crush_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -2817,7 +2817,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_crush_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -2867,7 +2867,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/github_com_charmbracelet_crush_internal_proto.Message"
+                                "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_proto.Message"
                             }
                         }
                     },
@@ -3203,7 +3203,7 @@
                     "type": "boolean"
                 },
                 "oauth_callback_port": {
-                    "description": "OAuthCallbackPort pins the localhost port used for the OAuth\nredirect listener. Set this when the OAuth provider requires an\nexact-match callback URL (e.g. GitHub OAuth Apps). When omitted,\nCrush picks the first free port from its default range.",
+                    "description": "OAuthCallbackPort pins the localhost port used for the OAuth\nredirect listener. Set this when the OAuth provider requires an\nexact-match callback URL (e.g. GitHub OAuth Apps). When omitted,\nAtlas-Agent picks the first free port from its default range.",
                     "type": "integer"
                 },
                 "oauth_client_id": {
@@ -3396,7 +3396,7 @@
         "csync.Map-string-config_ProviderConfig": {
             "type": "object"
         },
-        "github_com_charmbracelet_crush_internal_config.Config": {
+        "github_com_charmbracelet_Atlas-Agent_internal_config.Config": {
             "type": "object",
             "properties": {
                 "$schema": {
@@ -3432,7 +3432,7 @@
                     }
                 },
                 "options": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Options"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Options"
                 },
                 "permissions": {
                     "$ref": "#/definitions/config.Permissions"
@@ -3460,7 +3460,7 @@
                 }
             }
         },
-        "github_com_charmbracelet_crush_internal_config.Options": {
+        "github_com_charmbracelet_Atlas-Agent_internal_config.Options": {
             "type": "object",
             "properties": {
                 "attribution": {
@@ -3535,7 +3535,7 @@
                 }
             }
         },
-        "github_com_charmbracelet_crush_internal_config.Scope": {
+        "github_com_charmbracelet_Atlas-Agent_internal_config.Scope": {
             "type": "integer",
             "enum": [
                 0,
@@ -3546,7 +3546,7 @@
                 "ScopeWorkspace"
             ]
         },
-        "github_com_charmbracelet_crush_internal_proto.Message": {
+        "github_com_charmbracelet_Atlas-Agent_internal_proto.Message": {
             "type": "object",
             "properties": {
                 "created_at": {
@@ -3757,7 +3757,7 @@
                     "type": "boolean"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 }
             }
         },
@@ -3771,7 +3771,7 @@
                     "$ref": "#/definitions/config.SelectedModelType"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 }
             }
         },
@@ -3791,7 +3791,7 @@
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 }
             }
         },
@@ -3802,7 +3802,7 @@
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 }
             }
         },
@@ -3813,7 +3813,7 @@
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 }
             }
         },
@@ -3824,7 +3824,7 @@
                     "type": "string"
                 },
                 "scope": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Scope"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Scope"
                 },
                 "value": {}
             }
@@ -4409,7 +4409,7 @@
                     "type": "string"
                 },
                 "config": {
-                    "$ref": "#/definitions/github_com_charmbracelet_crush_internal_config.Config"
+                    "$ref": "#/definitions/github_com_charmbracelet_Atlas-Agent_internal_config.Config"
                 },
                 "data_dir": {
                     "type": "string"

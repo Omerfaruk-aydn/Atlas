@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"bytes"
@@ -8,8 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/backend"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/backend"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

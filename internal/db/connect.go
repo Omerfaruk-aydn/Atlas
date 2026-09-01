@@ -1,8 +1,6 @@
-package db
+﻿package db
 
 import (
-	"github.com/charmbracelet/crush/internal/fsext"
-
 	"context"
 	"database/sql"
 	"embed"
@@ -47,7 +45,7 @@ func init() {
 // lock is acquired exactly once when the entry is created and released
 // when the last reference is dropped, which lets the same process open
 // the same data directory concurrently while still blocking a second
-// crush process from racing the storage.
+// Atlas-Agent process from racing the storage.
 type connEntry struct {
 	db       *sql.DB
 	refCount int
@@ -71,7 +69,7 @@ type connectOptions struct {
 // WithDataDirLock toggles acquisition of the per-data-directory lock
 // for this Connect call. The lock is off by default so local-mode
 // invocations do not regress today's behavior; the server's
-// workspace-bootstrap path opts in. CRUSH_SKIP_DATADIR_LOCK still
+// workspace-bootstrap path opts in. ATLAS-AGENT_SKIP_DATADIR_LOCK still
 // bypasses acquisition even when this option is set.
 func WithDataDirLock(enable bool) ConnectOption {
 	return func(o *connectOptions) { o.lockDataDir = enable }
@@ -92,8 +90,7 @@ func Connect(ctx context.Context, dataDir string, opts ...ConnectOption) (*sql.D
 		opt(&cfg)
 	}
 
-	dbPath := fsext.PreferExisting(
-		filepath.Join(dataDir, "atlas.db"), filepath.Join(dataDir, "crush.db"))
+	dbPath := filepath.Join(dataDir, "atlas.db")
 
 	// Resolve to an absolute path so that different relative paths to
 	// the same file share a single connection.
@@ -112,11 +109,11 @@ func Connect(ctx context.Context, dataDir string, opts ...ConnectOption) (*sql.D
 
 	// Take the per-data-directory lock before opening the database so
 	// we fail fast and with a clear error rather than racing another
-	// crush process on the same SQLite file. The lock is released when
+	// Atlas-Agent process on the same SQLite file. The lock is released when
 	// the matching Release call drops the refcount to zero. Ensuring
 	// the data directory exists is required because the lock file
 	// lives inside it. Locking is opt-in via WithDataDirLock so that
-	// local-mode invocations do not refuse a second crush against the
+	// local-mode invocations do not refuse a second Atlas-Agent against the
 	// same data dir until client/server becomes the default.
 	if err := os.MkdirAll(dataDir, 0o700); err != nil {
 		return nil, fmt.Errorf("failed to create data directory %q: %w", dataDir, err)
@@ -178,8 +175,7 @@ func Connect(ctx context.Context, dataDir string, opts ...ConnectOption) (*sql.D
 // data directory. When the count reaches zero the underlying connection
 // is closed and removed from the pool.
 func Release(dataDir string) error {
-	dbPath := fsext.PreferExisting(
-		filepath.Join(dataDir, "atlas.db"), filepath.Join(dataDir, "crush.db"))
+	dbPath := filepath.Join(dataDir, "atlas.db")
 	absPath, err := filepath.Abs(dbPath)
 	if err != nil {
 		absPath = dbPath

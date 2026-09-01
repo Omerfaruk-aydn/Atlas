@@ -1,4 +1,4 @@
-package skills
+﻿package skills
 
 import (
 	"os"
@@ -365,7 +365,7 @@ func TestToPromptXMLBuiltinType(t *testing.T) {
 
 	skills := []*Skill{
 		{Name: "builtin-skill", Description: "A builtin.", SkillFilePath: "crush://skills/builtin-skill/SKILL.md", Builtin: true},
-		{Name: "user-skill", Description: "A user skill.", SkillFilePath: "/home/user/.config/crush/skills/user-skill/SKILL.md"},
+		{Name: "user-skill", Description: "A user skill.", SkillFilePath: "/home/user/.config/Atlas-Agent/skills/user-skill/SKILL.md"},
 	}
 	xml := ToPromptXML(skills)
 	require.Contains(t, xml, "<type>builtin</type>")

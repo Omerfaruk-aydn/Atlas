@@ -1,12 +1,12 @@
-package chat
+﻿package chat
 
 import (
 	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
 )
@@ -89,7 +89,7 @@ func renderedThinkingHeight(t *testing.T, item *AssistantMessageItem, width int)
 func TestThinkingWindow_CollapsedCapPreserved(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	msg := thinkingMessageWithLines("collapsed", 5000)
 	item := NewAssistantMessageItem(&sty, msg).(*AssistantMessageItem)
 
@@ -121,7 +121,7 @@ func TestThinkingWindow_CollapsedCapPreserved(t *testing.T) {
 func TestThinkingWindow_ExpandedShortSkipsTailWindow(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const lines = 50
 	require.Less(t, lines, maxExpandedThinkingTailLines,
 		"this test relies on the source being well under the tail cap")
@@ -168,7 +168,7 @@ func TestThinkingWindow_ExpandedShortSkipsTailWindow(t *testing.T) {
 func TestThinkingWindow_TailWindowed(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const total = 5000
 	const width = 95
 
@@ -240,7 +240,7 @@ func TestThinkingWindow_TailWindowed(t *testing.T) {
 func TestThinkingWindow_PromoteToFull(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const total = 1500
 	msg := thinkingMessageWithLines("promote", total)
 	item := NewAssistantMessageItem(&sty, msg).(*AssistantMessageItem)
@@ -314,7 +314,7 @@ func keyOf(s assistantSection) sectionKey {
 func TestThinkingWindow_ContentChangeKeepsThinkingCacheInTailWindow(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const total = 1000
 
 	build := func(content string) *message.Message {
@@ -379,7 +379,7 @@ func TestThinkingWindow_ContentChangeKeepsThinkingCacheInTailWindow(t *testing.T
 func TestThinkingWindow_ToggleInvalidatesOnlyThinking(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const total = 1500
 	build := func() *message.Message {
 		var b strings.Builder
@@ -474,7 +474,7 @@ func TestThinkingWindow_ToggleInvalidatesOnlyThinking(t *testing.T) {
 func TestThinkingWindow_BoxHeightTracksWindow(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	const total = 5000
 	msg := thinkingMessageWithLines("box-height", total)
 	item := NewAssistantMessageItem(&sty, msg).(*AssistantMessageItem)

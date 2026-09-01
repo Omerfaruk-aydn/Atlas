@@ -1,4 +1,4 @@
-// Package skills implements the Agent Skills open standard.
+﻿// Package skills implements the Agent Skills open standard.
 // See https://agentskills.io for the specification.
 package skills
 
@@ -15,7 +15,7 @@ import (
 	"sync"
 
 	"github.com/charlievieth/fastwalk"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"gopkg.in/yaml.v3"
 )
 

@@ -1,4 +1,4 @@
-package filetracker
+﻿package filetracker
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/db"
+	"github.com/maincodss/atlas-agent/internal/db"
 	"github.com/stretchr/testify/require"
 )
 

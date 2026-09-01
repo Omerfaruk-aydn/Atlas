@@ -1,4 +1,4 @@
-package chat
+﻿package chat
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 
-	"github.com/charmbracelet/crush/internal/ui/anim"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/anim"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -227,7 +227,7 @@ func (s *ShellItem) RawRender(width int) string {
 		return header
 	}
 
-	// Remap raw ANSI 16-color codes onto legible Charmtone colors so
+	// Remap raw ANSI 16-color codes onto legible Atlas colors so
 	// dark terminal defaults don't render illegibly on ATLAS-AGENT's
 	// background.
 	// Strip trailing whitespace and bare ANSI resets before remapping.

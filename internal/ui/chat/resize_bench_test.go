@@ -1,31 +1,31 @@
-package chat
+﻿package chat
 
 import (
 	"context"
 	"os"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // BenchmarkResizeSession reproduces the resize re-render path over a real
-// session's messages. Point CRUSH_BENCH_SESSION at a full session id and
-// CRUSH_BENCH_DATADIR at the crush data dir (defaults to ./.crush).
+// session's messages. Point ATLAS-AGENT_BENCH_SESSION at a full session id and
+// ATLAS-AGENT_BENCH_DATADIR at the Atlas-Agent data dir (defaults to ./.atlas).
 //
-//	CRUSH_BENCH_SESSION=e6368d820207a406 go test ./internal/ui/chat/ \
+//	ATLAS-AGENT_BENCH_SESSION=e6368d820207a406 go test ./internal/ui/chat/ \
 //	  -run x -bench BenchmarkResizeSession -benchtime 20x -cpuprofile /tmp/cpu.out
 func BenchmarkResizeSession(b *testing.B) {
-	sessionID := os.Getenv("CRUSH_BENCH_SESSION")
+	sessionID := os.Getenv("ATLAS-AGENT_BENCH_SESSION")
 	if sessionID == "" {
-		b.Skip("set CRUSH_BENCH_SESSION to a full session id")
+		b.Skip("set ATLAS-AGENT_BENCH_SESSION to a full session id")
 	}
-	dataDir := os.Getenv("CRUSH_BENCH_DATADIR")
+	dataDir := os.Getenv("ATLAS-AGENT_BENCH_DATADIR")
 	if dataDir == "" {
-		dataDir = ".crush"
+		dataDir = ".atlas"
 	}
 
 	ctx := context.Background()
@@ -53,7 +53,7 @@ func BenchmarkResizeSession(b *testing.B) {
 	}
 	toolResults := BuildToolResultMap(ptrs)
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	var items []list.Item
 	for _, m := range ptrs {
 		for _, it := range ExtractMessageItems(&sty, m, toolResults, "", common.Capabilities{}) {

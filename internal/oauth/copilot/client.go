@@ -1,4 +1,4 @@
-// Package copilot provides GitHub Copilot integration.
+﻿// Package copilot provides GitHub Copilot integration.
 package copilot
 
 import (
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/charmbracelet/crush/internal/log"
+	"github.com/maincodss/atlas-agent/internal/log"
 )
 
 var assistantRolePattern = regexp.MustCompile(`"role"\s*:\s*"assistant"`)

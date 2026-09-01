@@ -1,11 +1,11 @@
-//go:build !windows
+﻿//go:build !windows
 
 package mcp
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/stretchr/testify/require"
 )

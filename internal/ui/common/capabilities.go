@@ -1,4 +1,4 @@
-package common
+﻿package common
 
 import (
 	"slices"
@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	xstrings "github.com/charmbracelet/x/exp/strings"
 
-	"github.com/charmbracelet/crush/internal/ui/notification"
+	"github.com/maincodss/atlas-agent/internal/ui/notification"
 )
 
 // Capabilities define different terminal capabilities supported.

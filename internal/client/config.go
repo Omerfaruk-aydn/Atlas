@@ -1,4 +1,4 @@
-package client
+﻿package client
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/proto"
 )
 
 // SetConfigField sets a config key/value pair on the server.

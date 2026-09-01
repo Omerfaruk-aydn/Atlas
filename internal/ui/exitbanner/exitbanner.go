@@ -1,4 +1,4 @@
-// Package exitbanner renders what ATLAS-AGENT prints after the TUI exits.
+﻿// Package exitbanner renders what ATLAS-AGENT prints after the TUI exits.
 package exitbanner
 
 import (
@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/logo"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/logo"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/version"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/exp/charmtone"
 )
@@ -57,7 +57,7 @@ func logoSection(contentWidth int) string {
 	atlasLogo := logo.Render(t.Logo.GradCanvas, version.Version, true, logo.Opts{
 		TitleColorA:  t.Logo.TitleColorA,
 		TitleColorB:  t.Logo.TitleColorB,
-		CharmColor:   t.Logo.CharmColor,
+		AtlasColor:   t.Logo.AtlasColor,
 		VersionColor: t.Logo.VersionColor,
 		Width:        contentWidth,
 		Hyper:        false,

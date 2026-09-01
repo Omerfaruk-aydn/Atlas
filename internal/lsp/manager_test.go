@@ -1,11 +1,11 @@
-package lsp
+﻿package lsp
 
 import (
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/csync"
 	powernapconfig "github.com/charmbracelet/x/powernap/pkg/config"
 	"github.com/stretchr/testify/require"
 )

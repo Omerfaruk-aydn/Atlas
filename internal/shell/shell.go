@@ -1,4 +1,4 @@
-// Package shell provides cross-platform shell execution capabilities.
+﻿// Package shell provides cross-platform shell execution capabilities.
 //
 // This package provides Shell instances for executing commands with their own
 // working directory and environment. Each shell execution is independent.
@@ -34,17 +34,17 @@ const (
 	ShellTypePowerShell
 )
 
-// CrushEnvMarkers returns a fresh slice of the environment variables that
-// Crush unconditionally sets on every shell it spawns — both the interactive
+// AtlasAgentEnvMarkers returns a fresh slice of the environment variables that
+// Atlas-Agent unconditionally sets on every shell it spawns — both the interactive
 // bash tool's [Shell] and the hook runner's [Run] calls. Tools that want to
 // detect "am I being invoked by an AI agent?" can check any of these.
 // Keeping them in one place guarantees the two shell surfaces cannot drift.
 // A fresh slice is returned on every call so callers may append freely.
-func CrushEnvMarkers() []string {
+func AtlasAgentEnvMarkers() []string {
 	return []string{
-		"CRUSH=1",
-		"AGENT=crush",
-		"AI_AGENT=crush",
+		"ATLAS-AGENT=1",
+		"AGENT=Atlas-Agent",
+		"AI_AGENT=Atlas-Agent",
 	}
 }
 
@@ -95,12 +95,12 @@ func NewShell(opts *Options) *Shell {
 	}
 
 	// Strip herdr pane-ownership vars so subprocesses (including test
-	// binaries and nested crush instances) can't attach to or release
+	// binaries and nested Atlas-Agent instances) can't attach to or release
 	// the parent pane's agent authority.
 	env = withoutHerdrEnv(env)
 
-	// Allow tools to detect execution by Crush.
-	env = append(env, CrushEnvMarkers()...)
+	// Allow tools to detect execution by Atlas-Agent.
+	env = append(env, AtlasAgentEnvMarkers()...)
 
 	logger := opts.Logger
 	if logger == nil {

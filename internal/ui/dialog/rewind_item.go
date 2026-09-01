@@ -1,12 +1,12 @@
-package dialog
+﻿package dialog
 
 import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/dustin/go-humanize"
 	"github.com/sahilm/fuzzy"
 )

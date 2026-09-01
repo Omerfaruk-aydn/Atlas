@@ -1,4 +1,4 @@
-package hooks
+﻿package hooks
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/shell"
 	"github.com/stretchr/testify/require"
 )
 
@@ -196,12 +196,12 @@ func TestBuildEnv(t *testing.T) {
 	require.Equal(t, "ls", envMap["CRUSH_TOOL_INPUT_COMMAND"])
 	require.Equal(t, "/tmp/f.txt", envMap["CRUSH_TOOL_INPUT_FILE_PATH"])
 
-	// Shared Crush markers must be present so hook-authored scripts can
-	// detect they're running under Crush the same way bash-tool-invoked
+	// Shared Atlas-Agent markers must be present so hook-authored scripts can
+	// detect they're running under Atlas-Agent the same way bash-tool-invoked
 	// scripts can.
-	require.Equal(t, "1", envMap["CRUSH"])
-	require.Equal(t, "crush", envMap["AGENT"])
-	require.Equal(t, "crush", envMap["AI_AGENT"])
+	require.Equal(t, "1", envMap["ATLAS-AGENT"])
+	require.Equal(t, "Atlas-Agent", envMap["AGENT"])
+	require.Equal(t, "Atlas-Agent", envMap["AI_AGENT"])
 }
 
 func splitFirst(s, sep string) []string {
@@ -748,7 +748,7 @@ func TestParseStdoutClaudeCodeFormat(t *testing.T) {
 		require.Equal(t, DecisionNone, r.Decision)
 	})
 
-	t.Run("crush format still works", func(t *testing.T) {
+	t.Run("Atlas-Agent format still works", func(t *testing.T) {
 		t.Parallel()
 		r := parseStdout(`{"decision":"allow","context":"hello"}`)
 		require.Equal(t, DecisionAllow, r.Decision)

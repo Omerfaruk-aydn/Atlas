@@ -1,4 +1,4 @@
-# Functional Source License, Version 1.1, MIT Future License
+﻿# Functional Source License, Version 1.1, MIT Future License
 
 ## Abbreviation
 
@@ -6,7 +6,7 @@ FSL-1.1-MIT
 
 ## Notice
 
-Copyright 2025-2026 Charmbracelet, Inc.
+Copyright 2025-2026 Atlasbracelet, Inc.
 
 ## Terms and Conditions
 

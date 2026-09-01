@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/stretchr/testify/require"
 )
@@ -32,7 +32,7 @@ func (w *sessionMouseWorkspace) AgentIsReady() bool {
 func newSessionMouseDialog(t *testing.T, sessions []session.Session, selectedSessionID string) *Session {
 	t.Helper()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	dialog, err := NewSessions(&common.Common{
 		Workspace: &sessionMouseWorkspace{sessions: sessions},
 		Styles:    &sty,

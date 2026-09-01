@@ -1,17 +1,17 @@
-package config_test
+﻿package config_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 
-// TestShellConfigDotCrushrcTakesPrecedence verifies that a project-local
-// .crushrc overrides crushrc in the same directory on conflicting settings.
-func TestShellConfigDotCrushrcTakesPrecedence(t *testing.T) {
+// TestShellConfigDotatlasrcTakesPrecedence verifies that a project-local
+// .atlasrc overrides atlasrc in the same directory on conflicting settings.
+func TestShellConfigDotatlasrcTakesPrecedence(t *testing.T) {
 	isolated := t.TempDir()
 	t.Setenv("HOME", isolated)
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(isolated, ".config"))
@@ -20,16 +20,16 @@ func TestShellConfigDotCrushrcTakesPrecedence(t *testing.T) {
 	workDir := t.TempDir()
 	dataDir := t.TempDir()
 	require.NoError(t, os.WriteFile(
-		filepath.Join(workDir, "crushrc"),
+		filepath.Join(workDir, "atlasrc"),
 		[]byte("option notifications bell\n"), 0o644,
 	))
 	require.NoError(t, os.WriteFile(
-		filepath.Join(workDir, ".crushrc"),
+		filepath.Join(workDir, ".atlasrc"),
 		[]byte("option notifications osc\n"), 0o644,
 	))
 
 	store, err := config.Load(workDir, dataDir, false)
 	require.NoError(t, err)
 	require.Equal(t, "osc", store.Config().Options.Notifications,
-		".crushrc should win over crushrc")
+		".atlasrc should win over atlasrc")
 }

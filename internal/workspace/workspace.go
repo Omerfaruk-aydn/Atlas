@@ -1,4 +1,4 @@
-// Package workspace defines the Workspace interface used by all
+﻿// Package workspace defines the Workspace interface used by all
 // frontends (TUI, CLI) to interact with a running workspace. Two
 // implementations exist: one wrapping a local app.App instance and one
 // wrapping the HTTP client SDK.
@@ -11,20 +11,20 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
-	mcptools "github.com/charmbracelet/crush/internal/agent/tools/mcp"
-	"github.com/charmbracelet/crush/internal/commands"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/question"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/session/rewind"
-	"github.com/charmbracelet/crush/internal/shell"
-	"github.com/charmbracelet/crush/internal/skills"
+	mcptools "github.com/maincodss/atlas-agent/internal/agent/tools/mcp"
+	"github.com/maincodss/atlas-agent/internal/commands"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/question"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/session/rewind"
+	"github.com/maincodss/atlas-agent/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/skills"
 )
 
 // Reasons the coder agent may be unavailable, returned by
@@ -37,7 +37,7 @@ var (
 	// ErrServerUnreachable means the client could not reach the server
 	// to determine the agent's status (server down, or the workspace was
 	// torn down out from under the client).
-	ErrServerUnreachable = errors.New("lost connection to the crush server")
+	ErrServerUnreachable = errors.New("lost connection to the Atlas-Agent server")
 	// ErrWorkspaceGone means the server is reachable but no longer knows
 	// this client's workspace: it was torn down, or the server was
 	// replaced underneath the client. The subscription loop re-registers

@@ -1,9 +1,9 @@
-package common
+﻿package common
 
 import (
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // minThumbSize keeps the thumb from shrinking to a single cell in a long

@@ -1,4 +1,4 @@
-package message
+﻿package message
 
 import (
 	"encoding/base64"

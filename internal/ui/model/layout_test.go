@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"strconv"
@@ -6,10 +6,10 @@ import (
 	"testing"
 
 	"charm.land/bubbles/v2/textarea"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/chat"
-	"github.com/charmbracelet/crush/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/chat"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

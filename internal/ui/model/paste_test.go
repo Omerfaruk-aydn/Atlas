@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"os"
@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 	"github.com/stretchr/testify/require"
 )
 

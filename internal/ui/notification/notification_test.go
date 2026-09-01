@@ -1,4 +1,4 @@
-package notification_test
+﻿package notification_test
 
 import (
 	"encoding/base64"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/ui/notification"
+	"github.com/maincodss/atlas-agent/internal/ui/notification"
 	"github.com/stretchr/testify/require"
 )
 

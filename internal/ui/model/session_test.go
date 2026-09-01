@@ -1,12 +1,12 @@
-package model
+﻿package model
 
 import (
 	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -112,7 +112,7 @@ func TestFileList(t *testing.T) {
 }
 
 func minimalFileStyles() *styles.Styles {
-	st := styles.CharmtonePantera()
+	st := styles.AtlasPantera()
 	st.Files.Path = lipgloss.NewStyle()
 	st.Files.Additions = lipgloss.NewStyle()
 	st.Files.Deletions = lipgloss.NewStyle()

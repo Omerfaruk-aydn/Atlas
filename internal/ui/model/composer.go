@@ -1,13 +1,13 @@
-package model
+﻿package model
 
 import (
 	"image/color"
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/ui/logo"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/ui/logo"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // Composer frame geometry. The textarea sits inside a rounded border with one

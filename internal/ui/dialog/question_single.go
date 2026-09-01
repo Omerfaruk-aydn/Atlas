@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/question"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/question"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

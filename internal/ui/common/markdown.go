@@ -1,4 +1,4 @@
-package common
+﻿package common
 
 import (
 	"image/color"
@@ -6,8 +6,8 @@ import (
 
 	"charm.land/glamour/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/ui/xchroma"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/xchroma"
 )
 
 const formatterName = "atlas-agent"
@@ -69,7 +69,7 @@ func MarkdownRenderer(sty *styles.Styles, width int) *glamour.TermRenderer {
 // so a lone newline is a line the user deliberately typed. Standard Markdown
 // treats it as a soft break and joins the lines when rendering, which makes a
 // submitted message display differently from what was typed (see
-// charmbracelet/crush#3502). Preserving newlines keeps the display faithful.
+// charmbracelet/Atlas-Agent#3502). Preserving newlines keeps the display faithful.
 //
 // This is deliberately NOT applied to [MarkdownRenderer]: assistant output and
 // dialog copy are genuine Markdown, where soft-wrapping a paragraph across

@@ -1,12 +1,12 @@
-package model
+﻿package model
 
 import (
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/skills"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	uistyles "github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	uistyles "github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +16,7 @@ import (
 func TestSkillStatusItemsIncludesBuiltinSkills(t *testing.T) {
 	t.Parallel()
 
-	st := uistyles.CharmtonePantera()
+	st := uistyles.AtlasPantera()
 	ui := &UI{
 		com: &common.Common{Styles: &st},
 		skillStates: []*skills.SkillState{
@@ -61,7 +61,7 @@ func TestSkillStatusItemsIncludesBuiltinSkills(t *testing.T) {
 func TestSkillStatusItemsExcludesDisabledSkills(t *testing.T) {
 	t.Parallel()
 
-	st := uistyles.CharmtonePantera()
+	st := uistyles.AtlasPantera()
 	ui := &UI{
 		com: &common.Common{
 			Styles:    &st,

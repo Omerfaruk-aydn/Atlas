@@ -1,4 +1,4 @@
-package session
+﻿package session
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/event"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/event"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/google/uuid"
 	"github.com/zeebo/xxh3"
 )

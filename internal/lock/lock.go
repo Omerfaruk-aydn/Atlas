@@ -1,4 +1,4 @@
-// Package lock provides cross-process advisory file locking.
+﻿// Package lock provides cross-process advisory file locking.
 //
 // File acquires an exclusive lock on the file at path, blocking until
 // the context is cancelled (or its deadline elapses). TryFile does the
@@ -14,7 +14,7 @@
 // create a window where two processes lock different inodes at the
 // same path.
 //
-// This is the canonical file-locking helper for Crush. Callers should
+// This is the canonical file-locking helper for Atlas-Agent. Callers should
 // prefer it over rolling their own platform-specific code.
 package lock
 

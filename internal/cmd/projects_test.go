@@ -1,11 +1,11 @@
-package cmd
+﻿package cmd
 
 import (
 	"bytes"
 	"encoding/json"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/projects"
+	"github.com/maincodss/atlas-agent/internal/projects"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestProjectsJSON(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", tmpDir)
 
 	// Register a project
-	err := projects.Register("/test/project", "/test/project/.crush")
+	err := projects.Register("/test/project", "/test/project/.atlas")
 	require.NoError(t, err)
 
 	var b bytes.Buffer
@@ -52,5 +52,5 @@ func TestProjectsJSON(t *testing.T) {
 
 	require.Len(t, result.Projects, 1)
 	require.Equal(t, "/test/project", result.Projects[0].Path)
-	require.Equal(t, "/test/project/.crush", result.Projects[0].DataDir)
+	require.Equal(t, "/test/project/.atlas", result.Projects[0].DataDir)
 }

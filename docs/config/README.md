@@ -1,4 +1,4 @@
-# Config
+﻿# Config
 
 > [!NOTE]
 > This document was designed for both humans and agents.
@@ -578,7 +578,7 @@ to Bash-based config.
 
 ```jsonc
 {
-  "$schema": "https://charm.land/crush.json",
+  "$schema": "https://charm.land/crush\.json",
   "providers": {
     "anthropic": { "api_key": "$ANTHROPIC_API_KEY" },
   },
@@ -605,7 +605,7 @@ appears. Don't launch Atlas in a directory whose config you haven't read.
 We'd love to hear your thoughts on this project. Need help? We gotchu. You can
 find us on:
 
-- [Twitter](https://twitter.com/charmcli)
+- [Twitter](https://twitter.com/Atlascli)
 - [Slack](https://charm.land/slack)
 - [Discord](https://charm.land/discord)
 - [The Fediverse](https://mastodon.social/@charmcli)
@@ -613,9 +613,9 @@ find us on:
 
 ---
 
-Part of [Charm](https://charm.land).
+Part of [Atlas](https://charm.land).
 
-<a href="https://charm.land/"><img alt="The Charm logo" width="400" src="https://stuff.charm.sh/charm-banner-softy.jpg" /></a>
+<a href="https://charm.land/"><img alt="The Atlas logo" width="400" src="https://stuff.charm.sh/Atlas-banner-softy.jpg" /></a>
 
 <!--prettier-ignore-->
-Charm热爱开源 • Charm loves open source
+Atlas热爱开源 • Atlas loves open source

@@ -1,4 +1,4 @@
-package event
+﻿package event
 
 import (
 	"crypto/hmac"
@@ -13,7 +13,7 @@ import (
 var distinctId string
 
 const (
-	hashKey    = "charm"
+	hashKey    = "Atlas"
 	fallbackId = "unknown"
 )
 

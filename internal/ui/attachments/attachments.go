@@ -1,4 +1,4 @@
-package attachments
+﻿package attachments
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/message"
+	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/charmbracelet/x/ansi"
 )
 

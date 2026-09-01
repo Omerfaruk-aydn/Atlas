@@ -1,4 +1,4 @@
-package client
+﻿package client
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/oauth"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/stretchr/testify/require"
 )
 

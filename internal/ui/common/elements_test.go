@@ -1,10 +1,10 @@
-package common
+﻿package common
 
 import (
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +12,7 @@ import (
 func TestFormatTokensAndCostPrefixesEstimatedUsage(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 
 	rendered := formatTokensAndCost(&sty, 120, 1000, 0, true)
 	actual := ansi.Strip(rendered)
@@ -26,7 +26,7 @@ func TestFormatTokensAndCostPrefixesEstimatedUsage(t *testing.T) {
 func TestFormatTokensAndCostOmitsEstimatedPrefix(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 
 	actual := ansi.Strip(formatTokensAndCost(&sty, 120, 1000, 0, false))
 

@@ -1,4 +1,4 @@
-// Package util provides utility functions for UI message handling.
+﻿// Package util provides utility functions for UI message handling.
 package util
 
 import (

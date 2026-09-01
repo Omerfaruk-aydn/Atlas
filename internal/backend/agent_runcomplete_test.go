@@ -1,4 +1,4 @@
-package backend
+﻿package backend
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/agent"
-	"github.com/charmbracelet/crush/internal/app"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/agent"
+	"github.com/maincodss/atlas-agent/internal/app"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -77,7 +77,7 @@ func insertRunCompleteWorkspace(t *testing.T, b *Backend, base context.Context, 
 // error returned from RunAccepted before the coordinator could publish
 // its own terminal event (e.g. a readyWg or UpdateModels failure,
 // modeled here by a stub coordinator) still yields a reliable terminal
-// RunComplete for the run's RunID. Without it, a `crush run` caller
+// RunComplete for the run's RunID. Without it, a `Atlas-Agent run` caller
 // blocking on that RunID would hang because the lossy TypeAgentError
 // event is not a guaranteed terminal signal.
 func TestRunAgent_PreRunErrorPublishesTerminalRunComplete(t *testing.T) {

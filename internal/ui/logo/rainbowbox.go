@@ -1,10 +1,10 @@
-package logo
+﻿package logo
 
 import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 const (

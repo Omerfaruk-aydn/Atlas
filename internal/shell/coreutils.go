@@ -1,7 +1,7 @@
-package shell
+﻿package shell
 
 import (
-	"github.com/charmbracelet/crush/internal/appenv"
+	"github.com/maincodss/atlas-agent/internal/appenv"
 	"runtime"
 	"strconv"
 )
@@ -9,7 +9,7 @@ import (
 var useGoCoreUtils bool
 
 func init() {
-	// If CRUSH_CORE_UTILS is set to either true or false, respect that.
+	// If ATLAS-AGENT_CORE_UTILS is set to either true or false, respect that.
 	// By default, enable on Windows only.
 	if v, err := strconv.ParseBool(appenv.Get("CORE_UTILS")); err == nil {
 		useGoCoreUtils = v

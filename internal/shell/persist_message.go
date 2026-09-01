@@ -1,11 +1,11 @@
-package shell
+﻿package shell
 
 import (
 	"context"
 	"log/slog"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/message"
+	"github.com/maincodss/atlas-agent/internal/message"
 )
 
 // PersistOutput stores a bang-mode shell command result as a user message.

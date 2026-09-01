@@ -1,12 +1,12 @@
-package chat
+﻿package chat
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // MCPToolMessageItem is a message item that represents a bash tool call.

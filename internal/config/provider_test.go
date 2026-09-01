@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"encoding/json"
@@ -80,8 +80,8 @@ func TestProviders_Integration_WithMockClients(t *testing.T) {
 		},
 	}
 
-	catwalkPath := tmpDir + "/crush/providers.json"
-	hyperPath := tmpDir + "/crush/hyper.json"
+	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
+	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
 
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
 	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
@@ -105,10 +105,10 @@ func TestProviders_Integration_WithCachedData(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", tmpDir)
 
 	// Create cache files.
-	catwalkPath := tmpDir + "/crush/providers.json"
-	hyperPath := tmpDir + "/crush/hyper.json"
+	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
+	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
 
-	require.NoError(t, os.MkdirAll(tmpDir+"/crush", 0o755))
+	require.NoError(t, os.MkdirAll(tmpDir+"/Atlas-Agent", 0o755))
 
 	// Write Catwalk cache.
 	catwalkProviders := []catwalk.Provider{
@@ -175,8 +175,8 @@ func TestProviders_Integration_CatwalkFailsHyperSucceeds(t *testing.T) {
 		},
 	}
 
-	catwalkPath := tmpDir + "/crush/providers.json"
-	hyperPath := tmpDir + "/crush/hyper.json"
+	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
+	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
 
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
 	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
@@ -205,8 +205,8 @@ func TestProviders_Integration_BothFail(t *testing.T) {
 		provider: catwalk.Provider{}, // Empty provider.
 	}
 
-	catwalkPath := tmpDir + "/crush/providers.json"
-	hyperPath := tmpDir + "/crush/hyper.json"
+	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
+	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
 
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
 	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
@@ -217,7 +217,7 @@ func TestProviders_Integration_BothFail(t *testing.T) {
 
 	hyperResult, err := testHyperSyncer.Get(t.Context())
 	require.NoError(t, err)
-	require.Equal(t, "Charm Hyper", hyperResult.Name) // Falls back to embedded when no models.
+	require.Equal(t, "Atlas Hyper", hyperResult.Name) // Falls back to embedded when no models.
 }
 
 func TestCache_StoreAndGet(t *testing.T) {
@@ -407,7 +407,7 @@ func TestProviders_HonorsDisableDefaultProviders(t *testing.T) {
 }
 
 // TestCacheStore_ReplacesFileInsteadOfRewritingIt guards the property that
-// several Crush instances depend on: the provider cache is swapped into place
+// several Atlas-Agent instances depend on: the provider cache is swapped into place
 // as a finished file, never truncated and refilled underneath a reader that is
 // already reading it. A reader that loses that race cannot parse the catalog
 // and silently falls back to the bundled copy.

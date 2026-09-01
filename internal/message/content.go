@@ -1,4 +1,4 @@
-package message
+﻿package message
 
 import (
 	"encoding/base64"
@@ -13,7 +13,7 @@ import (
 	"charm.land/fantasy/providers/anthropic"
 	"charm.land/fantasy/providers/google"
 	"charm.land/fantasy/providers/openai"
-	"github.com/charmbracelet/crush/internal/stringext"
+	"github.com/maincodss/atlas-agent/internal/stringext"
 	"github.com/charmbracelet/x/ansi"
 )
 

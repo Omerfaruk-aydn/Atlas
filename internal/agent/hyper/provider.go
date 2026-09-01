@@ -1,4 +1,4 @@
-// Package hyper provides a fantasy.Provider that proxies requests to Hyper.
+﻿// Package hyper provides a fantasy.Provider that proxies requests to Hyper.
 package hyper
 
 import (
@@ -38,7 +38,7 @@ const (
 	// Name is the default name of this meta provider.
 	Name = "hyper"
 	// DisplayName is the display name of Hyper.
-	DisplayName = "Charm Hyper"
+	DisplayName = "Atlas Hyper"
 	// defaultBaseURL is the default proxy URL.
 	defaultBaseURL = "https://hyper.charm.land"
 )

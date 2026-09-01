@@ -1,4 +1,4 @@
-package image
+﻿package image
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/ansi/kitty"
 	"github.com/disintegration/imaging"

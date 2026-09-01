@@ -1,12 +1,12 @@
-package config
+﻿package config
 
 import (
 	"context"
 	"fmt"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/env"
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/env"
+	"github.com/maincodss/atlas-agent/internal/shell"
 )
 
 // resolveTimeout bounds how long a single ResolveValue call may spend

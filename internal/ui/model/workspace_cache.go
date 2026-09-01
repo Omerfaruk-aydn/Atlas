@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 // Memoized workspace state.
 //
@@ -31,8 +31,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 )
 
 // busyCacheTTL bounds how long the memoized busy/permission state may go

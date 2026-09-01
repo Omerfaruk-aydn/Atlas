@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ import (
 func createTestLogFile(t *testing.T, entries []map[string]any) string {
 	t.Helper()
 	tempDir := t.TempDir()
-	logFile := filepath.Join(tempDir, "crush.log")
+	logFile := filepath.Join(tempDir, "atlas.log")
 
 	file, err := os.Create(logFile)
 	require.NoError(t, err)
@@ -123,14 +123,14 @@ func TestAtlasLogs_MaxCap(t *testing.T) {
 
 func TestAtlasLogs_MissingFile(t *testing.T) {
 	t.Parallel()
-	result := runAtlasLogs("/nonexistent/path/crush.log", AtlasLogsParams{Lines: 50})
+	result := runAtlasLogs("/nonexistent/path/atlas.log", AtlasLogsParams{Lines: 50})
 	require.Contains(t, result, "No log file found")
 }
 
 func TestAtlasLogs_EmptyFile(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
-	logFile := filepath.Join(tempDir, "crush.log")
+	logFile := filepath.Join(tempDir, "atlas.log")
 	_, err := os.Create(logFile)
 	require.NoError(t, err)
 
@@ -141,7 +141,7 @@ func TestAtlasLogs_EmptyFile(t *testing.T) {
 func TestAtlasLogs_MalformedLines(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
-	logFile := filepath.Join(tempDir, "crush.log")
+	logFile := filepath.Join(tempDir, "atlas.log")
 
 	file, err := os.Create(logFile)
 	require.NoError(t, err)
@@ -301,7 +301,7 @@ func TestAtlasLogs_ReservedFields(t *testing.T) {
 func TestAtlasLogs_OversizedLines(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
-	logFile := filepath.Join(tempDir, "crush.log")
+	logFile := filepath.Join(tempDir, "atlas.log")
 
 	file, err := os.Create(logFile)
 	require.NoError(t, err)
@@ -343,7 +343,7 @@ func TestAtlasLogs_OversizedLines(t *testing.T) {
 func TestAtlasLogs_PartialTrailingLine(t *testing.T) {
 	t.Parallel()
 	tempDir := t.TempDir()
-	logFile := filepath.Join(tempDir, "crush.log")
+	logFile := filepath.Join(tempDir, "atlas.log")
 
 	file, err := os.Create(logFile)
 	require.NoError(t, err)

@@ -1,4 +1,4 @@
-package permission
+﻿package permission
 
 import (
 	"context"
@@ -7,8 +7,8 @@ import (
 	"slices"
 	"sync"
 
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/google/uuid"
 )
 
@@ -38,7 +38,7 @@ func hookApproved(ctx context.Context, toolCallID string) bool {
 // the user at runtime (Ctrl+Y and the mode-cycle keybinding). It sits above
 // the five legacy override layers in Request(): Bypass and Plan are decided
 // before any of them run, so neither a stale sessionPermissions entry nor a
-// crushrc allowlist can leak a mutating call through Plan mode.
+// atlasrc allowlist can leak a mutating call through Plan mode.
 type PermissionMode string
 
 const (
@@ -229,7 +229,7 @@ func (s *permissionService) Request(ctx context.Context, opts CreatePermissionRe
 	// Bypass and Plan are decided before any of the five legacy override
 	// layers below: Bypass because "skip everything" should mean exactly
 	// that, and Plan because its read-only guarantee must be
-	// unconditional — a stale sessionPermissions grant or a crushrc
+	// unconditional — a stale sessionPermissions grant or a atlasrc
 	// allowlist entry recorded before switching into Plan mode must not
 	// be able to leak a mutating call through.
 	switch mode {

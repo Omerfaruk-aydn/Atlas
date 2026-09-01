@@ -1,4 +1,4 @@
-package event
+﻿package event
 
 // These tests verify that the Error function correctly handles various
 // scenarios. These tests will not log anything.
@@ -22,7 +22,7 @@ func TestSetNonInteractive(t *testing.T) {
 	tests := []struct {
 		name                     string
 		nonInteractive           bool
-		crush                    string
+		AtlasAgent                    string
 		wantNonInteractiveNested bool
 	}{
 		{
@@ -34,24 +34,24 @@ func TestSetNonInteractive(t *testing.T) {
 		},
 		{
 			name:  "interactive nested invocation",
-			crush: "1",
+			AtlasAgent: "1",
 		},
 		{
 			name:                     "non-interactive nested invocation",
 			nonInteractive:           true,
-			crush:                    "1",
+			AtlasAgent:                    "1",
 			wantNonInteractiveNested: true,
 		},
 		{
 			name:           "non-interactive invocation with unrecognized marker",
 			nonInteractive: true,
-			crush:          "0",
+			AtlasAgent:          "0",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Setenv("CRUSH", tt.crush)
+			t.Setenv("ATLAS-AGENT", tt.AtlasAgent)
 			SetNonInteractive(tt.nonInteractive)
 
 			if got := baseProps[nonInteractiveAttrName]; got != tt.nonInteractive {

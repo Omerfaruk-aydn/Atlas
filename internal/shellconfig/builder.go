@@ -1,4 +1,4 @@
-package shellconfig
+﻿package shellconfig
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 )
 
 // ConfigBuilder accumulates config state as config builtins execute during a
-// crushrc load. Builtins mutate the nested map directly, in execution order,
+// atlasrc load. Builtins mutate the nested map directly, in execution order,
 // so imperative operations (append, set, remove, reset) resolve exactly as the
 // script intends. The builder is stored on the shell context so builtins can
 // reach it; it is absent during normal bash tool execution, which makes the

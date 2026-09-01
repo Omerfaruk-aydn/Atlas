@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"bufio"
@@ -15,9 +15,9 @@ import (
 	"strings"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/filepathext"
-	"github.com/charmbracelet/crush/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/filepathext"
+	"github.com/maincodss/atlas-agent/internal/fsext"
 )
 
 const GlobToolName = "glob"

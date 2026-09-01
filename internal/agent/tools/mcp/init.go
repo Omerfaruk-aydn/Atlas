@@ -1,4 +1,4 @@
-// Package mcp provides functionality for managing Model Context Protocol (MCP)
+﻿// Package mcp provides functionality for managing Model Context Protocol (MCP)
 // clients within the ATLAS-AGENT application.
 package mcp
 
@@ -16,14 +16,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/oauth"
-	mcpoauth "github.com/charmbracelet/crush/internal/oauth/mcp"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/version"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/maincodss/atlas-agent/internal/oauth"
+	mcpoauth "github.com/maincodss/atlas-agent/internal/oauth/mcp"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/version"
 	"github.com/modelcontextprotocol/go-sdk/auth"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"golang.org/x/oauth2"

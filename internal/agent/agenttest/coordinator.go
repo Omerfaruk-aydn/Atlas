@@ -1,4 +1,4 @@
-// Package agenttest provides test-only constructors for wiring a real
+﻿// Package agenttest provides test-only constructors for wiring a real
 // production agent.Coordinator without booting a full app.App. It is
 // imported only from _test.go files (e.g. internal/backend integration
 // tests) and is never referenced by production code, so it is compiled
@@ -10,11 +10,11 @@ import (
 
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/fantasy/providers/openaicompat"
-	"github.com/charmbracelet/crush/internal/agent"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/agent"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/session"
 )
 
 // NewCoordinator builds a real agent.Coordinator through the production

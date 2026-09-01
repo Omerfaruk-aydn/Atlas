@@ -1,4 +1,4 @@
-// Package filetracker provides functionality to track file reads in sessions.
+﻿// Package filetracker provides functionality to track file reads in sessions.
 package filetracker
 
 import (
@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/db"
+	"github.com/maincodss/atlas-agent/internal/db"
 )
 
 // Service defines the interface for tracking file reads in sessions.

@@ -1,4 +1,4 @@
-package projects
+﻿package projects
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 )
 
 const projectsFileName = "projects.json"

@@ -1,12 +1,12 @@
-// Package main is the entry point for the Crush CLI.
+﻿// Package main is the entry point for the Atlas-Agent CLI.
 //
 //	@title			ATLAS-AGENT API
 //	@version		1.0
 //	@description	ATLAS-AGENT is a terminal-based AI coding assistant. This API is served over a Unix socket (or Windows named pipe) and provides programmatic access to workspaces, sessions, agents, LSP, MCP, and more.
-//	@contact.name	Charm
+//	@contact.name	Atlas
 //	@contact.url	https://charm.sh
 //	@license.name	MIT
-//	@license.url	https://github.com/charmbracelet/crush/blob/main/LICENSE
+//	@license.url	https://github.com/maincodss/atlas-agent/blob/main/LICENSE
 //	@BasePath		/v1
 package main
 
@@ -16,8 +16,8 @@ import (
 	_ "net/http/pprof"
 	"os"
 
-	"github.com/charmbracelet/crush/internal/cmd"
-	_ "github.com/charmbracelet/crush/internal/dns"
+	"github.com/maincodss/atlas-agent/internal/cmd"
+	_ "github.com/maincodss/atlas-agent/internal/dns"
 	_ "github.com/joho/godotenv/autoload"
 )
 

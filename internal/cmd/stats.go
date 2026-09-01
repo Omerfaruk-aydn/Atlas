@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/charmbracelet/crush/internal/fsext"
+	
 	"html/template"
 	"os"
 	"os/user"
@@ -18,10 +18,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/event"
-	"github.com/charmbracelet/crush/internal/projects"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/event"
+	"github.com/maincodss/atlas-agent/internal/projects"
 	"github.com/pkg/browser"
 	"github.com/spf13/cobra"
 )
@@ -223,7 +223,7 @@ func runStats(cmd *cobra.Command, _ []string) error {
 		}
 	}
 	if outputDataDir == "" {
-		outputDataDir = fsext.PreferExisting(".atlas", ".crush")
+		outputDataDir = ".atlas"
 	}
 
 	htmlPath := filepath.Join(outputDataDir, "stats/index.html")
@@ -241,7 +241,7 @@ func runStats(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-// crawlForStats crawls a directory recursively looking for .crush/crush.db files.
+// crawlForStats crawls a directory recursively looking for .atlas/atlas.db files.
 func crawlForStats(ctx context.Context, rootDir string) ([]ProjectStats, error) {
 	var dbPaths []struct {
 		dbPath     string
@@ -260,9 +260,9 @@ func crawlForStats(ctx context.Context, rootDir string) ([]ProjectStats, error) 
 
 		// Look for the <data dir>/<db> pattern under either the current or
 		// the pre-rebrand spelling; a machine can hold projects of both eras.
-		if !d.IsDir() && (d.Name() == "atlas.db" || d.Name() == "crush.db") {
+		if !d.IsDir() && d.Name() == "atlas.db" {
 			dir := filepath.Dir(path)
-			if base := filepath.Base(dir); base == ".atlas" || base == ".crush" {
+			if base := filepath.Base(dir); base == ".atlas" {
 				projectDir := filepath.Dir(dir)
 				dbPaths = append(dbPaths, struct {
 					dbPath     string
@@ -325,8 +325,7 @@ func gatherStatsFromProjects(ctx context.Context) ([]ProjectStats, error) {
 	}
 
 	for _, p := range projectList.Projects {
-		dbPath := fsext.PreferExisting(
-			filepath.Join(p.DataDir, "atlas.db"), filepath.Join(p.DataDir, "crush.db"))
+		dbPath := filepath.Join(p.DataDir, "atlas.db")
 		if _, err := os.Stat(dbPath); err == nil {
 			dbPaths = append(dbPaths, struct {
 				dbPath     string

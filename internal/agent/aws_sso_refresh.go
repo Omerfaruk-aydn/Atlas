@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"bufio"
@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/agent/notify"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/agent/notify"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 )
 
 // awsSSORefreshTimeout bounds how long the AWS SSO refresh command may run.

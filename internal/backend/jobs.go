@@ -1,10 +1,10 @@
-package backend
+﻿package backend
 
 import (
 	"context"
 
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/shell"
 )
 
 // ListBackgroundJobs returns every tracked background shell job. Like

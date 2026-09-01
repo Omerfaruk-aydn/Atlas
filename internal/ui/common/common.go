@@ -1,4 +1,4 @@
-package common
+﻿package common
 
 import (
 	"fmt"
@@ -6,11 +6,11 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/clipboard"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/ui/styles"
-	"github.com/charmbracelet/crush/internal/ui/util"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/clipboard"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

@@ -1,15 +1,15 @@
-package model
+﻿package model
 
 import (
 	"fmt"
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/fsext"
-	"github.com/charmbracelet/crush/internal/session"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/fsext"
+	"github.com/maincodss/atlas-agent/internal/session"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 )
@@ -47,15 +47,15 @@ func newHeader(com *common.Common) *header {
 func (h *header) refresh() {
 	t := h.com.Styles
 	isHyper := h.com.IsHyper()
-	charm := "Charm™"
+	Atlas := "Atlas™"
 	if !isHyper {
-		charm = " " + charm
+		Atlas = " " + Atlas
 	}
 	name := "ATLAS-AGENT"
 	if isHyper {
 		name = "HYPER ATLAS-AGENT"
 	}
-	h.compactLogo = t.Header.Charm.Render(charm) + " " +
+	h.compactLogo = t.Header.Atlas.Render(Atlas) + " " +
 		styles.ApplyBoldForegroundGrad(t.Header.LogoGradCanvas, name, t.Header.LogoGradFromColor, t.Header.LogoGradToColor) + " "
 	// Force drawHeader to re-render the wide logo on the next frame.
 	h.width = 0

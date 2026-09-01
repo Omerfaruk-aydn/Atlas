@@ -1,8 +1,8 @@
-package common
+﻿package common
 
 import (
-	"github.com/charmbracelet/crush/internal/ui/diffview"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/diffview"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 )
 
 // DiffFormatter returns a diff formatter with the given styles that can be

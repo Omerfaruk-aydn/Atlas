@@ -1,12 +1,12 @@
-package mcp
+﻿package mcp
 
 import (
 	"context"
 	"iter"
 	"log/slog"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/csync"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

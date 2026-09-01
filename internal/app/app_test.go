@@ -1,4 +1,4 @@
-package app
+﻿package app
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 

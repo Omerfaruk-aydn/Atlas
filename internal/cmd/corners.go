@@ -1,10 +1,10 @@
-package cmd
+﻿package cmd
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/spf13/cobra"
 )
 

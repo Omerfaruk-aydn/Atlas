@@ -1,19 +1,19 @@
-package cmd
+﻿package cmd
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/charmbracelet/crush/internal/fsext"
+	
 	"log/slog"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/config"
-	atlaslog "github.com/charmbracelet/crush/internal/log"
-	"github.com/charmbracelet/crush/internal/server"
+	"github.com/maincodss/atlas-agent/internal/config"
+	atlaslog "github.com/maincodss/atlas-agent/internal/log"
+	"github.com/maincodss/atlas-agent/internal/server"
 	"github.com/charmbracelet/x/term"
 	"github.com/spf13/cobra"
 )
@@ -48,9 +48,7 @@ var serverCmd = &cobra.Command{
 			return fmt.Errorf("invalid server host: %v", err)
 		}
 
-		logFile := fsext.PreferExisting(
-			filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log"),
-			filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log"))
+		logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log")
 
 		if term.IsTerminal(os.Stderr.Fd()) {
 			atlaslog.Setup(logFile, debug, os.Stderr)

@@ -1,11 +1,11 @@
-package logo
+﻿package logo
 
 import (
 	"strings"
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ func testOpts(width int, hyper bool) (lipgloss.Style, Opts) {
 	return t.Logo.GradCanvas, Opts{
 		TitleColorA:  t.Logo.TitleColorA,
 		TitleColorB:  t.Logo.TitleColorB,
-		CharmColor:   t.Logo.CharmColor,
+		AtlasColor:   t.Logo.AtlasColor,
 		VersionColor: t.Logo.VersionColor,
 		Width:        width,
 		Hyper:        hyper,

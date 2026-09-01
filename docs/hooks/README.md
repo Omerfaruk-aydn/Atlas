@@ -1,4 +1,4 @@
-# Hooks
+﻿# Hooks
 
 > [!NOTE]
 > This document was designed for both humans and agents.
@@ -743,7 +743,7 @@ See [Environment Variables](#environment-variables) above for the full list.
 We'd love to hear your thoughts on this project. Need help? We gotchu. You can
 find us on:
 
-- [Twitter](https://twitter.com/charmcli)
+- [Twitter](https://twitter.com/Atlascli)
 - [Slack](https://charm.land/slack)
 - [Discord](https://charm.land/discord)
 - [The Fediverse](https://mastodon.social/@charmcli)
@@ -751,9 +751,9 @@ find us on:
 
 ---
 
-Part of [Charm](https://charm.land).
+Part of [Atlas](https://charm.land).
 
-<a href="https://charm.land/"><img alt="The Charm logo" width="400" src="https://stuff.charm.sh/charm-banner-softy.jpg" /></a>
+<a href="https://charm.land/"><img alt="The Atlas logo" width="400" src="https://stuff.charm.sh/Atlas-banner-softy.jpg" /></a>
 
 <!--prettier-ignore-->
-Charm热爱开源 • Charm loves open source
+Atlas热爱开源 • Atlas loves open source

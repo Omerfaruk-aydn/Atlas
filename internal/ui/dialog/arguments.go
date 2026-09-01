@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"cmp"
@@ -14,9 +14,9 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/charmbracelet/crush/internal/commands"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/commands"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

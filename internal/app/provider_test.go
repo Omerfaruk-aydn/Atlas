@@ -1,10 +1,10 @@
-package app
+﻿package app
 
 import (
 	"testing"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/stretchr/testify/require"
 )
 

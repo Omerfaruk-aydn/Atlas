@@ -1,4 +1,4 @@
-package cmd
+﻿package cmd
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2/tree"
-	"github.com/charmbracelet/crush/internal/config"
+	"github.com/maincodss/atlas-agent/internal/config"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )

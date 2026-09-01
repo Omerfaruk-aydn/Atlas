@@ -1,6 +1,6 @@
-{
+﻿{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/charmbracelet/crush/internal/config/config",
+  "$id": "https://github.com/charmbracelet/Atlas-Agent/internal/config/config",
   "$ref": "#/$defs/Config",
   "$defs": {
     "Attribution": {
@@ -449,7 +449,7 @@
             "type": "string",
             "examples": [
               ".cursorrules",
-              "CRUSH.md"
+              "ATLAS-AGENT.md"
             ]
           },
           "type": "array",
@@ -462,7 +462,7 @@
           "type": "array",
           "description": "Paths to files containing global context information for the AI",
           "default": [
-            "~/.config/crush/CRUSH.md",
+            "~/.config/Atlas-Agent/ATLAS-AGENT.md",
             "~/.config/AGENTS.md"
           ]
         },
@@ -470,7 +470,7 @@
           "items": {
             "type": "string",
             "examples": [
-              "~/.config/crush/skills",
+              "~/.config/Atlas-Agent/skills",
               "./skills"
             ]
           },
@@ -499,9 +499,9 @@
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",
-          "default": ".crush",
+          "default": "\.crush\b",
           "examples": [
-            ".crush"
+            "\.crush\b"
           ]
         },
         "disabled_tools": {
@@ -540,7 +540,7 @@
           "default": "AGENTS.md",
           "examples": [
             "AGENTS.md",
-            "CRUSH.md",
+            "ATLAS-AGENT.md",
             "CLAUDE.md",
             "docs/LLMs.md"
           ]

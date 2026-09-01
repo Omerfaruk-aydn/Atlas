@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 // This is an example for testing logo treatments. Do not remove.
 
@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/logo"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/logo"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/charmbracelet/x/term"
 )
 
@@ -18,11 +18,11 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Could not get terminal size: %s", err)
 	}
 
-	s := styles.CharmtonePantera()
+	s := styles.AtlasPantera()
 	opts := logo.Opts{
 		TitleColorA:  s.Logo.TitleColorA,
 		TitleColorB:  s.Logo.TitleColorB,
-		CharmColor:   s.Logo.CharmColor,
+		AtlasColor:   s.Logo.AtlasColor,
 		VersionColor: s.Logo.VersionColor,
 		Width:        w,
 		Unstable:     true,

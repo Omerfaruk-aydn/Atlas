@@ -1,5 +1,5 @@
-// Package clientserverrace_test is a regression test for the
-// CRUSH_CLIENT_SERVER=1 socket-init race documented in
+﻿// Package clientserverrace_test is a regression test for the
+// ATLAS-AGENT_CLIENT_SERVER=1 socket-init race documented in
 // docs/notes/2026-05-11-client-server-socket-init-race.md (item F5).
 //
 // It lives in its own directory so it can build even if other test
@@ -66,7 +66,7 @@ func TestClientServerSpawnRace(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = os.RemoveAll(runDir) })
 
-	socketPath := filepath.Join(runDir, "crush.sock")
+	socketPath := filepath.Join(runDir, "atlas.sock")
 	host := "unix://" + socketPath
 
 	// Fresh, isolated XDG/HOME so we don't touch the user's real
@@ -84,7 +84,7 @@ func TestClientServerSpawnRace(t *testing.T) {
 
 	env := append(
 		os.Environ(),
-		"CRUSH_CLIENT_SERVER=1",
+		"ATLAS-AGENT_CLIENT_SERVER=1",
 		"XDG_CACHE_HOME="+cacheHome,
 		"XDG_DATA_HOME="+dataHome,
 		"XDG_CONFIG_HOME="+configHome,

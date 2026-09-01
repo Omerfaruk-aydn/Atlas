@@ -1,11 +1,11 @@
-package shell
+﻿package shell
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 	"github.com/stretchr/testify/require"
 )
 

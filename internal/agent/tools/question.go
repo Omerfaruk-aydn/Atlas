@@ -1,4 +1,4 @@
-package tools
+﻿package tools
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"charm.land/fantasy"
-	"github.com/charmbracelet/crush/internal/question"
+	"github.com/maincodss/atlas-agent/internal/question"
 )
 
 const QuestionToolName = "question"

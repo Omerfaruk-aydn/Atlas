@@ -1,12 +1,12 @@
-package model
+﻿package model
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
 
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/ui/dialog"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/ui/dialog"
 )
 
 // snippetsPath returns the path to the user's saved-prompt-snippets file,

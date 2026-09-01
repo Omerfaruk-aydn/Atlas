@@ -1,11 +1,11 @@
-package list
+﻿package list
 
 import (
 	"image"
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/stringext"
+	"github.com/maincodss/atlas-agent/internal/stringext"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/ansi"
 )

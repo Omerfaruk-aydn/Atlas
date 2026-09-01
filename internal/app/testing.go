@@ -1,14 +1,14 @@
-package app
+﻿package app
 
 import (
 	"context"
 	"sync"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/agent/notify"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/question"
+	"github.com/maincodss/atlas-agent/internal/agent/notify"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/question"
 )
 
 // NewForTest constructs a minimal [App] suitable for in-process tests

@@ -1,4 +1,4 @@
-package proto
+﻿package proto
 
 import (
 	"encoding/base64"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/message"
+	"github.com/maincodss/atlas-agent/internal/message"
 )
 
 // CreateMessageParams represents parameters for creating a message.

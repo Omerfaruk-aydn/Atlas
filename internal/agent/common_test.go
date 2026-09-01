@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"context"
@@ -12,17 +12,17 @@ import (
 	"charm.land/fantasy"
 	"charm.land/fantasy/providers/openaicompat"
 	"charm.land/x/vcr"
-	"github.com/charmbracelet/crush/internal/agent/prompt"
-	"github.com/charmbracelet/crush/internal/agent/tools"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/db"
-	"github.com/charmbracelet/crush/internal/filetracker"
-	"github.com/charmbracelet/crush/internal/history"
-	"github.com/charmbracelet/crush/internal/lsp"
-	"github.com/charmbracelet/crush/internal/message"
-	"github.com/charmbracelet/crush/internal/permission"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/agent/prompt"
+	"github.com/maincodss/atlas-agent/internal/agent/tools"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/db"
+	"github.com/maincodss/atlas-agent/internal/filetracker"
+	"github.com/maincodss/atlas-agent/internal/history"
+	"github.com/maincodss/atlas-agent/internal/lsp"
+	"github.com/maincodss/atlas-agent/internal/message"
+	"github.com/maincodss/atlas-agent/internal/permission"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/stretchr/testify/require"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -62,7 +62,7 @@ func hyperBuilder(model string) builderFunc {
 }
 
 func testEnv(t *testing.T) fakeEnv {
-	workingDir := filepath.Join("/tmp/crush-test/", t.Name())
+	workingDir := filepath.Join("/tmp/Atlas-Agent-test/", t.Name())
 	os.RemoveAll(workingDir)
 
 	err := os.MkdirAll(workingDir, 0o755)
@@ -142,7 +142,7 @@ func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel
 	}
 
 	// NOTE(@andreynering): Set a fixed config to ensure cassettes match
-	// independently of user config on `$HOME/.config/crush/crush.json`.
+	// independently of user config on `$HOME/.config/Atlas-Agent/atlas.json`.
 	cfg.Config().Options.Attribution = &config.Attribution{
 		TrailerStyle:  "co-authored-by",
 		GeneratedWith: true,

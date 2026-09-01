@@ -1,11 +1,11 @@
-package chat
+﻿package chat
 
 import (
 	"strings"
 	"testing"
 
 	"charm.land/glamour/v2"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,7 +16,7 @@ import (
 // path into a "fresh" rendering path.
 func newTestRenderer(t *testing.T, width int) *glamour.TermRenderer {
 	t.Helper()
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	r, err := glamour.NewTermRenderer(
 		glamour.WithStyles(sty.Markdown),
 		glamour.WithWordWrap(width),
@@ -830,7 +830,7 @@ func TestStreamingMarkdown_LinkRefDefinition(t *testing.T) {
 func TestAssistantStreamingContent_ResetOnClearCache(t *testing.T) {
 	t.Parallel()
 
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	doc := "Para one.\n\nPara two.\n\nPara three."
 	msg := finishedAssistantMessage("stream-clear", doc)
 	item := NewAssistantMessageItem(&sty, msg).(*AssistantMessageItem)

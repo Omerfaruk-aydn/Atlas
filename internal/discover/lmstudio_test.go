@@ -1,4 +1,4 @@
-package discover
+﻿package discover
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func TestLmstudioEnricher(t *testing.T) {
 		}))
 		defer srv.Close()
 
-		// Base URL includes /v1 (as Crush configures it); the enricher
+		// Base URL includes /v1 (as Atlas-Agent configures it); the enricher
 		// strips it so the native endpoint resolves at the server root.
 		cfg := Config{ID: "test-lmstudio", BaseURL: srv.URL + "/v1"}
 		models := []catwalk.Model{

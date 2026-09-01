@@ -1,15 +1,15 @@
-# ATLAS-AGENT Development Guide
+﻿# ATLAS-AGENT Development Guide
 
 ## Project Overview
 
 ATLAS-AGENT is a terminal-based AI coding assistant built in Go by
-[Charm](https://charm.land). It connects to LLMs and gives them tools to read,
+[Atlas](https://charm.land). It connects to LLMs and gives them tools to read,
 write, and execute code. It supports multiple providers (Anthropic, OpenAI,
 Gemini, Bedrock, Copilot, Hyper, MiniMax, Vercel, and more), integrates with
 LSPs for code intelligence, and supports extensibility via MCP servers and
 agent skills.
 
-The module path is `github.com/charmbracelet/crush`.
+The module path is `github.com/charmbracelet/Atlas-Agent`.
 
 ## Architecture
 
@@ -20,9 +20,9 @@ internal/
   cmd/                             CLI commands (root, run, login, models, stats, sessions)
   config/
     config.go                      Config struct, context file paths, agent definitions
-    load.go                        crushrc and crush.json loading and validation
+    load.go                        Atlas-Agentrc and crush\.json loading and validation
     provider.go                    Provider configuration and model resolution
-  shellconfig/                      Bash-powered config format (crushrc builtins)
+  shellconfig/                      Bash-powered config format (Atlas-Agentrc builtins)
   agent/
     agent.go                       SessionAgent: runs LLM conversations per session
     coordinator.go                 Coordinator: manages named agents ("coder", "task")
@@ -69,13 +69,13 @@ internal/
   `.md` description file in `internal/agent/tools/`.
 - **System prompts are Go templates**: `internal/agent/templates/*.md.tpl`
   with runtime data injected.
-- **Context files**: ATLAS-AGENT reads AGENTS.md, CRUSH.md, CLAUDE.md, GEMINI.md
+- **Context files**: ATLAS-AGENT reads AGENTS.md, ATLAS-AGENT.md, CLAUDE.md, GEMINI.md
   (and `.local` variants) from the working directory for project-specific
   instructions.
-- **Bash config format**: ATLAS-AGENT's primary config format is `crushrc` — a
+- **Bash config format**: ATLAS-AGENT's primary config format is `Atlas-Agentrc` — a
   Bash script using builtins (`provider`, `model`, `mcp`, `lsp`,
-  `permissions`, `hook`, `options`) to define config. `crush.json` is still
-  supported but is deprecated in favor of `crushrc` and may be removed in a
+  `permissions`, `hook`, `options`) to define config. `crush\.json` is still
+  supported but is deprecated in favor of `Atlas-Agentrc` and may be removed in a
   future release. Shell config files are discovered alongside JSON configs
   and deep-merged through the same pipeline. Builtins are registered via
   `shell.RegisterBuiltin` and gated by a `ConfigBuilder` on the context —
@@ -85,7 +85,7 @@ internal/
   generated code in `internal/db/`. Migrations in `internal/db/migrations/`.
 - **Pub/sub**: `internal/pubsub` for decoupled communication between agent,
   UI, and services.
-- **Hooks**: User-defined shell commands in `crushrc` (or `crush.json`)
+- **Hooks**: User-defined shell commands in `Atlas-Agentrc` (or `crush\.json`)
   that fire before tool execution. The engine (`internal/hooks/`) is
   independent of fantasy and agent — it takes inputs, runs commands,
   returns decisions. The `hookedTool` decorator in
@@ -204,9 +204,9 @@ three layers:
   `quickStyle` must be fully token-driven: never hardcode specific
   `charmtone.*` colors here (except Chroma syntax highlighting, which is
   pending tokenization). This lets any theme reuse the base without
-  inheriting Charmtone-specific colors.
+  inheriting Atlastone-specific colors.
 - **`themes.go`**: Defines concrete themes. Each theme function (e.g.
-  `CharmtonePantera`) calls `quickStyle` with its palette, then applies
+  `AtlastonePantera`) calls `quickStyle` with its palette, then applies
   theme-specific overrides as needed.
 - **`styles.go`**: Defines the `Styles` struct and its documentation —
   the shape of what `quickStyle` produces.
@@ -217,7 +217,7 @@ Salt/Hazy/Larple), keep `quickStyle` on the closest semantic token and
 override only the differing colors in the theme function:
 
 ```go
-func CharmtonePantera() Styles {
+func AtlastonePantera() Styles {
 	s := quickStyle(quickStyleOpts{ /* palette */ })
 
 	// Override only the colors that differ from the token defaults.

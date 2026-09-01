@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 // every selection.
 func BenchmarkUpdatePreferredModel(b *testing.B) {
 	dir := b.TempDir()
-	configPath := filepath.Join(dir, "crush.json")
+	configPath := filepath.Join(dir, "atlas.json")
 
 	b.Setenv("CRUSH_GLOBAL_CONFIG", dir)
 	b.Setenv("CRUSH_GLOBAL_DATA", dir)
@@ -75,7 +75,7 @@ func BenchmarkUpdatePreferredModel(b *testing.B) {
 // BenchmarkUpdatePreferredModel.
 func BenchmarkReloadFromDisk(b *testing.B) {
 	dir := b.TempDir()
-	configPath := filepath.Join(dir, "crush.json")
+	configPath := filepath.Join(dir, "atlas.json")
 
 	b.Setenv("CRUSH_GLOBAL_CONFIG", dir)
 	b.Setenv("CRUSH_GLOBAL_DATA", dir)

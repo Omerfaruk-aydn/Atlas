@@ -1,4 +1,4 @@
-package backend
+﻿package backend
 
 import (
 	"bytes"
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/csync"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/csync"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )

@@ -1,4 +1,4 @@
-package server
+﻿package server
 
 import (
 	"encoding/json"
@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/charmbracelet/crush/internal/backend"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/session"
+	"github.com/maincodss/atlas-agent/internal/backend"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/session"
 	"github.com/google/uuid"
 )
 

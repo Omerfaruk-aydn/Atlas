@@ -1,4 +1,4 @@
-package styles
+﻿package styles
 
 import (
 	"image/color"
@@ -10,7 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/glamour/v2/ansi"
 	"charm.land/lipgloss/v2"
-	"github.com/charmbracelet/crush/internal/ui/diffview"
+	"github.com/maincodss/atlas-agent/internal/ui/diffview"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/x/exp/charmtone"
 )
@@ -80,7 +80,7 @@ type quickStyleOpts struct {
 	ansiBrightWhite   color.Color
 }
 
-// quickStyle builds the default Styles (that is, the default theme, Charmtone
+// quickStyle builds the default Styles (that is, the default theme, Atlastone
 // Pantera) from a palette of semi-semanticly-named colors.
 //
 // The idea here is that you can do most of the work on a theme with quickStyle,
@@ -601,7 +601,7 @@ func quickStyle(o quickStyleOpts) Styles {
 	// borders
 	s.ToolCallSuccess = lipgloss.NewStyle().Foreground(o.success).SetString(ToolSuccess)
 
-	s.Header.Charm = base.Foreground(o.secondary)
+	s.Header.Atlas = base.Foreground(o.secondary)
 	s.Header.Diagonals = base.Foreground(o.primary)
 	s.Header.Percentage = muted
 	s.Header.HypercreditIcon = base.Foreground(o.secondary)
@@ -791,9 +791,9 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Logo.FieldColor = o.primary
 	s.Logo.TitleColorA = o.secondary
 	s.Logo.TitleColorB = o.primary
-	s.Logo.CharmColor = o.secondary
+	s.Logo.AtlasColor = o.secondary
 	s.Logo.VersionColor = o.primary
-	s.Logo.SmallCharm = lipgloss.NewStyle().Foreground(o.secondary)
+	s.Logo.SmallAtlas = lipgloss.NewStyle().Foreground(o.secondary)
 	s.Logo.SmallDiagonals = lipgloss.NewStyle().Foreground(o.primary)
 	s.Logo.GradCanvas = lipgloss.NewStyle()
 	s.Logo.SmallGradFromColor = o.secondary

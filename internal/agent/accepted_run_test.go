@@ -1,10 +1,10 @@
-package agent
+﻿package agent
 
 import (
 	"context"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/message"
+	"github.com/maincodss/atlas-agent/internal/message"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

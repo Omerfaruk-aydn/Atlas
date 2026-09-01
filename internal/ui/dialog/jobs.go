@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	"charm.land/bubbles/v2/help"
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/shell"
-	"github.com/charmbracelet/crush/internal/ui/common"
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/util"
-	"github.com/charmbracelet/crush/internal/workspace"
+	"github.com/maincodss/atlas-agent/internal/shell"
+	"github.com/maincodss/atlas-agent/internal/ui/common"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/util"
+	"github.com/maincodss/atlas-agent/internal/workspace"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/dustin/go-humanize"
 )

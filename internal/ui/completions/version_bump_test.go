@@ -1,4 +1,4 @@
-package completions
+﻿package completions
 
 import (
 	"testing"

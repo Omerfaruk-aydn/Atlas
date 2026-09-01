@@ -1,13 +1,13 @@
-package cmd
+﻿package cmd
 
 import (
 	"encoding/json"
 	"fmt"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/charmbracelet/crush/internal/agent/hyper"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/discover"
+	"github.com/maincodss/atlas-agent/internal/agent/hyper"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/discover"
 	"github.com/invopop/jsonschema"
 	"github.com/spf13/cobra"
 )
@@ -33,7 +33,7 @@ var schemaCmd = &cobra.Command{
 // setProviderTypeEnum overwrites the provider `type` enum with the live set
 // of accepted values rather than a hand-maintained struct tag. The values
 // must match exactly what load.go validates against: the catwalk provider
-// types, the Charm Hyper type, and any locally-discovered providers that
+// types, the Atlas Hyper type, and any locally-discovered providers that
 // self-register an enricher (e.g. ollama, omlx). Sourcing the enum here keeps
 // the published schema from drifting as provider types are added or renamed.
 func setProviderTypeEnum(schema *jsonschema.Schema) {

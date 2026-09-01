@@ -1,4 +1,4 @@
-package styles
+﻿package styles
 
 import (
 	"github.com/charmbracelet/x/exp/charmtone"
@@ -20,20 +20,20 @@ func ThemeKeyForProvider(providerID string) string {
 }
 
 // ThemeForProvider returns the Styles associated with the given provider
-// ID. Unknown or empty provider IDs yield the default Charmtone Pantera
+// ID. Unknown or empty provider IDs yield the default Atlas Pantera
 // theme.
 func ThemeForProvider(providerID string) Styles {
 	switch ThemeKeyForProvider(providerID) {
 	case "hyper":
-		return HypercrushObsidiana()
+		return HyperAtlasAgentObsidiana()
 	default:
-		return CharmtonePantera()
+		return AtlasPantera()
 	}
 }
 
-// CharmtonePantera returns the Charmtone dark theme. It's the default style
+// AtlasPantera returns the Atlas dark theme. It's the default style
 // for the UI.
-func CharmtonePantera() Styles {
+func AtlasPantera() Styles {
 	s := quickStyle(quickStyleOpts{
 		primary:   charmtone.Charple,
 		secondary: charmtone.Dolly,
@@ -68,7 +68,7 @@ func CharmtonePantera() Styles {
 		successMostSubtle: charmtone.Guac,
 
 		// ANSI 16-color palette for remapping raw terminal output
-		// (e.g. bang-mode shell commands) onto legible Charmtone colors.
+		// (e.g. bang-mode shell commands) onto legible Atlas colors.
 		ansiBlack:   charmtone.BBQ,
 		ansiRed:     charmtone.Coral,
 		ansiGreen:   charmtone.Guac,
@@ -110,7 +110,7 @@ func CharmtonePantera() Styles {
 	return s
 }
 
-// HypercrushObsidiana returns the Hyper ATLAS-AGENT dark theme.
-func HypercrushObsidiana() Styles {
-	return CharmtonePantera()
+// HyperAtlasAgentObsidiana returns the Hyper ATLAS-AGENT dark theme.
+func HyperAtlasAgentObsidiana() Styles {
+	return AtlasPantera()
 }

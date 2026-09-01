@@ -1,4 +1,4 @@
-package list
+﻿package list
 
 import (
 	"strings"
@@ -8,7 +8,7 @@ import (
 	"charm.land/lipgloss/v2"
 	uv "github.com/charmbracelet/ultraviolet"
 
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/stretchr/testify/require"
 )
 
@@ -76,7 +76,7 @@ func TestHighlightContentMarkdownList(t *testing.T) {
 	// the chat view actually produces: a long item word-wrapped onto a
 	// continuation row, followed by another item.
 	md := "- If the current row's content extends past sixty percent of the buffer width emit a space (space, wrap continuation)\n- Otherwise emit a newline (real newline, short lines like headings, list items, code)"
-	sty := styles.CharmtonePantera()
+	sty := styles.AtlasPantera()
 	width := 100
 	r, err := glamour.NewTermRenderer(glamour.WithStyles(sty.Markdown), glamour.WithWordWrap(width))
 	require.NoError(t, err)

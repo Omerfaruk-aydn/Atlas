@@ -1,4 +1,4 @@
-package skills
+﻿package skills
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charmbracelet/crush/internal/home"
-	"github.com/charmbracelet/crush/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/home"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
 )
 
 // Manager owns per-workspace skill discovery state: the latest discovery

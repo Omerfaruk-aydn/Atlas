@@ -1,4 +1,4 @@
-package backend_test
+﻿package backend_test
 
 import (
 	"context"
@@ -9,11 +9,11 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/charmbracelet/crush/internal/backend"
-	"github.com/charmbracelet/crush/internal/config"
-	"github.com/charmbracelet/crush/internal/proto"
-	"github.com/charmbracelet/crush/internal/pubsub"
-	"github.com/charmbracelet/crush/internal/skills"
+	"github.com/maincodss/atlas-agent/internal/backend"
+	"github.com/maincodss/atlas-agent/internal/config"
+	"github.com/maincodss/atlas-agent/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/pubsub"
+	"github.com/maincodss/atlas-agent/internal/skills"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 )
@@ -52,7 +52,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	wsA, _, err := b.CreateWorkspace(proto.Workspace{
 		ClientID: cidA,
 		Path:     wdA,
-		DataDir:  filepath.Join(wdA, ".crush"),
+		DataDir:  filepath.Join(wdA, ".atlas"),
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = b.DeleteWorkspace(wsA.ID, cidA) })
@@ -60,7 +60,7 @@ func TestBackend_WorkspaceSkillsIsolation(t *testing.T) {
 	wsB, _, err := b.CreateWorkspace(proto.Workspace{
 		ClientID: cidB,
 		Path:     wdB,
-		DataDir:  filepath.Join(wdB, ".crush"),
+		DataDir:  filepath.Join(wdB, ".atlas"),
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = b.DeleteWorkspace(wsB.ID, cidB) })

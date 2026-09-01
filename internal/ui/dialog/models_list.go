@@ -1,4 +1,4 @@
-package dialog
+﻿package dialog
 
 import (
 	"fmt"
@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/charmbracelet/crush/internal/ui/list"
-	"github.com/charmbracelet/crush/internal/ui/styles"
+	"github.com/maincodss/atlas-agent/internal/ui/list"
+	"github.com/maincodss/atlas-agent/internal/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 

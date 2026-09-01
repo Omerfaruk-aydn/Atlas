@@ -1,11 +1,11 @@
-package proto_test
+﻿package proto_test
 
 import (
 	"encoding/json"
 	"testing"
 
-	"github.com/charmbracelet/crush/internal/agent/tools"
-	"github.com/charmbracelet/crush/internal/proto"
+	"github.com/maincodss/atlas-agent/internal/agent/tools"
+	"github.com/maincodss/atlas-agent/internal/proto"
 	"github.com/stretchr/testify/require"
 )
 
