@@ -325,7 +325,7 @@ const (
 	ScrollbarNever   = "never"   // Never show scrollbar
 )
 
-// ExitBanner selects what Crush prints after the TUI exits.
+// ExitBanner selects what ATLAS-AGENT prints after the TUI exits.
 type ExitBanner string
 
 const (
