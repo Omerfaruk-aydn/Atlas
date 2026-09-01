@@ -125,7 +125,15 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 			catwalkURL := cmp.Or(os.Getenv("CATWALK_URL"), defaultCatwalkURL)
 			client := catwalk.NewWithURL(catwalkURL)
 			path := cachePathFor("providers")
-			catwalkSyncer.Init(client, path, autoupdate)
+			// With no catalog URL there is no upstream to sync with, so a
+			// providers.json left behind by an earlier release is not a
+			// cache of anything: it just shadows the catalog embedded in
+			// this binary and pins every model's metadata to whatever
+			// shipped back then. That is how a fixed supports_attachments
+			// flag could ride along in the binary and still never reach
+			// the model picker. Without a URL the embedded catalog is the
+			// authority, which is what "no auto-update" already means.
+			catwalkSyncer.Init(client, path, autoupdate && catwalkURL != "")
 
 			// A failure to refresh or cache the catalog is worth
 			// reporting, but the syncer still hands back the cached or
