@@ -1,9 +1,11 @@
-// Flip supports_attachments to true for any model whose "id" contains
-// "m3" (case-insensitive). Operates on every JSON file in the catwalk
-// configs directory. Safe to re-run.
+// Ensure every model whose "id" contains "m3" (case-insensitive) has
+// supports_attachments: true. If the field is missing, insert it. If it
+// is false, flip to true. If it is already true, leave it alone.
+//
+// Operates on every JSON file in the catwalk configs directory.
+// Safe to re-run; idempotent.
 
-import { readFile, writeFile } from 'node:fs/promises';
-import { readdir } from 'node:fs/promises';
+import { readFile, writeFile, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const root = process.argv[2];
@@ -12,50 +14,80 @@ if (!root) {
   process.exit(2);
 }
 
-// Match any JSON object that:
-//   1. has an "id" string containing "m3" (case-insensitive)
-//   2. has a "supports_attachments" field set to false
-// and rewrite the value to true. We do not add the field if missing;
-// we only flip existing false -> true.
-const pattern = /("id"\s*:\s*"[^"]*m3[^"]*"(?:(?!}).)*?"supports_attachments"\s*:\s*)false/gis;
-
 const entries = await readdir(root, { withFileTypes: true });
-let changedFiles = 0;
-let changedEntries = 0;
-let stillFalse = 0;
+let scanned = 0;
+let touched = 0;
+let alreadyTrue = 0;
+let flippedFromFalse = 0;
+let insertedMissing = 0;
+const problems = [];
 
 for (const e of entries) {
   if (!e.isFile() || !e.name.endsWith('.json')) continue;
   const path = join(root, e.name);
-  const text = await readFile(path, 'utf8');
-  let n = 0;
-  const updated = text.replace(pattern, (_, prefix) => {
-    n++;
-    return prefix + 'true';
-  });
-  if (n > 0) {
-    await writeFile(path, updated, 'utf8');
-    changedFiles++;
-    changedEntries += n;
-    console.log(`  ${e.name}: ${n} entries fixed`);
+  scanned++;
+
+  let cfg;
+  try {
+    cfg = JSON.parse(await readFile(path, 'utf8'));
+  } catch (err) {
+    problems.push(`  parse error in ${e.name}: ${err.message}`);
+    continue;
+  }
+
+  if (!Array.isArray(cfg?.models)) continue;
+
+  let fileChanged = false;
+  for (const m of cfg.models) {
+    if (typeof m?.id !== 'string' || !/m3/i.test(m.id)) continue;
+    if (m.supports_attachments === true) {
+      alreadyTrue++;
+      continue;
+    }
+    if (m.supports_attachments === false) {
+      m.supports_attachments = true;
+      flippedFromFalse++;
+      fileChanged = true;
+    } else {
+      m.supports_attachments = true;
+      insertedMissing++;
+      fileChanged = true;
+    }
+  }
+
+  if (fileChanged) {
+    // Preserve key order: insert supports_attachments right after
+    // default_max_tokens when present, otherwise at the end.
+    const out = [];
+    for (const m of cfg.models) {
+      if (typeof m?.id !== 'string' || !/m3/i.test(m.id)) {
+        out.push(m);
+        continue;
+      }
+      const copy = {};
+      let added = false;
+      for (const k of Object.keys(m)) {
+        copy[k] = m[k];
+        if (!added && k === 'default_max_tokens') {
+          if (!('supports_attachments' in m)) copy.supports_attachments = true;
+          added = true;
+        }
+      }
+      if (!added) copy.supports_attachments = m.supports_attachments ?? true;
+      out.push(copy);
+    }
+    cfg.models = out;
+    await writeFile(path, JSON.stringify(cfg, null, 2) + '\n', 'utf8');
+    touched++;
   }
 }
 
-// Re-scan to count any remaining false
-for (const e of entries) {
-  if (!e.isFile() || !e.name.endsWith('.json')) continue;
-  const path = join(root, e.name);
-  const text = await readFile(path, 'utf8');
-  // Reset regex because /g state
-  const re = /("id"\s*:\s*"[^"]*m3[^"]*"(?:(?!}).)*?"supports_attachments"\s*:\s*)false/gis;
-  const m = text.match(re);
-  if (m && m.length > 0) {
-    stillFalse += m.length;
-    console.log(`  STILL FALSE: ${e.name}: ${m.length}`);
-  }
+console.log(`Files scanned:    ${scanned}`);
+console.log(`Files touched:    ${touched}`);
+console.log(`Already true:     ${alreadyTrue}`);
+console.log(`Flipped (false→): ${flippedFromFalse}`);
+console.log(`Inserted (none):  ${insertedMissing}`);
+if (problems.length) {
+  console.log('Problems:');
+  for (const p of problems) console.log(p);
 }
-
-console.log('');
-console.log(`Files updated: ${changedFiles}`);
-console.log(`Entries fixed: ${changedEntries}`);
-console.log(`Still false:   ${stillFalse}`);
