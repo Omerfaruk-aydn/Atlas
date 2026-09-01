@@ -91,10 +91,11 @@ jobs:
 
       - name: Publish to npmjs
         working-directory: npm/cli
-        # No --provenance: the publish automation token can't mint an OIDC
-        # attestation, so passing --provenance=true (or =false in some npm
-        # 11 builds) makes the publish fail with E401. Default provenance
-        # handling is fine.
-        run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Auth via .npmrc: NODE_AUTH_TOKEN is the legacy env var name and
+        # modern npm (10+) sometimes ignores it silently. Writing the token
+        # into .npmrc works on every supported npm version. The file is
+        # scoped to the working dir and ignored by .gitignore.
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          npm publish --access public
+          rm -f .npmrc
