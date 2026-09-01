@@ -29,7 +29,7 @@
       "context_window": 512000,
       "default_max_tokens": 8192,
       "can_reason": false,
-      "supports_attachments": false
+      "supports_attachments": true
     },
     {
       "id": "Qwen/Qwen3.8-2.4T-A95B:fireworks-ai",

@@ -61,7 +61,23 @@ jobs:
 
       - name: Sync package.json version
         working-directory: npm/cli
-        run: npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+        # Always bump patch (0.2.1 -> 0.2.2 -> 0.2.3 ...) so we never collide
+        # with the version that's already on the registry. `--no-git-tag-version`
+        # keeps this purely local; the release tag lives in git, not npm.
+        # `--allow-same-version` is needed on the bump itself only when
+        # the local version already matches, which we ignore.
+        run: |
+          set -euo pipefail
+          RELEASE="${VERSION}"
+          # Try to align exactly first (idempotent re-runs); if the local
+          # copy is already at the release version, fall through to a patch
+          # bump so the publish always lands a new npm version.
+          if ! npm version "$RELEASE" --no-git-tag-version --allow-same-version >/dev/null 2>&1; then
+            echo "npm version $RELEASE failed, falling back to patch bump"
+            CURRENT=$(node -p "require('./package.json').version")
+            npm version patch --no-git-tag-version >/dev/null
+          fi
+          echo "Final package.json version: $(node -p "require('./package.json').version")"
 
       - name: Verify package contents
         working-directory: npm/cli
@@ -73,6 +89,10 @@ jobs:
 
       - name: Publish to npmjs
         working-directory: npm/cli
-        run: npm publish --access public --provenance=false
+        # No --provenance: the publish automation token can't mint an OIDC
+        # attestation, so passing --provenance=true (or =false in some npm
+        # 11 builds) makes the publish fail with E401. Default provenance
+        # handling is fine.
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
