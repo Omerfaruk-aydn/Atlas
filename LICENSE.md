@@ -1,134 +1,83 @@
-﻿# Functional Source License, Version 1.1, MIT Future License
+﻿# Atlas-Agent — Proprietary License
 
-## Abbreviation
+Copyright (c) 2026 Omer Faruk Aydin. All rights reserved.
 
-FSL-1.1-MIT
+This software, including all source code, build scripts, configuration,
+documentation, generated binaries, embedded assets, and any associated
+materials (collectively, the "Software"), is the exclusive property of the
+copyright holder.
 
-## Notice
+## No License Granted
 
-Copyright 2025-2026 Atlasbracelet, Inc.
+Except for the limited permission to view the source code in this
+repository, **no permission is granted** to use, copy, modify, merge,
+publish, distribute, sublicense, sell, or create derivative works of the
+Software, in whole or in part, in any form or by any means, without the
+prior written permission of the copyright holder.
 
-## Terms and Conditions
+In particular, the following are **expressly prohibited** without prior
+written permission:
 
-### Licensor ("We")
+- Running the Software in production environments.
+- Using the Software to provide services to third parties.
+- Distributing the Software or any derivative work.
+- Modifying the Software for redistribution or production use.
+- Sublicensing the Software under any other license (open source or
+  otherwise).
+- Reverse engineering the Software for redistribution purposes.
+- Removing or altering any proprietary notices or labels.
 
-The party offering the Software under these Terms and Conditions.
+## Limited View-Only Permission
 
-### The Software
+A limited, revocable, non-exclusive permission is granted to:
 
-The "Software" is each version of the software that we make available under
-these Terms and Conditions, as indicated by our inclusion of these Terms and
-Conditions with the Software.
+- Read the source code in this repository for personal, non-commercial
+  reference.
+- Build the Software from source for personal evaluation on a single
+  machine owned by you.
 
-### License Grant
+This permission terminates automatically if you breach any term of this
+license.
 
-Subject to your compliance with this License Grant and the Patents,
-Redistribution and Trademark clauses below, we hereby grant you the right to
-use, copy, modify, create derivative works, publicly perform, publicly display
-and redistribute the Software for any Permitted Purpose identified below.
+## No Warranty
 
-### Permitted Purpose
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF
+ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
+NON-INFRINGEMENT. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE
+SOFTWARE IS WITH YOU. SHOULD THE SOFTWARE PROVE DEFECTIVE, YOU ASSUME THE
+COST OF ANY NECESSARY SERVICING, REPAIR, OR CORRECTION.
 
-A Permitted Purpose is any purpose other than a Competing Use. A Competing Use
-means making the Software available to others in a commercial product or
-service that:
+## Limitation of Liability
 
-1. substitutes for the Software;
+IN NO EVENT WILL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES, OR
+OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE,
+ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OF OR
+OTHER DEALINGS IN THE SOFTWARE.
 
-2. substitutes for any other product or service we offer using the Software
-   that exists as of the date we make the Software available; or
+## Trademarks
 
-3. offers the same or substantially similar functionality as the Software.
+The name "Atlas-Agent", the Atlas-Agent logo, and any related marks are
+trademarks or registered trademarks of the copyright holder. No license
+to use these marks is granted by this license; any use requires prior
+written permission.
 
-Permitted Purposes specifically include using the Software:
+## Third-Party Components
 
-1. for your internal use and access;
+The Software depends on third-party open source packages (for example, the
+Go toolchain, `charm.land/*` packages, `github.com/charmbracelet/*`
+modules, and various provider SDKs). These components are governed by
+their own respective licenses. This license applies only to the original
+code authored by the copyright holder of this repository, not to the
+upstream or third-party components the Software links against.
 
-2. for non-commercial education;
+## Enforcement
 
-3. for non-commercial research; and
+The copyright holder reserves the right to enforce this license to the
+full extent permitted by law, including seeking injunctive relief and
+damages for any unauthorized use.
 
-4. in connection with professional services that you provide to a licensee
-   using the Software in accordance with these Terms and Conditions.
+## Contact
 
-### Patents
-
-To the extent your use for a Permitted Purpose would necessarily infringe our
-patents, the license grant above includes a license under our patents. If you
-make a claim against any party that the Software infringes or contributes to
-the infringement of any patent, then your patent license to the Software ends
-immediately.
-
-### Redistribution
-
-The Terms and Conditions apply to all copies, modifications and derivatives of
-the Software.
-
-If you redistribute any copies, modifications or derivatives of the Software,
-you must include a copy of or a link to these Terms and Conditions and not
-remove any copyright notices provided in or with the Software.
-
-### Disclaimer
-
-THE SOFTWARE IS PROVIDED "AS IS" AND WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING WITHOUT LIMITATION WARRANTIES OF FITNESS FOR A PARTICULAR
-PURPOSE, MERCHANTABILITY, TITLE OR NON-INFRINGEMENT.
-
-IN NO EVENT WILL WE HAVE ANY LIABILITY TO YOU ARISING OUT OF OR RELATED TO THE
-SOFTWARE, INCLUDING INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES,
-EVEN IF WE HAVE BEEN INFORMED OF THEIR POSSIBILITY IN ADVANCE.
-
-### Trademarks
-
-Except for displaying the License Details and identifying us as the origin of
-the Software, you have no right under these Terms and Conditions to use our
-trademarks, trade names, service marks or product names.
-
-## Grant of Future License
-
-We hereby irrevocably grant you an additional license to use the Software under
-the MIT license that is effective on the second anniversary of the date we make
-the Software available. On or after that date, you may use the Software under
-the MIT license, in which case the following will apply:
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-of the Software, and to permit persons to whom the Software is furnished to do
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
----
-
-MIT License
-
-Copyright (c) 2025-03-21 - 2025-05-30 Kujtim Hoxha
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+To request a license for use beyond the limited view-only permission
+granted above, contact the copyright holder.

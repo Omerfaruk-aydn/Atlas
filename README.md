@@ -14,21 +14,7 @@ Your tools, your code, and your workflows, wired into the LLM of your choice.</p
   <a href="#license">License</a>
 </p>
 
-> **Note**
-> Atlas-Agent is a focused fork of [charmbracelet/Atlas-Agent][upstream] — a
-> terminal AI assistant originally built by [Atlas](https://charm.land). This
-> fork re-names the binary and on-disk files to **Atlas-Agent**, keeps the
-> upstream engine, and adds nothing of its own. The design is theirs; anything
-> broken here is ours. See [Credits](#credits).
 
-## Why Atlas-Agent
-
-Atlas-Agent keeps everything that worked in the upstream project — the TUI,
-provider abstraction, LSP/MCP integrations, hook engine, skill system — and
-gives the binary a name that does not collide with a company trademark when
-you are scripting around it. Nothing about the runtime behavior has been
-rewritten. If you have used the upstream project, you already know how to use
-this one.
 
 ## Features
 
@@ -52,7 +38,7 @@ this one.
 
 ## Installation
 
-This fork ships nothing pre-built. You build it from source.
+Atlas-Agent ships nothing pre-built. You build it from source.
 
 You need **Go 1.26 or newer**.
 
@@ -134,7 +120,7 @@ the TUI model picker) and the provider shows up.
 
 For a provider not on this list, see [Custom providers](#custom-providers).
 
-> **About Hyper.** [Hyper][hyper] is the upstream project's hosted provider,
+> **About Hyper.** [Hyper](https://hyper.charm.land) is a hosted provider,
 > built for the same product line. It is subscription-based, has a free tier,
 > is privacy-focused (zero data retention, GDPR-friendly), and Atlas-Agent
 > reaches it unchanged.
@@ -421,11 +407,11 @@ option debug-lsp true
 ## Provider auto-updates
 
 By default, Atlas-Agent pulls the latest provider and model list from
-[Catwalk][catwalk], the upstream project's community-maintained provider
+[Catwalk](https://github.com/charmbracelet/catwalk), a community-maintained provider
 catalog. When new providers or models appear, your local list is updated
 automatically.
 
-Override the catalog URL with `CATWALK_URL` (e.g. to test a fork):
+Override the catalog URL with `CATWALK_URL` (e.g. to test a custom catalog):
 
 ```bash
 export CATWALK_URL=http://localhost:8000
@@ -450,10 +436,8 @@ atlas-agent update-providers embedded          # fall back to the embedded list
 
 ## Metrics
 
-Atlas-Agent retains the upstream project's metrics pipeline. Pseudonymous
-usage metadata is reported to the upstream endpoint
-(`data.charm.land`) under the analytics key compiled into the binary. It
-reaches upstream, not this fork's maintainer.
+Atlas-Agent reports pseudonymous
+usage metadata to `data.charm.land` under the analytics key compiled into the binary.
 
 Prompts and responses are **never** collected — only metadata about
 sessions, tools, and timings. See [`internal/event`](./internal/event) for
@@ -472,14 +456,6 @@ and the `event` references in `internal/app`.
 
 ## Q&A
 
-### Why does the build look different from the upstream project?
-
-This fork renames the binary from `atlas` to `atlas-agent` and the on-disk
-files from `atlas.*` / `.atlas/` to `atlas-agent.*` / `.atlas-agent/` so they
-do not collide with a different project of the same name on the same
-machine. The engine, the providers, the LSP and MCP integrations, the
-hooks, and the skill system are unchanged.
-
 ### Clipboard copy and paste does not work.
 
 | Environment         | Tool to install            |
@@ -496,30 +472,11 @@ is tagged, `go install github.com/maincodss/atlas-agent@latest` will work.
 
 ## Contributing
 
-Issues and pull requests for this fork go to
+Issues and pull requests go to
 [Omerfaruk-aydn/Atlas-Agent](https://github.com/Omerfaruk-aydn/Atlas-Agent/issues).
-
-Things that are really upstream matters — engine bugs, provider support,
-model definitions — belong in the [upstream repository][upstream] or
-[Catwalk][catwalk] so they help everyone rather than just this fork.
-
-## Credits
-
-Atlas-Agent is a fork of [`charmbracelet/Atlas-Agent`][upstream] by
-[Atlas](https://charm.land), used under the FSL-1.1-MIT license. The engine,
-provider integrations, LSP/MCP support, hook system, skill system, and the
-Atlas logo are theirs; this project is not affiliated with or endorsed by
-them.
-
-- [Atlas-Agent (upstream)][upstream] — the project this fork is based on
-- [Catwalk][catwalk] — community-maintained provider and model catalog
-- [Hyper][hyper] — the upstream project's hosted provider
 
 ## License
 
-[FSL-1.1-MIT](./LICENSE.md) — inherited from upstream.
+[Proprietary](./LICENSE.md) — see [License](#license).
 
-[upstream]: https://github.com/charmbracelet/Atlas-Agent
-[catwalk]: https://github.com/charmbracelet/catwalk
-[hyper]: https://hyper.charm.land
 [mcp]: https://modelcontextprotocol.io
