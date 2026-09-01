@@ -61,17 +61,21 @@ jobs:
 
       - name: Sync package.json version
         working-directory: npm/cli
-        # Always bump patch (0.2.1 -> 0.2.2 -> 0.2.3 ...) so we never collide
-        # with the version that's already on the registry. `--no-git-tag-version`
-        # keeps this purely local; the release tag lives in git, not npm.
-        # We do NOT use `set -e` because `npm version patch` is non-zero
-        # when the version field is already what was asked for, and
-        # earlier iterations of this workflow tripped over that edge case.
+        # Pin npm/cli/package.json to the same semver as the git tag we're
+        # publishing, so the npm wrapper's postinstall downloads the right
+        # binary (its URL is built from package.json version). If the local
+        # version already matches, this is a no-op.
         run: |
-          echo "Current local version: $(node -p "require('./package.json').version")"
-          echo "Release tag version:   $VERSION"
-          echo "Running: npm version patch --no-git-tag-version --allow-same-version"
-          npm version patch --no-git-tag-version --allow-same-version
+          TAG_VER="${VERSION}"
+          LOCAL_VER=$(node -p "require('./package.json').version")
+          echo "Current local version: $LOCAL_VER"
+          echo "Release tag version:   $TAG_VER"
+          if [ "$LOCAL_VER" != "$TAG_VER" ]; then
+            echo "Bumping package.json to $TAG_VER"
+            npm version "$TAG_VER" --no-git-tag-version --allow-same-version
+          else
+            echo "package.json already at $TAG_VER, skipping bump"
+          fi
           echo "Final package.json version: $(node -p "require('./package.json').version")"
 
       - name: Verify package contents
