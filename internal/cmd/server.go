@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/charmbracelet/crush/internal/fsext"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -47,7 +48,9 @@ var serverCmd = &cobra.Command{
 			return fmt.Errorf("invalid server host: %v", err)
 		}
 
-		logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log")
+		logFile := fsext.PreferExisting(
+			filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log"),
+			filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log"))
 
 		if term.IsTerminal(os.Stderr.Fd()) {
 			atlaslog.Setup(logFile, debug, os.Stderr)

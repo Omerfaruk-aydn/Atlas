@@ -34,6 +34,7 @@ var fastIgnoreDirs = map[string]bool{
 	".Trash":          true,
 	".Spotlight-V100": true,
 	".fseventsd":      true,
+	".atlas":          true,
 	".crush":          true,
 	"OrbStack":        true,
 	".local":          true,
@@ -176,7 +177,7 @@ func (dl *directoryLister) getDirPatterns(dir string) []gitignore.Pattern {
 			domain = pathToComponents(relPath)
 		}
 
-		for _, ignoreFile := range []string{".gitignore", ".crushignore"} {
+		for _, ignoreFile := range []string{".gitignore", ".atlasignore", ".crushignore"} {
 			ignPath := filepath.Join(dir, ignoreFile)
 			if content, err := os.ReadFile(ignPath); err == nil {
 				lines := strings.Split(string(content), "\n")

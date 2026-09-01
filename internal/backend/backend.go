@@ -7,8 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/charmbracelet/crush/internal/appenv"
 	"log/slog"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -267,22 +267,23 @@ func New(ctx context.Context, cfg *config.ConfigStore, shutdownFn ShutdownFunc) 
 		shutdownFn:  shutdownFn,
 		createGrace: DefaultCreateGrace,
 		lingerDelay: idleShutdownDelayFromEnv(),
-		detachGrace: durationFromEnv("CRUSH_SERVER_DETACH_GRACE", DefaultDetachGrace),
+		detachGrace: durationFromEnv("SERVER_DETACH_GRACE", DefaultDetachGrace),
 	}
 }
 
 // idleShutdownDelayFromEnv returns the idle-shutdown delay, honoring a
 // CRUSH_SERVER_IDLE_TIMEOUT override (in seconds; 0 disables lingering).
 func idleShutdownDelayFromEnv() time.Duration {
-	return durationFromEnv("CRUSH_SERVER_IDLE_TIMEOUT", DefaultIdleShutdownDelay)
+	return durationFromEnv("SERVER_IDLE_TIMEOUT", DefaultIdleShutdownDelay)
 }
 
 // durationFromEnv reads a whole number of seconds from the named
 // environment variable, falling back to def when it is unset or
 // unparseable. Zero is a meaningful value for both lifecycle windows it
-// configures, so it is accepted.
+// configures, so it is accepted. The name is the suffix after this program's
+// own prefix; see [appenv].
 func durationFromEnv(name string, def time.Duration) time.Duration {
-	if v := os.Getenv(name); v != "" {
+	if v := appenv.Get(name); v != "" {
 		if secs, err := strconv.Atoi(v); err == nil && secs >= 0 {
 			return time.Duration(secs) * time.Second
 		}

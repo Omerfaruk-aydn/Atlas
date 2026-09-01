@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/charmbracelet/crush/internal/appenv"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -81,7 +82,7 @@ func acquireDataDirLock(dataDir string) (*dataDirLock, error) {
 
 // skipDataDirLock reports whether the data-dir lock should be bypassed.
 func skipDataDirLock() bool {
-	v, _ := strconv.ParseBool(os.Getenv("CRUSH_SKIP_DATADIR_LOCK"))
+	v, _ := strconv.ParseBool(appenv.Get("SKIP_DATADIR_LOCK"))
 	return v
 }
 

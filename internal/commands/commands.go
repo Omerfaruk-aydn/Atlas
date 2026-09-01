@@ -121,6 +121,16 @@ func LoadMCPPrompts() ([]MCPPrompt, error) {
 func buildCommandSources(cfg *config.Config) []commandSource {
 	return []commandSource{
 		{
+			path:   filepath.Join(home.Config(), "atlas", "commands"),
+			prefix: userCommandPrefix,
+		},
+		{
+			path:   filepath.Join(home.Dir(), ".atlas", "commands"),
+			prefix: userCommandPrefix,
+		},
+		// Pre-rebrand locations, still read so commands written before the
+		// rename keep working.
+		{
 			path:   filepath.Join(home.Config(), "crush", "commands"),
 			prefix: userCommandPrefix,
 		},

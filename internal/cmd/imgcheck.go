@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/charmbracelet/crush/internal/appenv"
 	"github.com/charmbracelet/crush/internal/config"
 	"github.com/spf13/cobra"
 )
@@ -62,19 +63,28 @@ var imgcheckCmd = &cobra.Command{
 			fmt.Fprintf(out, "   %s\n", p)
 		}
 		fmt.Fprintln(out, "env:")
-		for _, k := range []string{
-			"CRUSH_GLOBAL_CONFIG", "CRUSH_GLOBAL_DATA", "CRUSH_CACHE_DIR",
-			"CRUSH_DISABLE_PROVIDER_AUTO_UPDATE", "CRUSH_DISABLE_DEFAULT_PROVIDERS",
+		// Both prefixes are listed. This program was renamed, and a shell
+		// profile still setting the old prefix is honoured, so showing only
+		// the current one would hide the variable actually in effect.
+		var keys []string
+		for _, suffix := range []string{
+			"GLOBAL_CONFIG", "GLOBAL_DATA", "CACHE_DIR",
+			"DISABLE_PROVIDER_AUTO_UPDATE", "DISABLE_DEFAULT_PROVIDERS",
+		} {
+			keys = append(keys, appenv.Prefix+suffix, appenv.LegacyPrefix+suffix)
+		}
+		keys = append(keys,
 			"XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME",
 			"LOCALAPPDATA", "USERPROFILE", "HOME",
-		} {
+		)
+		for _, k := range keys {
 			if v, ok := os.LookupEnv(k); ok {
 				fmt.Fprintf(out, "   %-34s = %q\n", k, v)
 			}
 		}
 		for _, ev := range os.Environ() {
-			if strings.HasPrefix(ev, "CRUSH_") {
-				fmt.Fprintf(out, "   (CRUSH_*) %s\n", ev)
+			if strings.HasPrefix(ev, appenv.Prefix) || strings.HasPrefix(ev, appenv.LegacyPrefix) {
+				fmt.Fprintf(out, "   (app env) %s\n", ev)
 			}
 		}
 

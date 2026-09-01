@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/charmbracelet/crush/internal/fsext"
 	"html/template"
 	"os"
 	"os/user"
@@ -222,7 +223,7 @@ func runStats(cmd *cobra.Command, _ []string) error {
 		}
 	}
 	if outputDataDir == "" {
-		outputDataDir = ".crush"
+		outputDataDir = fsext.PreferExisting(".atlas", ".crush")
 	}
 
 	htmlPath := filepath.Join(outputDataDir, "stats/index.html")
@@ -257,10 +258,11 @@ func crawlForStats(ctx context.Context, rootDir string) ([]ProjectStats, error) 
 			return filepath.SkipDir
 		}
 
-		// Look for .crush/crush.db pattern
-		if !d.IsDir() && d.Name() == "crush.db" {
+		// Look for the <data dir>/<db> pattern under either the current or
+		// the pre-rebrand spelling; a machine can hold projects of both eras.
+		if !d.IsDir() && (d.Name() == "atlas.db" || d.Name() == "crush.db") {
 			dir := filepath.Dir(path)
-			if filepath.Base(dir) == ".crush" {
+			if base := filepath.Base(dir); base == ".atlas" || base == ".crush" {
 				projectDir := filepath.Dir(dir)
 				dbPaths = append(dbPaths, struct {
 					dbPath     string
@@ -323,7 +325,8 @@ func gatherStatsFromProjects(ctx context.Context) ([]ProjectStats, error) {
 	}
 
 	for _, p := range projectList.Projects {
-		dbPath := filepath.Join(p.DataDir, "crush.db")
+		dbPath := fsext.PreferExisting(
+			filepath.Join(p.DataDir, "atlas.db"), filepath.Join(p.DataDir, "crush.db"))
 		if _, err := os.Stat(dbPath); err == nil {
 			dbPaths = append(dbPaths, struct {
 				dbPath     string

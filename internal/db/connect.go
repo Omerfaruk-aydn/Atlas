@@ -1,6 +1,8 @@
 package db
 
 import (
+	"github.com/charmbracelet/crush/internal/fsext"
+
 	"context"
 	"database/sql"
 	"embed"
@@ -90,7 +92,8 @@ func Connect(ctx context.Context, dataDir string, opts ...ConnectOption) (*sql.D
 		opt(&cfg)
 	}
 
-	dbPath := filepath.Join(dataDir, "crush.db")
+	dbPath := fsext.PreferExisting(
+		filepath.Join(dataDir, "atlas.db"), filepath.Join(dataDir, "crush.db"))
 
 	// Resolve to an absolute path so that different relative paths to
 	// the same file share a single connection.
@@ -175,7 +178,8 @@ func Connect(ctx context.Context, dataDir string, opts ...ConnectOption) (*sql.D
 // data directory. When the count reaches zero the underlying connection
 // is closed and removed from the pool.
 func Release(dataDir string) error {
-	dbPath := filepath.Join(dataDir, "crush.db")
+	dbPath := fsext.PreferExisting(
+		filepath.Join(dataDir, "atlas.db"), filepath.Join(dataDir, "crush.db"))
 	absPath, err := filepath.Abs(dbPath)
 	if err != nil {
 		absPath = dbPath

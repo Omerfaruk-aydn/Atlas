@@ -6,6 +6,8 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"github.com/charmbracelet/crush/internal/appenv"
+	"github.com/charmbracelet/crush/internal/fsext"
 	"io"
 	"io/fs"
 	"log/slog"
@@ -236,7 +238,7 @@ func supportsProgressBar() bool {
 // useClientServer returns true when the client/server architecture is
 // enabled via the CRUSH_CLIENT_SERVER environment variable.
 func useClientServer() bool {
-	v, _ := strconv.ParseBool(os.Getenv("CRUSH_CLIENT_SERVER"))
+	v, _ := strconv.ParseBool(appenv.Get("CLIENT_SERVER"))
 	return v
 }
 
@@ -311,7 +313,9 @@ func setupLocalWorkspace(cmd *cobra.Command) (workspace.Workspace, func(), error
 		return nil, nil, err
 	}
 
-	logFile := filepath.Join(cfg.Options.DataDirectory, "logs", "crush.log")
+	logFile := fsext.PreferExisting(
+		filepath.Join(cfg.Options.DataDirectory, "logs", "atlas.log"),
+		filepath.Join(cfg.Options.DataDirectory, "logs", "crush.log"))
 	atlaslog.Setup(logFile, debug)
 
 	// Discover skills once before app.New. Local mode hosts a single
@@ -435,7 +439,9 @@ func connectToServer(cmd *cobra.Command) (*client.Client, *proto.Workspace, func
 	}
 
 	if ws.Config != nil {
-		logFile := filepath.Join(ws.Config.Options.DataDirectory, "logs", "crush.log")
+		logFile := fsext.PreferExisting(
+			filepath.Join(ws.Config.Options.DataDirectory, "logs", "atlas.log"),
+			filepath.Join(ws.Config.Options.DataDirectory, "logs", "crush.log"))
 		atlaslog.Setup(logFile, debug)
 	}
 
@@ -508,7 +514,9 @@ func ensureServer(cmd *cobra.Command, hostURL *url.URL) error {
 	// server log file. atlaslog.Setup uses sync.Once internally, so the
 	// later call from connectToServer becomes a no-op.
 	debug, _ := cmd.Flags().GetBool("debug")
-	logFile := filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log")
+	logFile := fsext.PreferExisting(
+		filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "atlas.log"),
+		filepath.Join(config.GlobalCacheDir(), "server-"+safeHostName(hostURL), "crush.log"))
 	atlaslog.Setup(logFile, debug)
 
 	switch hostURL.Scheme {
@@ -647,7 +655,7 @@ func safeHostName(hostURL *url.URL) string {
 // Overridable via CRUSH_SERVER_READY_TIMEOUT (parsed as a Go duration).
 func serverReadyTimeout() time.Duration {
 	const def = 10 * time.Second
-	v := os.Getenv("CRUSH_SERVER_READY_TIMEOUT")
+	v := appenv.Get("SERVER_READY_TIMEOUT")
 	if v == "" {
 		return def
 	}
@@ -906,7 +914,7 @@ func startDetachedServer(cmd *cobra.Command, hostURL *url.URL) error {
 }
 
 func shouldEnableMetrics(cfg *config.Config) bool {
-	if v, _ := strconv.ParseBool(os.Getenv("CRUSH_DISABLE_METRICS")); v {
+	if v, _ := strconv.ParseBool(appenv.Get("DISABLE_METRICS")); v {
 		return false
 	}
 	if v, _ := strconv.ParseBool(os.Getenv("DO_NOT_TRACK")); v {

@@ -1191,7 +1191,7 @@ func (s *ConfigStore) reloadFromDiskLocked(ctx context.Context) error {
 	cfg.setDefaults(s.workingDir, dataDir)
 
 	// Merge workspace config if present
-	workspacePath := filepath.Join(cfg.Options.DataDirectory, fmt.Sprintf("%s.json", appName))
+	workspacePath := preferExisting(filepath.Join(cfg.Options.DataDirectory, fmt.Sprintf("%s.json", appName)))
 	if wsData, err := os.ReadFile(workspacePath); err == nil && len(wsData) > 0 {
 		if !json.Valid(wsData) {
 			return fmt.Errorf("invalid JSON in config file %s", workspacePath)

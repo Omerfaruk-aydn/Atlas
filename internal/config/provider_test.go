@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 
@@ -281,7 +282,7 @@ func TestCachePathFor(t *testing.T) {
 		{
 			name:        "with XDG_DATA_HOME",
 			xdgDataHome: "/custom/data",
-			expected:    "/custom/data/crush/providers.json",
+			expected:    "/custom/data/atlas/providers.json",
 		},
 		{
 			name:        "without XDG_DATA_HOME",
@@ -302,7 +303,13 @@ func TestCachePathFor(t *testing.T) {
 			if tt.expected != "" {
 				require.Equal(t, tt.expected, filepath.ToSlash(result))
 			} else {
-				require.Contains(t, result, "crush")
+				// This branch reads the machine's real data directory, so
+				// which spelling comes back depends on what that machine
+				// already has: a host carrying a pre-rebrand install keeps
+				// using it. Both answers are correct here.
+				require.True(t,
+					strings.Contains(result, appName) || strings.Contains(result, legacyAppName),
+					"expected the app's own directory in %q", result)
 				require.Contains(t, result, "providers.json")
 			}
 		})

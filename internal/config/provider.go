@@ -37,7 +37,7 @@ var (
 func cachePathFor(name string) string {
 	xdgDataHome := os.Getenv("XDG_DATA_HOME")
 	if xdgDataHome != "" {
-		return filepath.Join(xdgDataHome, appName, name+".json")
+		return preferExisting(filepath.Join(xdgDataHome, appName, name+".json"))
 	}
 
 	// return the path to the main data directory
@@ -48,10 +48,10 @@ func cachePathFor(name string) string {
 		if localAppData == "" {
 			localAppData = filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local")
 		}
-		return filepath.Join(localAppData, appName, name+".json")
+		return preferExisting(filepath.Join(localAppData, appName, name+".json"))
 	}
 
-	return filepath.Join(home.Dir(), ".local", "share", appName, name+".json")
+	return preferExisting(filepath.Join(home.Dir(), ".local", "share", appName, name+".json"))
 }
 
 // UpdateProviders updates the Catwalk providers list from a specified source.

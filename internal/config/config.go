@@ -20,8 +20,11 @@ import (
 )
 
 const (
-	appName              = "crush"
-	defaultDataDirectory = ".crush"
+	appName = "atlas"
+	// legacyAppName is what this program was called before the rebrand. Every
+	// on-disk name it produced is still read; see legacy.go for the rule.
+	legacyAppName        = "crush"
+	defaultDataDirectory = "." + appName
 	defaultInitializeAs  = "AGENTS.md"
 )
 
@@ -33,6 +36,14 @@ var defaultContextPaths = []string{
 	"CLAUDE.local.md",
 	"GEMINI.md",
 	"gemini.md",
+	"atlas.md",
+	"atlas.local.md",
+	"Atlas.md",
+	"Atlas.local.md",
+	"ATLAS.md",
+	"ATLAS.local.md",
+	// Kept so a project that already carries a context file under the old
+	// name goes on being read.
 	"crush.md",
 	"crush.local.md",
 	"Crush.md",
