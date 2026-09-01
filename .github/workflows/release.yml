@@ -5,6 +5,16 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.2.1). Defaults to the latest v* tag.'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark release as a pre-release'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -13,8 +23,31 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve release tag
+        id: tag
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.tag }}" ]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG=$(curl -fsSL \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/${{ github.repository }}/releases/latest" \
+              2>/dev/null \
+              | jq -r .tag_name || true)
+            if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+              echo "::error::No release tag found via API; pass inputs.tag explicitly."
+              exit 1
+            fi
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag $TAG"
+
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -32,7 +65,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
           generate_release_notes: true
+          prerelease: ${{ inputs.prerelease }}
           files: |
             dist/atlas-agent-windows-x64.exe
             dist/atlas-agent-linux-x64
