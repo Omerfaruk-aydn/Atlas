@@ -42,8 +42,8 @@ func LoadShellConfig(ctx context.Context, path string, src []byte) ([]byte, erro
 	cwd := filepath.Dir(path)
 
 	// Expose the running ATLAS-AGENT version so scripts can feature-detect, e.g.
-	// [[ "$CRUSH_VERSION" == "devel" ]] or branch on the release.
-	env := append(os.Environ(), "CRUSH_VERSION="+version.Version)
+	// [[ "$ATLAS_AGENT_VERSION" == "devel" ]] or branch on the release.
+	env := append(os.Environ(), "ATLAS_AGENT_VERSION="+version.Version)
 
 	err := shell.Run(runCtx, shell.RunOptions{
 		Command: string(src),

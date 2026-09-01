@@ -55,20 +55,20 @@ func BuildEnv(eventName, toolName, sessionID, cwd, projectDir, toolInputJSON str
 	env = append(env, shell.AtlasAgentEnvMarkers()...)
 	env = append(
 		env,
-		fmt.Sprintf("CRUSH_EVENT=%s", eventName),
-		fmt.Sprintf("CRUSH_TOOL_NAME=%s", toolName),
-		fmt.Sprintf("CRUSH_SESSION_ID=%s", sessionID),
-		fmt.Sprintf("CRUSH_CWD=%s", cwd),
-		fmt.Sprintf("CRUSH_PROJECT_DIR=%s", projectDir),
+		fmt.Sprintf("ATLAS_AGENT_EVENT=%s", eventName),
+		fmt.Sprintf("ATLAS_AGENT_TOOL_NAME=%s", toolName),
+		fmt.Sprintf("ATLAS_AGENT_SESSION_ID=%s", sessionID),
+		fmt.Sprintf("ATLAS_AGENT_CWD=%s", cwd),
+		fmt.Sprintf("ATLAS_AGENT_PROJECT_DIR=%s", projectDir),
 	)
 
 	// Extract tool-specific env vars from the JSON input.
 	if toolInputJSON != "" {
 		if cmd := gjson.Get(toolInputJSON, "command"); cmd.Exists() {
-			env = append(env, fmt.Sprintf("CRUSH_TOOL_INPUT_COMMAND=%s", cmd.String()))
+			env = append(env, fmt.Sprintf("ATLAS_AGENT_TOOL_INPUT_COMMAND=%s", cmd.String()))
 		}
 		if fp := gjson.Get(toolInputJSON, "file_path"); fp.Exists() {
-			env = append(env, fmt.Sprintf("CRUSH_TOOL_INPUT_FILE_PATH=%s", fp.String()))
+			env = append(env, fmt.Sprintf("ATLAS_AGENT_TOOL_INPUT_FILE_PATH=%s", fp.String()))
 		}
 	}
 

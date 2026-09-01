@@ -308,11 +308,11 @@ fi`
 	require.Contains(t, providers, "anthropic")
 }
 
-// TestLoadShellConfig_AtlasAgentVersionEnv verifies that CRUSH_VERSION is exposed
+// TestLoadShellConfig_AtlasAgentVersionEnv verifies that ATLAS_AGENT_VERSION is exposed
 // to the script so it can feature-detect the running ATLAS-AGENT version.
 func TestLoadShellConfig_AtlasAgentVersionEnv(t *testing.T) {
 	dir := t.TempDir()
-	script := `provider add openai --api-key "$CRUSH_VERSION"`
+	script := `provider add openai --api-key "$ATLAS_AGENT_VERSION"`
 	path := filepath.Join(dir, "atlasrc")
 
 	jsonBytes, err := LoadShellConfig(t.Context(), path, []byte(script))

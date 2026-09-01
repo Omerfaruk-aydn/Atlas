@@ -188,13 +188,13 @@ func TestBuildEnv(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, EventPreToolUse, envMap["ATLAS-AGENT_EVENT"])
-	require.Equal(t, "bash", envMap["ATLAS-AGENT_TOOL_NAME"])
-	require.Equal(t, "sess-1", envMap["ATLAS-AGENT_SESSION_ID"])
-	require.Equal(t, "/work", envMap["ATLAS-AGENT_CWD"])
-	require.Equal(t, "/project", envMap["ATLAS-AGENT_PROJECT_DIR"])
-	require.Equal(t, "ls", envMap["ATLAS-AGENT_TOOL_INPUT_COMMAND"])
-	require.Equal(t, "/tmp/f.txt", envMap["ATLAS-AGENT_TOOL_INPUT_FILE_PATH"])
+	require.Equal(t, EventPreToolUse, envMap["ATLAS_AGENT_EVENT"])
+	require.Equal(t, "bash", envMap["ATLAS_AGENT_TOOL_NAME"])
+	require.Equal(t, "sess-1", envMap["ATLAS_AGENT_SESSION_ID"])
+	require.Equal(t, "/work", envMap["ATLAS_AGENT_CWD"])
+	require.Equal(t, "/project", envMap["ATLAS_AGENT_PROJECT_DIR"])
+	require.Equal(t, "ls", envMap["ATLAS_AGENT_TOOL_INPUT_COMMAND"])
+	require.Equal(t, "/tmp/f.txt", envMap["ATLAS_AGENT_TOOL_INPUT_FILE_PATH"])
 
 	// Shared Atlas-Agent markers must be present so hook-authored scripts can
 	// detect they're running under Atlas-Agent the same way bash-tool-invoked
@@ -524,7 +524,7 @@ func TestRunnerParallelExecution(t *testing.T) {
 func TestRunnerEnvVarsPropagated(t *testing.T) {
 	t.Parallel()
 	hookCfg := config.HookConfig{
-		Command: `printf '{"decision":"allow","context":"%s"}' "$CRUSH_TOOL_NAME"`,
+		Command: `printf '{"decision":"allow","context":"%s"}' "$ATLAS_AGENT_TOOL_NAME"`,
 	}
 	r := NewRunner([]config.HookConfig{hookCfg}, t.TempDir(), t.TempDir())
 	result, err := r.Run(context.Background(), EventPreToolUse, "sess", "bash", `{}`)
