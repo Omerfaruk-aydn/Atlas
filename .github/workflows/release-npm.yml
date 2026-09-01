@@ -64,19 +64,14 @@ jobs:
         # Always bump patch (0.2.1 -> 0.2.2 -> 0.2.3 ...) so we never collide
         # with the version that's already on the registry. `--no-git-tag-version`
         # keeps this purely local; the release tag lives in git, not npm.
-        # `--allow-same-version` is needed on the bump itself only when
-        # the local version already matches, which we ignore.
+        # We do NOT use `set -e` because `npm version patch` is non-zero
+        # when the version field is already what was asked for, and
+        # earlier iterations of this workflow tripped over that edge case.
         run: |
-          set -euo pipefail
-          RELEASE="${VERSION}"
-          # Try to align exactly first (idempotent re-runs); if the local
-          # copy is already at the release version, fall through to a patch
-          # bump so the publish always lands a new npm version.
-          if ! npm version "$RELEASE" --no-git-tag-version --allow-same-version >/dev/null 2>&1; then
-            echo "npm version $RELEASE failed, falling back to patch bump"
-            CURRENT=$(node -p "require('./package.json').version")
-            npm version patch --no-git-tag-version >/dev/null
-          fi
+          echo "Current local version: $(node -p "require('./package.json').version")"
+          echo "Release tag version:   $VERSION"
+          echo "Running: npm version patch --no-git-tag-version --allow-same-version"
+          npm version patch --no-git-tag-version --allow-same-version
           echo "Final package.json version: $(node -p "require('./package.json').version")"
 
       - name: Verify package contents
