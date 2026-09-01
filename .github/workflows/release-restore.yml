@@ -1,0 +1,134 @@
+name: Release Restore
+
+# Safety net for releases that get deleted (manually or otherwise). Every
+# six hours this workflow lists the repo's git tags and, for any tag that
+# exists but does not have a corresponding GitHub Release, rebuilds the
+# binaries and creates the missing release.
+#
+# Why this exists: we have observed releases disappearing from the repo,
+# breaking the npm postinstall (which downloads binaries from the release
+# asset URL). Rather than try to make the release UI itself immutable
+# (which is not currently exposed via the GitHub API), we just keep a
+# reconciler running.
+
+on:
+  schedule:
+    # Every 6 hours. Cron is in UTC; 0 */6 is fine for "every 6 hours".
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Optional: only check this specific tag (e.g. v0.2.2). Leave empty to check all tags.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    name: Restore missing releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List git tags
+        id: tags
+        run: |
+          set -euo pipefail
+          # `git tag` already gives us only release tags because of our
+          # v* convention; if you ever tag something else you'll need to
+          # filter here. List newest-first so a manual dispatch with
+          # no input rebuilds the most recent one first.
+          git fetch --tags --prune --prune-tags origin
+          git tag --sort=-version:refname > /tmp/tags.txt
+          echo "Tags found:"
+          cat /tmp/tags.txt
+          echo "tag_count=$(wc -l < /tmp/tags.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Decide which tags need a release
+        id: missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ONLY_TAG: ${{ inputs.tag }}
+          TAG_LIST: /tmp/tags.txt
+        run: |
+          set -euo pipefail
+          : > /tmp/missing.txt
+          while read -r TAG; do
+            [ -z "$TAG" ] && continue
+            if [ -n "$ONLY_TAG" ] && [ "$TAG" != "$ONLY_TAG" ]; then continue; fi
+            # GET /repos/{owner}/{repo}/releases/tags/{tag} -> 200 if exists.
+            status=$(gh api \
+              -H "Accept: application/vnd.github+json" \
+              "/repos/${{ github.repository }}/releases/tags/$TAG" \
+              --silent --output /dev/null \
+              -X GET -w '%{http_code}' || true)
+            if [ "$status" = "200" ]; then
+              echo "OK: $TAG already has a release"
+            else
+              echo "MISSING: $TAG (status=$status)"
+              echo "$TAG" >> /tmp/missing.txt
+            fi
+          done < "$TAG_LIST"
+          if [ -s /tmp/missing.txt ]; then
+            {
+              echo "missing_tags<<EOF"
+              cat /tmp/missing.txt
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+            echo "Found $(wc -l < /tmp/missing.txt) missing releases"
+          else
+            echo "missing_tags=" >> "$GITHUB_OUTPUT"
+            echo "All releases present"
+          fi
+
+      - name: Build binaries for missing tags
+        if: steps.missing.outputs.missing_tags != ''
+        env:
+          MISSING: ${{ steps.missing.outputs.missing_tags }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          while read -r TAG; do
+            [ -z "$TAG" ] && continue
+            echo "=== Building binaries for $TAG ==="
+            git checkout "$TAG" -- .
+            GOFLAGS='-mod=mod' go build -o "dist/atlas-agent-windows-x64.exe" .
+            GOOS=linux   GOARCH=amd64 go build -o "dist/atlas-agent-linux-x64" .
+            GOOS=darwin  GOARCH=amd64 go build -o "dist/atlas-agent-darwin-x64" .
+            GOOS=darwin  GOARCH=arm64 go build -o "dist/atlas-agent-darwin-arm64" .
+            ls -la dist/
+            # We use the matrix-free single-tag approach here because the
+            # release needs to be created in this same job once the
+            # binaries are built. softprops/action-gh-release can attach
+            # all the dist/ files in one go.
+            if [ ! -f install.sh ]; then
+              echo "Warning: install.sh missing in $TAG, creating minimal"
+              printf '#!/usr/bin/env bash\nset -e\ncurl -fsSL "https://github.com/Omerfaruk-aydn/Atlas-Agent/releases/download/%s/atlas-agent-$1-x64" -o /usr/local/bin/atlas-agent\nchmod +x /usr/local/bin/atlas-agent\n' "$TAG" > install.sh
+            fi
+            if [ ! -f install.ps1 ]; then
+              echo "Warning: install.ps1 missing in $TAG, creating minimal"
+              printf "Invoke-WebRequest -Uri \"https://github.com/Omerfaruk-aydn/Atlas-Agent/releases/download/%s/atlas-agent-windows-x64.exe\" -OutFile \"$env:ProgramFiles\\atlas-agent\\atlas-agent.exe\"\n' "$TAG" > install.ps1
+            fi
+            # Restore the main branch checkout so we leave the workspace
+            # in a sensible state for the upload step.
+            git checkout HEAD -- .
+          done <<< "$MISSING"
+
+      - name: Publish missing releases
+        if: steps.missing.outputs.missing_tags != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.missing.outputs.missing_tags }}
+          generate_release_notes: true
+          files: |
+            dist/atlas-agent-windows-x64.exe
+            dist/atlas-agent-linux-x64
+            dist/atlas-agent-darwin-x64
+            dist/atlas-agent-darwin-arm64
+            install.sh
+            install.ps1
