@@ -6,17 +6,22 @@ Atlas Agent — terminal-first AI coding assistant.
 
 ```bash
 npm install -g @atlas-coder/atlas-agent
+atlas-coder
 ```
+
+On install, the matching native binary for your OS/arch is downloaded from the
+[GitHub release](https://github.com/Omerfaruk-aydn/Atlas-Agent/releases) that
+matches this package version.
 
 ## Usage
 
 ```bash
 atlas-coder                  # interactive mode
-atlas-coder run "your task"  # non-interactive single prompt
-atlas-coder --help           # full CLI help
+atlas-coder run "your task"  # non-interactive
+atlas-coder --help           # CLI help
+atlas-coder models           # list models
+atlas-coder dirs             # show config paths
 ```
-
-The installer ships a pre-built Go binary for your platform (Windows x64, macOS x64/arm64, Linux x64). No Go toolchain required.
 
 ## Supported platforms
 
@@ -25,14 +30,6 @@ The installer ships a pre-built Go binary for your platform (Windows x64, macOS 
 | Windows | x64                   |
 | macOS   | x64 (Intel), arm64 (Apple Silicon) |
 | Linux   | x64                   |
-
-## Configuration
-
-On first run Atlas Agent will create a config directory at the platform's standard location:
-
-- Windows: `%APPDATA%\atlas`
-- macOS:   `~/Library/Application Support/atlas`
-- Linux:   `~/.config/atlas`
 
 ## License
 

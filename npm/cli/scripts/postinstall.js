@@ -1,30 +1,62 @@
 #!/usr/bin/env node
-// postinstall: verify the platform binary is present and executable.
-// The launcher (bin/atlas-agent.js) does the platform detection at runtime,
-// so this script is just a sanity check + chmod for the unix binary.
+// Postinstall: download the platform-specific binary from GitHub Releases.
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
+const { URL } = require('url');
 
 const PLATFORM_MAP = { win32: 'windows', darwin: 'darwin', linux: 'linux' };
 const platform = PLATFORM_MAP[process.platform] || process.platform;
-const arch = process.arch;
+const arch = process.arch; // 'x64' | 'arm64'
 const ext = process.platform === 'win32' ? '.exe' : '';
-const name = `atlas-agent-${platform}-${arch}${ext}`;
-const binary = path.join(__dirname, '..', 'binary', name);
+const assetName = `atlas-coder-${platform}-${arch}${ext}`;
 
-if (!fs.existsSync(binary)) {
-  console.error(`Atlas Agent postinstall: no binary for ${platform}/${arch} (${name})`);
-  console.error('This platform is not yet supported. Please open an issue.');
-  process.exit(1);
+const REPO = 'Omerfaruk-aydn/Atlas-Agent';
+const VERSION = require('../package.json').version;
+const TAG = `v${VERSION}`;
+
+const binDir = path.join(__dirname, '..', 'bin');
+fs.mkdirSync(binDir, { recursive: true });
+const dest = path.join(binDir, assetName);
+
+function follow(url, redirectsLeft = 5) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode)) {
+        if (redirectsLeft <= 0) return reject(new Error('too many redirects'));
+        return follow(new URL(res.headers.location).toString(), redirectsLeft - 1).then(resolve, reject);
+      }
+      resolve(res);
+    }).on('error', reject);
+  });
 }
 
-if (platform !== 'win32') {
-  try {
-    fs.chmodSync(binary, 0o755);
-  } catch (e) {
-    console.error(`Atlas Agent postinstall: failed to chmod ${binary}: ${e.message}`);
-    process.exit(1);
+async function download() {
+  const url = `https://github.com/${REPO}/releases/download/${TAG}/${assetName}`;
+  console.log(`Atlas Agent postinstall: downloading ${assetName} ...`);
+  const res = await follow(url);
+  if (res.statusCode !== 200) {
+    throw new Error(`HTTP ${res.statusCode} for ${url}`);
   }
+  const tmp = dest + '.part';
+  await new Promise((resolve, reject) => {
+    const f = fs.createWriteStream(tmp);
+    res.pipe(f);
+    f.on('finish', () => f.close(resolve));
+    f.on('error', reject);
+  });
+  fs.renameSync(tmp, dest);
+  if (process.platform !== 'win32') fs.chmodSync(dest, 0o755);
+  const size = (fs.statSync(dest).size / 1024 / 1024).toFixed(1);
+  console.log(`Atlas Agent postinstall: installed ${assetName} (${size} MB)`);
 }
 
-console.log(`Atlas Agent installed (${platform}/${arch}, ${(fs.statSync(binary).size / 1024 / 1024).toFixed(1)} MB)`);
+download().catch((err) => {
+  console.error(`Atlas Agent postinstall FAILED: ${err.message}`);
+  console.error('This is usually one of:');
+  console.error('  - No release yet for this version. Run:');
+  console.error(`    gh release create ${TAG} --title "${TAG}" --notes "release"`);
+  console.error('    then upload the binary as ' + assetName);
+  console.error('  - Network/registry blocked. Try again later.');
+  // Don't fail install — the launcher will print a clear error if the binary is missing.
+});

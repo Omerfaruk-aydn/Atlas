@@ -1,17 +1,17 @@
 {
   "name": "@atlas-coder/atlas-agent",
   "version": "0.1.0",
-  "description": "Atlas Agent — terminal-first AI coding assistant (npm distribution)",
+  "description": "Atlas Agent — terminal-first AI coding assistant. Downloads the native binary on install.",
   "license": "UNLICENSED",
   "private": false,
   "preferGlobal": true,
   "bin": {
-    "atlas-coder": "bin/atlas-agent.js"
+    "atlas-coder": "bin/atlas-coder.js"
   },
   "files": [
     "bin/",
     "scripts/",
-    "binary/",
+    "package.json",
     "README.md"
   ],
   "scripts": {
@@ -19,14 +19,5 @@
   },
   "engines": {
     "node": ">=16"
-  },
-  "os": [
-    "win32",
-    "darwin",
-    "linux"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ]
+  }
 }
