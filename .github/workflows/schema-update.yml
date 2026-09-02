@@ -1,29 +1,38 @@
-﻿name: Update files
+name: Update files
 
+# Regenerates schema.json when the config types change, so an editor
+# validating a config against it is not describing an older release.
 on:
   push:
     branches: [main]
     paths:
       - "internal/config/**"
-      - "internal/agent/hyper/**"
   workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: schema-update
+  cancel-in-progress: false
 
 jobs:
   update-schema:
     runs-on: ubuntu-latest
     steps:
+      # Checked out with the token the workflow is given. This used to ask for
+      # a PERSONAL_ACCESS_TOKEN secret, which this repository does not have, so
+      # every run failed on the first step.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
       - run: go run . schema > ./schema.json
-      - run: go generate ./internal/agent/hyper/...
       - uses: stefanzweifel/git-auto-commit-action@4a55954c782fc1ea30b9056cd3e7a2b40ca8887d # v5
         with:
-          commit_message: "chore: auto-update files"
+          commit_message: "chore: regenerate schema.json"
+          file_pattern: schema.json
           branch: main
-          commit_user_name: Atlas
-          commit_user_email: 124303983+Atlascli@users.noreply.github.com
-          commit_author: Atlas <124303983+Atlascli@users.noreply.github.com>
+          commit_user_name: github-actions[bot]
+          commit_user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>

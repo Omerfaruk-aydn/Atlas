@@ -1,6 +1,6 @@
-﻿{
+{
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/charmbracelet/Atlas-Agent/internal/config/config",
+  "$id": "https://github.com/Omerfaruk-aydn/Atlas-Agent/internal/config/config",
   "$ref": "#/$defs/Config",
   "$defs": {
     "Attribution": {
@@ -22,7 +22,7 @@
         },
         "generated_with": {
           "type": "boolean",
-          "description": "Add Generated with Atlas line to commit messages and issues and PRs",
+          "description": "Add Generated with Atlas-Agent line to commit messages and issues and PRs",
           "default": true
         }
       },
@@ -297,7 +297,7 @@
         },
         "sessionless": {
           "type": "boolean",
-          "description": "Mark a sessionless MCP server (no Mcp-Session-Id) so Atlas skips the subscriptions/listen stream it would otherwise reject. Leave unset to auto-detect known sessionless servers (e.g. GitHub MCP)",
+          "description": "Mark a sessionless MCP server (no Mcp-Session-Id) so Atlas-Agent skips the subscriptions/listen stream it would otherwise reject. Leave unset to auto-detect known sessionless servers (e.g. GitHub MCP)",
           "default": false
         },
         "headers": {
@@ -499,9 +499,9 @@
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",
-          "default": "\.crush\b",
+          "default": ".atlas",
           "examples": [
-            "\.crush\b"
+            ".atlas"
           ]
         },
         "disabled_tools": {
@@ -517,8 +517,8 @@
         },
         "disable_provider_auto_update": {
           "type": "boolean",
-          "description": "Disable providers auto-update",
-          "default": false
+          "description": "Disable providers auto-update. Atlas Agent ships an embedded provider catalog and uses it by default; enable this flag to opt out and use the catalog as-is",
+          "default": true
         },
         "disable_default_providers": {
           "type": "boolean",
@@ -634,7 +634,6 @@
             "azure",
             "bedrock",
             "google-vertex",
-            "hyper",
             "litellm",
             "llamacpp",
             "lmstudio",
@@ -826,7 +825,7 @@
             "double",
             "bevel"
           ],
-          "description": "Corner style for framed surfaces such as the composer and the landing cards. Leave unset to let Atlas pick based on the terminal it is running in. Which styles render depends on the terminal font: a font missing a glyph draws a replacement box in its place. 'rounded' needs U+256D-U+2570 and 'arc' needs U+25DC-U+25DF, both of which some fonts omit; 'sharp', 'bold' and 'double' come from the widely-supported Box Drawing block."
+          "description": "Corner style for framed surfaces such as the composer and the landing cards. Leave unset to let Atlas-Agent pick based on the terminal it is running in. Which styles render depends on the terminal font: a font missing a glyph draws a replacement box in its place. 'rounded' needs U+256D-U+2570 and 'arc' needs U+25DC-U+25DF, both of which some fonts omit; 'sharp', 'bold' and 'double' come from the widely-supported Box Drawing block."
         },
         "exit_banner": {
           "type": "string",
@@ -835,7 +834,7 @@
             "compact",
             "none"
           ],
-          "description": "Exit banner style after quitting Atlas",
+          "description": "Exit banner style after quitting Atlas-Agent",
           "default": "default"
         }
       },
