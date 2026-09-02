@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -68,6 +69,7 @@ atlas run --continue "Follow up on your last response"
 			smallModel, _ = cmd.Flags().GetString("small-model")
 			sessionID, _  = cmd.Flags().GetString("session")
 			useLast, _    = cmd.Flags().GetBool("continue")
+			jsonOut, _    = cmd.Flags().GetBool("json")
 		)
 
 		// Cancel on SIGINT or SIGTERM.
@@ -93,6 +95,10 @@ atlas run --continue "Follow up on your last response"
 			event.SetContinueBySessionID(true)
 		case useLast:
 			event.SetContinueLastSession(true)
+		}
+
+		if jsonOut && useClientServer() {
+			return errors.New("--json is not supported in client/server mode")
 		}
 
 		if useClientServer() {
@@ -154,7 +160,7 @@ atlas run --continue "Follow up on your last response"
 			sessionID = sess.ID
 		}
 
-		return appWs.App().RunNonInteractive(ctx, os.Stdout, prompt, largeModel, smallModel, quiet || verbose, sessionID, useLast)
+		return appWs.App().RunNonInteractive(ctx, os.Stdout, prompt, largeModel, smallModel, quiet || verbose, sessionID, useLast, jsonOut)
 	},
 }
 
@@ -165,6 +171,7 @@ func init() {
 	runCmd.Flags().String("small-model", "", "Small model to use. If not provided, uses the default small model for the provider")
 	runCmd.Flags().StringP("session", "s", "", "Continue a previous session by ID")
 	runCmd.Flags().BoolP("continue", "C", false, "Continue the most recent session")
+	runCmd.Flags().Bool("json", false, "Print one JSON object with the response, session ID, tokens, and cost instead of streaming text")
 	runCmd.MarkFlagsMutuallyExclusive("session", "continue")
 }
 

@@ -5,6 +5,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -262,10 +263,50 @@ func (app *App) resolveSession(ctx context.Context, continueSessionID string, us
 	}
 }
 
+// NonInteractiveResult is what a --json run prints when the turn is over.
+// Cost is in the same currency as the model pricing (USD), and the token
+// counts are the session's totals, not this turn's: a continued session
+// carries what it already spent.
+type NonInteractiveResult struct {
+	SessionID        string  `json:"session_id"`
+	Response         string  `json:"response"`
+	PromptTokens     int64   `json:"prompt_tokens"`
+	CompletionTokens int64   `json:"completion_tokens"`
+	Cost             float64 `json:"cost"`
+}
+
+// printNonInteractiveResult writes the one document a --json run produces.
+// The response is trimmed: the streamed form ends with a newline the
+// terminal wants and a JSON consumer does not.
+func printNonInteractiveResult(out io.Writer, sess session.Session, response string) error {
+	enc := json.NewEncoder(out)
+	enc.SetEscapeHTML(false)
+	return enc.Encode(NonInteractiveResult{
+		SessionID:        sess.ID,
+		Response:         strings.TrimSpace(response),
+		PromptTokens:     sess.PromptTokens,
+		CompletionTokens: sess.CompletionTokens,
+		Cost:             sess.Cost,
+	})
+}
+
 // RunNonInteractive runs the application in non-interactive mode with the
 // given prompt, printing to stdout.
-func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt, largeModel, smallModel string, hideSpinner bool, continueSessionID string, useLast bool) error {
+//
+// With jsonOutput set, nothing is streamed: the assistant text is collected
+// and printed once as a NonInteractiveResult when the turn finishes, so a
+// caller parsing stdout sees one document rather than a stream to reassemble.
+func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt, largeModel, smallModel string, hideSpinner bool, continueSessionID string, useLast bool, jsonOutput bool) error {
 	slog.Info("Running in non-interactive mode")
+
+	streamOut := output
+	var collected strings.Builder
+	if jsonOutput {
+		// A spinner on stderr would not corrupt the document, but a
+		// scripted caller has no terminal to draw it on either.
+		hideSpinner = true
+		streamOut = &collected
+	}
 
 	// Re-initialize the coder agent without interactive-only tools.
 	if err := app.InitCoderAgentNonInteractive(ctx); err != nil {
@@ -387,6 +428,24 @@ func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt,
 		_, _ = fmt.Fprintln(output)
 	}()
 
+	// printResult is what ends a JSON run, however it ends: a cancelled
+	// turn still produced whatever text it produced, and a caller parsing
+	// stdout should not have to special-case an empty document.
+	printResult := func() error {
+		if !jsonOutput {
+			return nil
+		}
+		latest, err := app.Sessions.Get(ctx, sess.ID)
+		if err != nil {
+			// The response is the part the caller asked for; usage is
+			// context. Print what we have rather than failing the run
+			// over the numbers.
+			slog.Warn("Failed to read session usage for the JSON result", "error", err)
+			latest = sess
+		}
+		return printNonInteractiveResult(output, latest, collected.String())
+	}
+
 	for {
 		if progress && stderrTTY {
 			// HACK: Reinitialize the terminal progress bar on every iteration
@@ -400,11 +459,11 @@ func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt,
 			if result.err != nil {
 				if errors.Is(result.err, context.Canceled) || errors.Is(result.err, agent.ErrRequestCancelled) {
 					slog.Debug("Non-interactive: agent processing cancelled", "session_id", sess.ID)
-					return nil
+					return printResult()
 				}
 				return fmt.Errorf("agent processing failed: %w", result.err)
 			}
-			return nil
+			return printResult()
 
 		case event := <-messageEvents:
 			msg := event.Payload
@@ -428,7 +487,7 @@ func (app *App) RunNonInteractive(ctx context.Context, output io.Writer, prompt,
 				// Ignore initial whitespace-only messages.
 				if printed || strings.TrimSpace(part) != "" {
 					printed = true
-					fmt.Fprint(output, part)
+					fmt.Fprint(streamOut, part)
 				}
 				messageReadBytes[msg.ID] = len(content)
 			}
