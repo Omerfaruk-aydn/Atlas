@@ -83,3 +83,38 @@ func TestAWriteDoesNotChangeThePromptAlreadyBuilt(t *testing.T) {
 	require.Contains(t, buildCoderPrompt(t, workingDir), "second, written mid-session",
 		"but the next session does see it")
 }
+
+func TestOperatingConstraintsAppearWhenConfigured(t *testing.T) {
+	workingDir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
+	tpl, err := os.ReadFile(filepath.Join("..", "templates", "coder.md.tpl"))
+	require.NoError(t, err)
+
+	store, err := config.Init(workingDir, "", false)
+	require.NoError(t, err)
+	store.Config().Options.MaxSessionCost = 5
+	store.Config().Options.MaxStepsPerTurn = 40
+	store.Config().Options.AllowedDomains = []string{"docs.example.com"}
+	store.Config().Options.BlockedDomains = []string{"internal.example.com"}
+
+	p, err := NewPrompt("coder", string(tpl), WithWorkingDir(workingDir))
+	require.NoError(t, err)
+	out, err := p.Build(t.Context(), "openai", "gpt-5", store)
+	require.NoError(t, err)
+
+	require.Contains(t, out, "# Operating constraints")
+	require.Contains(t, out, "capped at $5")
+	require.Contains(t, out, "capped at 40 model/tool-call steps")
+	require.Contains(t, out, "docs.example.com")
+	require.Contains(t, out, "internal.example.com")
+}
+
+func TestOperatingConstraintsSectionOmittedWhenUnset(t *testing.T) {
+	workingDir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
+	out := buildCoderPrompt(t, workingDir)
+
+	require.NotContains(t, out, "# Operating constraints")
+}

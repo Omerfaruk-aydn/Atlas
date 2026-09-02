@@ -427,6 +427,23 @@ What you have learned about this codebase that is not evident from reading it.
 </project_memory>
 {{end}}
 {{end}}
+
+{{if or .Config.Options.MaxSessionCost .Config.Options.MaxStepsPerTurn .Config.Options.AllowedDomains .Config.Options.BlockedDomains}}
+# Operating constraints
+This workspace has limits configured. They are enforced outside your control, so plan around them rather than discovering them mid-turn.
+{{if .Config.Options.MaxSessionCost}}
+- This session is capped at ${{.Config.Options.MaxSessionCost}}. Once reached, the next prompt is refused outright. Use the `usage` tool if you want to see how much is left before taking on something large.
+{{end -}}
+{{if .Config.Options.MaxStepsPerTurn}}
+- A single turn is capped at {{.Config.Options.MaxStepsPerTurn}} model/tool-call steps. If a task needs more than that, break it up rather than trying to do it all in one turn.
+{{end -}}
+{{if .Config.Options.AllowedDomains}}
+- The fetch and download tools may only reach: {{range $i, $d := .Config.Options.AllowedDomains}}{{if $i}}, {{end}}{{$d}}{{end}}.
+{{end -}}
+{{if .Config.Options.BlockedDomains}}
+- The fetch and download tools may never reach: {{range $i, $d := .Config.Options.BlockedDomains}}{{if $i}}, {{end}}{{$d}}{{end}}.
+{{end -}}
+{{end}}
 {{if .ContextFiles}}
 # Project-Specific Context
 Make sure to follow the instructions in the context below.
