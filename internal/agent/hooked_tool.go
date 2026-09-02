@@ -14,27 +14,28 @@ import (
 )
 
 // hookedTool wraps a fantasy.AgentTool to run PreToolUse hooks before
-// delegating to the inner tool.
+// delegating to the inner tool, and PostToolUse hooks after it returns.
 type hookedTool struct {
-	inner  fantasy.AgentTool
-	runner *hooks.Runner
+	inner fantasy.AgentTool
+	pre   *hooks.Runner
+	post  *hooks.Runner
 }
 
-func newHookedTool(inner fantasy.AgentTool, runner *hooks.Runner) *hookedTool {
-	return &hookedTool{inner: inner, runner: runner}
+func newHookedTool(inner fantasy.AgentTool, pre, post *hooks.Runner) *hookedTool {
+	return &hookedTool{inner: inner, pre: pre, post: post}
 }
 
 // wrapToolsWithHooks returns a tool slice with each entry wrapped in a
 // hookedTool. Returns the original slice unchanged when runner is nil or
 // when isSubAgent is true — sub-agents never fire hooks, the top-level
 // invocation of the sub-agent tool itself is wrapped on the caller's side.
-func wrapToolsWithHooks(tools []fantasy.AgentTool, runner *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
-	if runner == nil || isSubAgent {
+func wrapToolsWithHooks(tools []fantasy.AgentTool, pre, post *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
+	if (pre == nil && post == nil) || isSubAgent {
 		return tools
 	}
 	out := make([]fantasy.AgentTool, len(tools))
 	for i, tool := range tools {
-		out[i] = newHookedTool(tool, runner)
+		out[i] = newHookedTool(tool, pre, post)
 	}
 	return out
 }
@@ -53,10 +54,15 @@ func (h *hookedTool) SetProviderOptions(opts fantasy.ProviderOptions) {
 
 func (h *hookedTool) Run(ctx context.Context, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
 	sessionID := tools.GetSessionFromContext(ctx)
-	result, err := h.runner.Run(ctx, hooks.EventPreToolUse, sessionID, call.Name, call.Input)
-	if err != nil {
-		slog.Warn("Hook execution error, proceeding with tool call",
-			"tool", call.Name, "error", err)
+
+	var result hooks.AggregateResult
+	if h.pre != nil {
+		var err error
+		result, err = h.pre.Run(ctx, hooks.EventPreToolUse, sessionID, call.Name, call.Input)
+		if err != nil {
+			slog.Warn("Hook execution error, proceeding with tool call",
+				"tool", call.Name, "error", err)
+		}
 	}
 
 	if result.Decision == hooks.DecisionDeny || result.Halt {
@@ -95,6 +101,37 @@ func (h *hookedTool) Run(ctx context.Context, call fantasy.ToolCall) (fantasy.To
 		resp.Content += result.Context
 	}
 
+	resp.Metadata = mergeHookMetadata(resp.Metadata, result)
+	return h.runPostHooks(ctx, sessionID, call, resp)
+}
+
+// runPostHooks fires PostToolUse and folds its outcome into the response.
+// The call already happened, so a deny cannot undo it -- what a post hook
+// can do is add context the model will see, or halt the turn.
+func (h *hookedTool) runPostHooks(ctx context.Context, sessionID string, call fantasy.ToolCall, resp fantasy.ToolResponse) (fantasy.ToolResponse, error) {
+	if h.post == nil {
+		return resp, nil
+	}
+
+	result, err := h.post.RunPost(ctx, sessionID, call.Name, call.Input, resp.Content)
+	if err != nil {
+		slog.Warn("PostToolUse hook execution error, keeping the tool result",
+			"tool", call.Name, "error", err)
+		return resp, nil
+	}
+
+	if result.Context != "" {
+		if resp.Content != "" {
+			resp.Content += "\n"
+		}
+		resp.Content += result.Context
+	}
+	if result.Halt {
+		resp.StopTurn = true
+		if result.Reason != "" {
+			resp.Content += "\n\nTurn halted by hook. Reason: " + result.Reason
+		}
+	}
 	resp.Metadata = mergeHookMetadata(resp.Metadata, result)
 	return resp, nil
 }

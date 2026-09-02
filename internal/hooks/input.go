@@ -26,20 +26,39 @@ type Payload struct {
 	CWD       string          `json:"cwd"`
 	ToolName  string          `json:"tool_name"`
 	ToolInput json.RawMessage `json:"tool_input"`
+	// ToolResponse is what the tool returned. Only PostToolUse hooks see
+	// it, and it is truncated to MaxToolResponseInPayload: a hook reads
+	// this off a pipe, and a tool that returned megabytes should not
+	// stall the turn feeding them to a shell script.
+	ToolResponse string `json:"tool_response,omitempty"`
 }
+
+// MaxToolResponseInPayload caps how much of a tool's output is handed to a
+// PostToolUse hook.
+const MaxToolResponseInPayload = 10_000
 
 // BuildPayload constructs the JSON stdin payload for a hook command.
 func BuildPayload(eventName, sessionID, cwd, toolName, toolInputJSON string) []byte {
+	return BuildPayloadWithResponse(eventName, sessionID, cwd, toolName, toolInputJSON, "")
+}
+
+// BuildPayloadWithResponse is BuildPayload plus the tool's output, for
+// PostToolUse hooks.
+func BuildPayloadWithResponse(eventName, sessionID, cwd, toolName, toolInputJSON, toolResponse string) []byte {
 	toolInput := json.RawMessage(toolInputJSON)
 	if !json.Valid(toolInput) {
 		toolInput = json.RawMessage("{}")
 	}
+	if len(toolResponse) > MaxToolResponseInPayload {
+		toolResponse = toolResponse[:MaxToolResponseInPayload] + "\n... [truncated]"
+	}
 	p := Payload{
-		Event:     eventName,
-		SessionID: sessionID,
-		CWD:       cwd,
-		ToolName:  toolName,
-		ToolInput: toolInput,
+		Event:        eventName,
+		SessionID:    sessionID,
+		CWD:          cwd,
+		ToolName:     toolName,
+		ToolInput:    toolInput,
+		ToolResponse: toolResponse,
 	}
 	data, err := json.Marshal(p)
 	if err != nil {

@@ -691,13 +691,19 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		return nil, err
 	}
 
-	// Build hook runner if PreToolUse hooks are configured.
-	var hookRunner *hooks.Runner
-	if preToolHooks := c.cfg.Config().Hooks[hooks.EventPreToolUse]; len(preToolHooks) > 0 {
-		hookRunner = hooks.NewRunner(preToolHooks, c.cfg.WorkingDir(), c.cfg.WorkingDir())
-	}
+	// Build hook runners for the events that have hooks configured.
+	preRunner := c.hookRunner(hooks.EventPreToolUse)
+	postRunner := c.hookRunner(hooks.EventPostToolUse)
 
-	return c.filterTools(allTools, agent, hookRunner, isSubAgent), nil
+	return c.filterTools(allTools, agent, preRunner, postRunner, isSubAgent), nil
+}
+
+func (c *coordinator) hookRunner(event string) *hooks.Runner {
+	configured := c.cfg.Config().Hooks[event]
+	if len(configured) == 0 {
+		return nil
+	}
+	return hooks.NewRunner(configured, c.cfg.WorkingDir(), c.cfg.WorkingDir())
 }
 
 // assembleTools builds every tool this workspace can offer, before the
@@ -790,7 +796,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	return allTools, nil
 }
 
-func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Agent, hookRunner *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
+func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Agent, preRunner, postRunner *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
 	var filteredTools []fantasy.AgentTool
 	for _, tool := range allTools {
 		if slices.Contains(agent.AllowedTools, tool.Info().Name) {
@@ -830,7 +836,7 @@ func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Age
 	// without hook interception to avoid firing the user's hook N times
 	// per delegated turn. The top-level invocation of the sub-agent tool
 	// itself is still wrapped from the coder's side.
-	filteredTools = wrapToolsWithHooks(filteredTools, hookRunner, isSubAgent)
+	filteredTools = wrapToolsWithHooks(filteredTools, preRunner, postRunner, isSubAgent)
 
 	return filteredTools
 }

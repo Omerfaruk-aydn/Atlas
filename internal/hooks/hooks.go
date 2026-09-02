@@ -13,6 +13,11 @@ import (
 // Hook event name constants.
 const (
 	EventPreToolUse = "PreToolUse"
+	// EventPostToolUse fires after a tool has run, with the tool's output
+	// in the payload. It cannot stop the call -- it already happened --
+	// but it can halt the turn, and its context is appended to what the
+	// model sees.
+	EventPostToolUse = "PostToolUse"
 )
 
 // HaltExitCode is the exit code that halts the whole turn. 2 blocks the
