@@ -26,7 +26,9 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - uses: golangci/golangci-lint-action@v6
+      # v8 is the first release of the action that drives golangci-lint v2.
+      # v6 targets v1 and passes flags v2 removed, so it fails before linting.
+      - uses: golangci/golangci-lint-action@v8
         with:
           version: v2.13.1
           args: --config=.golangci.yml --timeout=10m
