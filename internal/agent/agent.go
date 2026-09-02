@@ -181,6 +181,10 @@ type sessionAgent struct {
 	// used before the turn stops to summarize. Out of (0,1) means "use
 	// the built-in thresholds" -- see shouldAutoSummarize.
 	autoSummarizeAt float64
+	// maxProviderRetries is how many times a failed provider request is
+	// retried before the turn gives up. Nil means the provider library's
+	// own default; 0 disables retries.
+	maxProviderRetries *int
 	// maxSessionCost is a per-session spend cap in the session's cost
 	// currency (USD). Zero means unbounded. Checked once at the start of
 	// Run, before any dispatch state or DB write, so a session over
@@ -249,6 +253,10 @@ type SessionAgentOptions struct {
 	// used before summarizing. Zero (or any value outside (0,1)) keeps
 	// the built-in thresholds.
 	AutoSummarizeAt float64
+	// MaxProviderRetries caps how many times a failed provider request is
+	// retried. Nil leaves the provider library's default in place; 0
+	// disables retries.
+	MaxProviderRetries *int
 	// MaxSessionCost caps what a single session may spend, in the same
 	// currency as Model.CatwalkCfg pricing (USD). Zero means unbounded.
 	MaxSessionCost float64
@@ -278,6 +286,7 @@ func NewSessionAgent(
 		messages:             opts.Messages,
 		disableAutoSummarize: opts.DisableAutoSummarize,
 		autoSummarizeAt:      opts.AutoSummarizeAt,
+		maxProviderRetries:   opts.MaxProviderRetries,
 		maxSessionCost:       opts.MaxSessionCost,
 		maxStepsPerTurn:      opts.MaxStepsPerTurn,
 		tools:                csync.NewSliceFrom(opts.Tools),
@@ -845,6 +854,7 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 		Headers:          sessionHeaders(call.SessionID),
 		ProviderOptions:  call.ProviderOptions,
 		MaxOutputTokens:  maxOutputTokens,
+		MaxRetries:       a.maxRetries(),
 		TopP:             call.TopP,
 		Temperature:      call.Temperature,
 		PresencePenalty:  call.PresencePenalty,

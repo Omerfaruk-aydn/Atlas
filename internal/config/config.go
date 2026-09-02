@@ -394,6 +394,10 @@ type Options struct {
 	// may be used before a turn stops to summarize. Values outside (0,1)
 	// keep the built-in thresholds.
 	AutoSummarizeAt float64 `json:"auto_summarize_at,omitempty" jsonschema:"description=Summarize once this fraction of the context window is used (0-1 exclusive). Unset keeps the built-in thresholds.,example=0.8"`
+	// MaxProviderRetries caps how many times a failed request to the
+	// provider is retried before the turn gives up. Unset keeps the
+	// provider library's default; 0 disables retries.
+	MaxProviderRetries *int `json:"max_provider_retries,omitempty" jsonschema:"description=How many times to retry a failed provider request. Unset keeps the default; 0 disables retries.,example=5"`
 	// AllowedCommands and BlockedCommands adjust the bash tool's built-in
 	// list of banned commands. Allowing a command also lifts the
 	// subcommand blocks on it (e.g. allowing "npm" permits "npm install

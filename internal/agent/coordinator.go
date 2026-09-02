@@ -640,6 +640,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		IsSubAgent:           isSubAgent,
 		DisableAutoSummarize: c.cfg.Config().Options.DisableAutoSummarize,
 		AutoSummarizeAt:      c.cfg.Config().Options.AutoSummarizeAt,
+		MaxProviderRetries:   c.cfg.Config().Options.MaxProviderRetries,
 		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
 		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
 		IsYolo:               c.permissions.SkipRequests(),
