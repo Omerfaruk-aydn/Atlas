@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -75,9 +76,12 @@ func runDoctor(cmd *cobra.Command, _ []string) error {
 // *config.ConfigStore directly but cannot inject one into a function that
 // calls config.Init itself.
 func reportDiagnostics(cmd *cobra.Command, cfg *config.ConfigStore) error {
-	results := diagnose(cmd.Context(), cfg)
+	return printChecks(cmd.OutOrStdout(), diagnose(cmd.Context(), cfg))
+}
 
-	out := cmd.OutOrStdout()
+// printChecks writes the report and turns any failure into an error, so a
+// script can act on the exit status instead of parsing the output.
+func printChecks(out io.Writer, results []checkResult) error {
 	var failures int
 	for _, r := range results {
 		fmt.Fprintf(out, "[%s] %s: %s\n", r.Status, r.Name, r.Detail)
