@@ -15,6 +15,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/memory"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 )
@@ -40,6 +41,11 @@ type PromptDat struct {
 	ContextFiles       []ContextFile
 	GlobalContextFiles []ContextFile
 	AvailSkillXML      string
+	// ProjectMemory and UserMemory are the persistent stores, read once
+	// here and then frozen for the life of the session. See
+	// loadMemory for why they are not refreshed.
+	ProjectMemory string
+	UserMemory    string
 }
 
 type ContextFile struct {
@@ -214,6 +220,8 @@ func (p *Prompt) promptData(ctx context.Context, provider, model string, store *
 		Platform:      platform,
 		Date:          p.now().Format("1/2/2006"),
 		AvailSkillXML: availSkillXML,
+		ProjectMemory: loadMemory(store, memory.ScopeProject),
+		UserMemory:    loadMemory(store, memory.ScopeUser),
 	}
 	if isGit {
 		var err error

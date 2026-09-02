@@ -409,6 +409,24 @@ If a skill mentions scripts, references, or assets, they live in the same folder
 </skills_usage>
 {{end}}
 
+{{if or .ProjectMemory .UserMemory}}
+# Memory
+What you recorded in earlier sessions. This is a snapshot taken when the session started: writes you make with the `memory` tool land on disk now but appear here only next time.
+{{if .UserMemory}}
+<user_memory>
+What you have learned about the person you are working with.
+
+{{.UserMemory}}
+</user_memory>
+{{end}}
+{{- if .ProjectMemory}}
+<project_memory>
+What you have learned about this codebase that is not evident from reading it.
+
+{{.ProjectMemory}}
+</project_memory>
+{{end}}
+{{end}}
 {{if .ContextFiles}}
 # Project-Specific Context
 Make sure to follow the instructions in the context below.
