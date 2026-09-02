@@ -599,6 +599,13 @@
             50
           ]
         },
+        "tool_timeout": {
+          "type": "integer",
+          "description": "Stop a single tool call after this many seconds and tell the model it timed out. Zero or unset means unbounded.",
+          "examples": [
+            300
+          ]
+        },
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",
