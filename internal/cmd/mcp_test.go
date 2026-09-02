@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,4 +73,100 @@ func TestMCPListShowsToolFilters(t *testing.T) {
 
 	require.NoError(t, c.RunE(c, nil))
 	require.Contains(t, out.String(), "only: a, b; disabled: c")
+}
+
+func TestMCPTestUnknownServer(t *testing.T) {
+	c := newSkillTestCmd(t, runMCPTest, t.TempDir(), t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err := c.RunE(c, []string{"no-such-server"})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no MCP server named")
+}
+
+func TestMCPTestNoServersConfigured(t *testing.T) {
+	c := newSkillTestCmd(t, runMCPTest, t.TempDir(), t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err := c.RunE(c, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no MCP servers are configured")
+}
+
+func TestMCPTestStdioCommandFound(t *testing.T) {
+	workingDir := t.TempDir()
+	// "go" is guaranteed to be on PATH in this test's own build environment.
+	writeAtlasConfig(t, workingDir, `{"mcp":{"local":{"type":"stdio","command":"go"}}}`)
+
+	c := newSkillTestCmd(t, runMCPTest, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{"local"}))
+	require.Contains(t, out.String(), "local: ok")
+}
+
+func TestMCPTestStdioCommandNotFound(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"mcp":{"local":{"type":"stdio","command":"no-such-binary-xyz"}}}`)
+
+	c := newSkillTestCmd(t, runMCPTest, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err := c.RunE(c, []string{"local"})
+	require.Error(t, err)
+	require.Contains(t, out.String(), "local: failed")
+}
+
+func TestMCPTestHTTPReachable(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		// A real MCP endpoint routinely answers a bare GET with an error --
+		// only a live server produces one at all, so this still counts as
+		// reachable.
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}))
+	t.Cleanup(server.Close)
+
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"mcp":{"remote":{"type":"http","url":"`+server.URL+`"}}}`)
+
+	c := newSkillTestCmd(t, runMCPTest, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{"remote"}))
+	require.Contains(t, out.String(), "remote: ok")
+}
+
+func TestMCPTestHTTPUnreachable(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"mcp":{"remote":{"type":"http","url":"http://127.0.0.1:1"}}}`)
+
+	c := newSkillTestCmd(t, runMCPTest, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err := c.RunE(c, []string{"remote"})
+	require.Error(t, err)
+	require.Contains(t, out.String(), "remote: failed")
+}
+
+// Disabled servers are skipped by a bare `mcp test`, same as `mcp list`
+// marks them without contacting them.
+func TestMCPTestSkipsDisabledServers(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"mcp":{
+		"off":{"type":"stdio","command":"no-such-binary-xyz","disabled":true}
+	}}`)
+
+	c := newSkillTestCmd(t, runMCPTest, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err := c.RunE(c, nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no MCP servers are configured")
 }
