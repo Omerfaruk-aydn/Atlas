@@ -27,7 +27,9 @@ func TestGlobFilesScopedPrefixMatchesUnscoped(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got, 2)
 	for _, p := range got {
-		require.Contains(t, p, "a/b") // matches carry forward slashes on every platform
+		// The walker decides its own separator (fastwalk switches to forward
+		// slashes when MSYSTEM is set), so compare on normalized paths.
+		require.Contains(t, filepath.ToSlash(p), "a/b")
 	}
 }
 
