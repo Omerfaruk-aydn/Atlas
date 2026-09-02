@@ -274,9 +274,21 @@ func ListDirectory(initialPath string, ignorePatterns []string, depth, limit int
 
 	slog.Debug("Listing directory", "path", initialPath, "depth", depth, "limit", limit, "ignorePatterns", ignorePatterns)
 
+	// The walker rewrites separators on Windows, so initialPath has to be
+	// spelled the same way before it can be compared to a walked path -- and
+	// the separator appended to directories has to match too. Without this the
+	// root directory itself is never recognised and is listed as a result.
+	toSlash := fastwalk.DefaultToSlash()
+	rootPath := initialPath
+	sep := string(filepath.Separator)
+	if toSlash {
+		rootPath = filepath.ToSlash(rootPath)
+		sep = "/"
+	}
+
 	conf := fastwalk.Config{
 		Follow:   true,
-		ToSlash:  fastwalk.DefaultToSlash(),
+		ToSlash:  toSlash,
 		Sort:     fastwalk.SortDirsFirst,
 		MaxDepth: depth,
 	}
@@ -294,9 +306,9 @@ func ListDirectory(initialPath string, ignorePatterns []string, depth, limit int
 			return nil
 		}
 
-		if path != initialPath {
+		if path != rootPath {
 			if isDir {
-				path = path + string(filepath.Separator)
+				path += sep
 			}
 			found.Append(path)
 		}

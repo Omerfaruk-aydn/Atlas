@@ -27,7 +27,7 @@ func TestGlobFilesScopedPrefixMatchesUnscoped(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, got, 2)
 	for _, p := range got {
-		require.Contains(t, p, filepath.Join("a", "b"))
+		require.Contains(t, p, "a/b") // matches carry forward slashes on every platform
 	}
 }
 

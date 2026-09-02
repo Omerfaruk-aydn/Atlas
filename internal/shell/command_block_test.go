@@ -86,8 +86,15 @@ func TestCommandBlocking(t *testing.T) {
 			// Create a temporary directory for each test
 			tmpDir := t.TempDir()
 
+			// The test cases are real commands, and one of them is an
+			// npm install: an allowed command is executed, so without an
+			// empty PATH this test genuinely installs a package into the
+			// working tree. What is under test is the block decision, not
+			// npm, and the assertions below already tolerate a command
+			// that could not be found.
 			shell := NewShell(&Options{
 				WorkingDir: tmpDir,
+				Env:        []string{"PATH=" + tmpDir},
 				BlockFuncs: tt.blockFuncs,
 			})
 
