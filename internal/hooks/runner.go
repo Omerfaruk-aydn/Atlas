@@ -85,6 +85,13 @@ func (r *Runner) Hooks() []config.HookConfig {
 	return out
 }
 
+// MatchingHooks returns the hooks that would fire for a tool, without
+// running any of them. Intended for diagnostics -- see the CLI's
+// `hooks list --tool`.
+func (r *Runner) MatchingHooks(toolName string) []config.HookConfig {
+	return r.matchingHooks(toolName)
+}
+
 // Run executes all matching hooks for the given event and tool, returning
 // an aggregated result.
 func (r *Runner) Run(ctx context.Context, eventName, sessionID, toolName, toolInputJSON string) (AggregateResult, error) {
