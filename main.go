@@ -1,4 +1,4 @@
-﻿// Package main is the entry point for the Atlas-Agent CLI.
+// Package main is the entry point for the Atlas-Agent CLI.
 //
 //	@title			ATLAS-AGENT API
 //	@version		1.0
