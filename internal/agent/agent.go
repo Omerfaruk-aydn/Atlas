@@ -177,10 +177,15 @@ type sessionAgent struct {
 	sessions             session.Service
 	messages             message.Service
 	disableAutoSummarize bool
-	isYolo               bool
-	permissions          permission.Service
-	notify               pubsub.Publisher[notify.Notification]
-	runComplete          pubsub.Publisher[notify.RunComplete]
+	// maxSessionCost is a per-session spend cap in the session's cost
+	// currency (USD). Zero means unbounded. Checked once at the start of
+	// Run, before any dispatch state or DB write, so a session over
+	// budget costs nothing more to refuse.
+	maxSessionCost float64
+	isYolo         bool
+	permissions    permission.Service
+	notify         pubsub.Publisher[notify.Notification]
+	runComplete    pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -233,13 +238,16 @@ type SessionAgentOptions struct {
 	SystemPrompt         string
 	IsSubAgent           bool
 	DisableAutoSummarize bool
-	IsYolo               bool
-	Permissions          permission.Service
-	Sessions             session.Service
-	Messages             message.Service
-	Tools                []fantasy.AgentTool
-	Notify               pubsub.Publisher[notify.Notification]
-	RunComplete          pubsub.Publisher[notify.RunComplete]
+	// MaxSessionCost caps what a single session may spend, in the same
+	// currency as Model.CatwalkCfg pricing (USD). Zero means unbounded.
+	MaxSessionCost float64
+	IsYolo         bool
+	Permissions    permission.Service
+	Sessions       session.Service
+	Messages       message.Service
+	Tools          []fantasy.AgentTool
+	Notify         pubsub.Publisher[notify.Notification]
+	RunComplete    pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -255,6 +263,7 @@ func NewSessionAgent(
 		sessions:             opts.Sessions,
 		messages:             opts.Messages,
 		disableAutoSummarize: opts.DisableAutoSummarize,
+		maxSessionCost:       opts.MaxSessionCost,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
 		permissions:          opts.Permissions,
@@ -573,6 +582,16 @@ func ValidateCall(call SessionAgentCall) error {
 func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *fantasy.AgentResult, retErr error) {
 	if err := ValidateCall(call); err != nil {
 		return nil, err
+	}
+
+	if a.maxSessionCost > 0 {
+		if sess, err := a.sessions.Get(ctx, call.SessionID); err == nil && sess.Cost >= a.maxSessionCost {
+			return nil, ErrSessionBudgetExceeded
+		}
+		// A lookup failure here is not this check's problem to solve --
+		// the normal session-load path a few lines down will hit the same
+		// error and report it properly. Fail open rather than swallowing
+		// that error into a budget message that misdescribes it.
 	}
 
 	// genCtx/cancel are the run context and its cancel func, created under

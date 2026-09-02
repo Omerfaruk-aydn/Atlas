@@ -512,6 +512,13 @@
           "description": "Disable automatic conversation summarization",
           "default": false
         },
+        "max_session_cost": {
+          "type": "number",
+          "description": "Refuse a new prompt once a session's accumulated cost (USD) reaches this. Zero or unset means unbounded.",
+          "examples": [
+            5
+          ]
+        },
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",

@@ -380,6 +380,11 @@ type Options struct {
 	Debug                bool        `json:"debug,omitempty" jsonschema:"description=Enable debug logging,default=false"`
 	DebugLSP             bool        `json:"debug_lsp,omitempty" jsonschema:"description=Enable debug logging for LSP servers,default=false"`
 	DisableAutoSummarize bool        `json:"disable_auto_summarize,omitempty" jsonschema:"description=Disable automatic conversation summarization,default=false"`
+	// MaxSessionCost, if positive, refuses a new prompt once the
+	// session's accumulated cost has reached it. The refusal happens
+	// before the request is dispatched, so it costs nothing beyond the
+	// spend already on the session.
+	MaxSessionCost float64 `json:"max_session_cost,omitempty" jsonschema:"description=Refuse a new prompt once a session's accumulated cost (USD) reaches this. Zero or unset means unbounded.,example=5"`
 	// DataDirectory is where ATLAS-AGENT keeps per-project state such as
 	// the SQLite database and workspace overrides. Relative paths are
 	// resolved against the working directory; absolute paths are used
