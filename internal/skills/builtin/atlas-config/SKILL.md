@@ -1,36 +1,36 @@
 ﻿---
 name: atlas-config
-description: Use when the user needs help configuring ATLAS-AGENT — writing Atlas-Agentrc (the Bash config format) or atlas\.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
+description: Use when the user needs help configuring ATLAS-AGENT — writing atlasrc (the Bash config format) or atlas.json, setting up providers, models, LSPs, MCP servers, hooks, skills, permissions, or changing ATLAS-AGENT behavior.
 ---
 
 # ATLAS-AGENT Configuration
 
 ATLAS-AGENT supports two config formats:
 
-- **`Atlas-Agentrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
+- **`atlasrc`** — a Bash script that builds config by calling ATLAS-AGENT builtins.
   **Preferred.** Because it is real Bash you get includes, secrets,
   conditionals, and variables for free.
-- **`atlas\.json`** — static JSON. Fully supported; see
+- **`atlas.json`** — static JSON. Fully supported; see
   [Legacy JSON format](#legacy-json-format).
 
 Both are discovered together and deep-merged. Priority (highest to lowest):
 
-1. `.Atlas-Agentrc` / `Atlas-Agentrc` / `\.crush\b.json` / `atlas\.json` (project-local,
-   closer-to-cwd wins; Windows uses `.\.Atlas-Agentrc` / `.\Atlas-Agentrc`)
-2. `$XDG_CONFIG_HOME/Atlas-Agent/Atlas-Agentrc` or `~/.config/Atlas-Agent/Atlas-Agentrc`
-   (`%XDG_CONFIG_HOME%\Atlas-Agent\Atlas-Agentrc` or
-   `%USERPROFILE%\.config\Atlas-Agent\Atlas-Agentrc` on Windows)
+1. `.atlasrc` / `atlasrc` / `.atlas.json` / `atlas.json` (project-local,
+   closer-to-cwd wins; Windows uses `.\.atlasrc` / `.\atlasrc`)
+2. `$XDG_CONFIG_HOME/atlas/atlasrc` or `~/.config/atlas/atlasrc`
+   (`%XDG_CONFIG_HOME%\atlas\atlasrc` or
+   `%USERPROFILE%\.config\atlas\atlasrc` on Windows)
 
-Data directories (`~/.local/share/Atlas-Agent` and `%LOCALAPPDATA%\Atlas-Agent`) contain
-machine-owned JSON state only; ATLAS-AGENT does not discover or execute a `Atlas-Agentrc`
+Data directories (`~/.local/share/atlas` and `%LOCALAPPDATA%\atlas`) contain
+machine-owned JSON state only; ATLAS-AGENT does not discover or execute an `atlasrc`
 from those locations.
 
-If a directory has both `Atlas-Agentrc` and `atlas\.json`, they merge (`Atlas-Agentrc` wins
+If a directory has both `atlasrc` and `atlas.json`, they merge (`atlasrc` wins
 on conflicts) and ATLAS-AGENT logs a warning.
 
-## Atlas-Agentrc at a glance
+## atlasrc at a glance
 
-A `Atlas-Agentrc` is a plain Bash script executed at load time with the same embedded
+An `atlasrc` is a plain Bash script executed at load time with the same embedded
 shell the `bash` tool uses. It builds config by calling builtins (`provider`,
 `model`, `mcp`, `lsp`, `hook`, `permissions`, `option`). Statements run top to
 bottom; later statements win, and `remove`/`reset` operate on anything defined
@@ -157,7 +157,7 @@ intend to remove it later. See [Hooks runtime](#hooks-runtime) for how hooks
 execute (stdin payload, env vars, decisions).
 
 ```bash
-hook add PreToolUse --matcher "^bash$" --command "\.crush/hooks/no-haskell.sh" --name no-haskell
+hook add PreToolUse --matcher "^bash$" --command ".atlas/hooks/no-haskell.sh" --name no-haskell
 ```
 
 ### permissions
@@ -205,7 +205,7 @@ option ui exit-banner compact
 ```
 
 > [!IMPORTANT] These skill paths are loaded by default and do NOT need
-> `skill-path`: `.agents/skills`, `\.crush/skills`, `.claude/skills`,
+> `skill-path`: `.agents/skills`, `.atlas/skills`, `.claude/skills`,
 > `.cursor/skills`.
 
 ## Hooks runtime
@@ -308,7 +308,7 @@ user-invocable: true
 
 ## Environment variables
 
-- `ATLAS_AGENT_VERSION` — exported into `Atlas-Agentrc` at load; the running ATLAS-AGENT version (or
+- `ATLAS_AGENT_VERSION` — exported into `atlasrc` at load; the running ATLAS-AGENT version (or
   `devel` for local builds).
 - `ATLAS_AGENT_GLOBAL_CONFIG` — override global config location.
 - `ATLAS_AGENT_GLOBAL_DATA` — override data directory location.
@@ -316,8 +316,8 @@ user-invocable: true
 
 ## Legacy JSON format
 
-`atlas\.json` is the original static format. It still works and merges with
-`Atlas-Agentrc`. Basic structure:
+`atlas.json` is the original static format. It still works and merges with
+`atlasrc`. Basic structure:
 
 ```json
 {
@@ -334,9 +334,9 @@ user-invocable: true
 
 The `$schema` property enables IDE autocomplete but is optional.
 
-### Atlas-Agentrc ↔ atlas\.json mapping
+### atlasrc ↔ atlas.json mapping
 
-| Atlas-Agentrc                             | atlas\.json                                             |
+| atlasrc                             | atlas.json                                             |
 | ------------------------------------ | ------------------------------------------------------ |
 | `provider add openai --api-key "$K"` | `providers.openai = {"api_key": "$K"}`                 |
 | `model add openai/gpt-x --name X`    | append to `providers.openai.models[]`                  |
@@ -351,10 +351,10 @@ The `$schema` property enables IDE autocomplete but is optional.
 | `option attribution-trailer-style none` | `options.attribution.trailer_style = "none"`        |
 | `option attribution-generated-with false` | `options.attribution.generated_with = false`       |
 
-### Shell expansion in atlas\.json
+### Shell expansion in atlas.json
 
 In JSON, only selected string fields are run through the embedded shell at load
-time (in `Atlas-Agentrc`, everything is native Bash so this table does not apply):
+time (in `atlasrc`, everything is native Bash so this table does not apply):
 
 | Surface                                                         | Expansion                          |
 | --------------------------------------------------------------- | ---------------------------------- |
@@ -371,7 +371,7 @@ the request.
 
 ### Security note
 
-Both formats are trusted code. `Atlas-Agentrc` runs entirely, and any `$(...)` in
-`atlas\.json` runs at load time, with the invoking user's shell privileges,
+Both formats are trusted code. `atlasrc` runs entirely, and any `$(...)` in
+`atlas.json` runs at load time, with the invoking user's shell privileges,
 before the UI appears. Don't launch ATLAS-AGENT in a directory whose config you
 haven't reviewed.

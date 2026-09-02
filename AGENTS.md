@@ -19,9 +19,9 @@ internal/
   cmd/                             CLI commands (root, run, login, models, stats, sessions)
   config/
     config.go                      Config struct, context file paths, agent definitions
-    load.go                        Atlas-Agentrc and atlas\.json loading and validation
+    load.go                        atlasrc and atlas.json loading and validation
     provider.go                    Provider configuration and model resolution
-  shellconfig/                      Bash-powered config format (Atlas-Agentrc builtins)
+  shellconfig/                      Bash-powered config format (atlasrc builtins)
   agent/
     agent.go                       SessionAgent: runs LLM conversations per session
     coordinator.go                 Coordinator: manages named agents ("coder", "task")
@@ -65,10 +65,10 @@ dependencies are governed by their respective licenses.
 - **Context files**: ATLAS-AGENT reads AGENTS.md, ATLAS-AGENT.md, CLAUDE.md, GEMINI.md
   (and `.local` variants) from the working directory for project-specific
   instructions.
-- **Bash config format**: ATLAS-AGENT's primary config format is `Atlas-Agentrc` — a
+- **Bash config format**: ATLAS-AGENT's primary config format is `atlasrc` — a
   Bash script using builtins (`provider`, `model`, `mcp`, `lsp`,
-  `permissions`, `hook`, `options`) to define config. `atlas\.json` is still
-  supported but is deprecated in favor of `Atlas-Agentrc` and may be removed in a
+  `permissions`, `hook`, `options`) to define config. `atlas.json` is still
+  supported but is deprecated in favor of `atlasrc` and may be removed in a
   future release. Shell config files are discovered alongside JSON configs
   and deep-merged through the same pipeline. Builtins are registered via
   `shell.RegisterBuiltin` and gated by a `ConfigBuilder` on the context —
@@ -78,7 +78,7 @@ dependencies are governed by their respective licenses.
   generated code in `internal/db/`. Migrations in `internal/db/migrations/`.
 - **Pub/sub**: `internal/pubsub` for decoupled communication between agent,
   UI, and services.
-- **Hooks**: User-defined shell commands in `Atlas-Agentrc` (or `atlas\.json`)
+- **Hooks**: User-defined shell commands in `atlasrc` (or `atlas.json`)
   that fire before tool execution. The engine (`internal/hooks/`) is
   independent of fantasy and agent — it takes inputs, runs commands,
   returns decisions. The `hookedTool` decorator in
