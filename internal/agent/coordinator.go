@@ -838,6 +838,11 @@ func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Age
 	// itself is still wrapped from the coder's side.
 	filteredTools = wrapToolsWithHooks(filteredTools, preRunner, postRunner, isSubAgent)
 
+	// Outside the hook wrapper: a hook that hangs is as much a stall as a
+	// tool that hangs, and the timeout should cover both.
+	filteredTools = wrapToolsWithTimeout(filteredTools,
+		time.Duration(c.cfg.Config().Options.ToolTimeout)*time.Second)
+
 	return filteredTools
 }
 

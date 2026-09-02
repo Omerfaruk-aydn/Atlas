@@ -419,6 +419,10 @@ type Options struct {
 	// may take, independent of whether it is repeating itself (that is
 	// hasRepeatedToolCalls's job). Zero means unbounded.
 	MaxStepsPerTurn int `json:"max_steps_per_turn,omitempty" jsonschema:"description=Stop a turn once it has taken this many model/tool-call steps\\, whether or not it is making progress. Zero or unset means unbounded.,example=50"`
+	// ToolTimeout bounds a single tool call, in seconds. Zero or unset
+	// means unbounded: a tool call that legitimately takes ten minutes is
+	// ordinary work in a large repository.
+	ToolTimeout int `json:"tool_timeout,omitempty" jsonschema:"description=Stop a single tool call after this many seconds and tell the model it timed out. Zero or unset means unbounded.,example=300"`
 	// DataDirectory is where ATLAS-AGENT keeps per-project state such as
 	// the SQLite database and workspace overrides. Relative paths are
 	// resolved against the working directory; absolute paths are used
