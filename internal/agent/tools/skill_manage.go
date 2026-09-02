@@ -20,11 +20,13 @@ var skillManageDescription string
 const SkillManageToolName = "skill_manage"
 
 type SkillManageParams struct {
-	Action       string `json:"action" description:"create, update, or delete"`
+	Action       string `json:"action" description:"create, update, patch, or delete"`
 	Scope        string `json:"scope" description:"project to write into this repository, user to write into the user's config directory"`
 	Name         string `json:"name" description:"Lowercase words joined by hyphens. Also the directory name."`
 	Description  string `json:"description,omitempty" description:"When a future session should reach for this skill. Required for create and update."`
 	Instructions string `json:"instructions,omitempty" description:"The body of the skill, in markdown. Required for create and update."`
+	Old          string `json:"old,omitempty" description:"For patch: the existing text to change. Must appear exactly once in the skill's instructions."`
+	New          string `json:"new,omitempty" description:"For patch: the text to put in its place."`
 }
 
 // SkillManagePermissionParams is what the approval dialog is given.
@@ -94,6 +96,29 @@ func NewSkillManageTool(dirs SkillDirs, builtins []*skills.Skill, permissions pe
 			action := strings.TrimSpace(strings.ToLower(params.Action))
 			var next string
 			switch action {
+			case "patch":
+				if !existed {
+					return fantasy.NewTextErrorResponse(fmt.Sprintf(
+						"no skill named %q in %s", name, home.Short(dir),
+					)), nil
+				}
+				current, err := skills.ParseContent([]byte(existing))
+				if err != nil {
+					return fantasy.ToolResponse{}, fmt.Errorf("the skill on disk no longer parses: %w", err)
+				}
+				patched, err := skills.Patch(current, params.Old, params.New)
+				switch {
+				case errors.Is(err, skills.ErrPatchNotFound), errors.Is(err, skills.ErrPatchAmbiguous):
+					return fantasy.NewTextErrorResponse(err.Error()), nil
+				case err != nil:
+					return fantasy.ToolResponse{}, err
+				}
+				rendered, err := skills.Render(patched)
+				if err != nil {
+					return fantasy.ToolResponse{}, err
+				}
+				next = string(rendered)
+
 			case "create", "update":
 				if action == "create" && existed {
 					return fantasy.NewTextErrorResponse(fmt.Sprintf(
@@ -133,7 +158,7 @@ func NewSkillManageTool(dirs SkillDirs, builtins []*skills.Skill, permissions pe
 
 			default:
 				return fantasy.NewTextErrorResponse(fmt.Sprintf(
-					"unknown action %q: use create, update, or delete", params.Action,
+					"unknown action %q: use create, update, patch, or delete", params.Action,
 				)), nil
 			}
 
@@ -172,19 +197,23 @@ func NewSkillManageTool(dirs SkillDirs, builtins []*skills.Skill, permissions pe
 					return fantasy.ToolResponse{}, err
 				}
 			} else {
-				// Save validates before writing. A skill file that does not
-				// parse is worse than none: it shows up in the discovery
-				// diagnostics of every later session.
-				if _, err := skills.Save(dir, &skills.Skill{
-					Name:         name,
-					Description:  strings.TrimSpace(params.Description),
-					Instructions: params.Instructions,
-				}); err != nil {
+				// next is already the fully rendered file -- from create,
+				// update, or patch -- so parse it back rather than
+				// re-deriving a Skill from params, which patch does not
+				// populate. Save validates before writing: a skill file
+				// that does not parse is worse than none, since it shows
+				// up in the discovery diagnostics of every later session.
+				toSave, err := skills.ParseContent([]byte(next))
+				if err != nil {
+					return fantasy.ToolResponse{}, err
+				}
+				toSave.Name = name
+				if _, err := skills.Save(dir, toSave); err != nil {
 					return fantasy.NewTextErrorResponse(err.Error()), nil
 				}
 			}
 
-			verb := map[string]string{"create": "Wrote", "update": "Rewrote", "delete": "Deleted"}[action]
+			verb := map[string]string{"create": "Wrote", "update": "Rewrote", "patch": "Patched", "delete": "Deleted"}[action]
 			return fantasy.WithResponseMetadata(
 				fantasy.NewTextResponse(fmt.Sprintf(
 					"%s %s.\nIt takes effect in the next session; the skill list in this one is already fixed.",

@@ -119,3 +119,35 @@ func Find(all []*Skill, name string) (*Skill, bool) {
 	}
 	return nil, false
 }
+
+// ErrPatchNotFound is returned when Patch is given text that does not
+// appear in the skill's instructions.
+var ErrPatchNotFound = errors.New("that text is not in the skill's instructions")
+
+// ErrPatchAmbiguous is returned when Patch is given text that appears more
+// than once, so there is no single place it could mean.
+var ErrPatchAmbiguous = errors.New("that text appears more than once in the instructions; include enough surrounding text to make it unique")
+
+// Patch swaps one piece of text for another inside a skill's instructions,
+// leaving everything else -- frontmatter included -- untouched.
+//
+// It exists for the same reason memory has Replace instead of only Set:
+// fixing one paragraph of a skill should not require the caller to retype
+// the rest, and a whole-file rewrite risks silently dropping a part of it
+// that was not meant to change. old must appear exactly once.
+func Patch(existing *Skill, old, new string) (*Skill, error) {
+	if old == "" {
+		return nil, errors.New("cannot patch empty text")
+	}
+	switch strings.Count(existing.Instructions, old) {
+	case 0:
+		return nil, ErrPatchNotFound
+	case 1:
+	default:
+		return nil, ErrPatchAmbiguous
+	}
+
+	patched := *existing
+	patched.Instructions = strings.Replace(existing.Instructions, old, new, 1)
+	return &patched, nil
+}

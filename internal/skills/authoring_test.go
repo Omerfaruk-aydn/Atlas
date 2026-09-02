@@ -111,3 +111,29 @@ func TestFindIgnoresCase(t *testing.T) {
 	_, ok = Find(all, "three")
 	require.False(t, ok)
 }
+
+func TestPatchSwapsOnlyTheMatchingText(t *testing.T) {
+	t.Parallel()
+
+	in := &Skill{
+		Name:         "deploy",
+		Description:  "d",
+		Instructions: "1. Build.\n2. Run the old script.\n3. Verify.",
+	}
+
+	out, err := Patch(in, "Run the old script.", "Run deploy.sh.")
+	require.NoError(t, err)
+	require.Equal(t, "1. Build.\n2. Run deploy.sh.\n3. Verify.", out.Instructions)
+	require.Equal(t, in.Description, out.Description, "patch only touches instructions")
+	require.Equal(t, "1. Build.\n2. Run the old script.\n3. Verify.", in.Instructions, "the original is not mutated")
+}
+
+func TestPatchRequiresExactlyOneMatch(t *testing.T) {
+	t.Parallel()
+
+	_, err := Patch(&Skill{Instructions: "no match here"}, "missing", "x")
+	require.ErrorIs(t, err, ErrPatchNotFound)
+
+	_, err = Patch(&Skill{Instructions: "dup dup"}, "dup", "x")
+	require.ErrorIs(t, err, ErrPatchAmbiguous)
+}

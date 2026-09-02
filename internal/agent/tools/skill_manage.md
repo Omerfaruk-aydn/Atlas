@@ -10,7 +10,8 @@ Use this when you have just worked out something the next session would otherwis
 `action`:
 
 - `create` — write a new skill. Fails if one of that name already exists.
-- `update` — rewrite an existing one. Pass the full new instructions; this is not a patch.
+- `update` — rewrite an existing one. Pass the full new instructions.
+- `patch` — swap one piece of text in an existing skill's instructions for another, leaving the rest untouched. `old` must appear exactly once; include enough surrounding text to make it unique. Prefer this over `update` when only part of a skill needs to change.
 - `delete` — remove one.
 
 `name` is lowercase words joined by hyphens and is also the directory name. `description` is the only thing a future session sees before deciding to load the skill, so write it as a trigger — when to reach for this — not as a title.

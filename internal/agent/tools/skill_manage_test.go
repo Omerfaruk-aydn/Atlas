@@ -193,3 +193,54 @@ func TestSkillManageAsksBeforeWriting(t *testing.T) {
 	_, statErr := os.Stat(filepath.Join(dirs.Project, "denied-skill"))
 	require.True(t, os.IsNotExist(statErr), "denied means nothing on disk")
 }
+
+func TestSkillManagePatchesOnlyThePart(t *testing.T) {
+	t.Parallel()
+	tool, dirs := newSkillTool(t)
+
+	require.False(t, runSkill(t, tool, SkillManageParams{
+		Action: "create", Scope: "project", Name: "deploy-steps",
+		Description:  "Use when deploying.",
+		Instructions: "1. Build.\n2. Run the old script.\n3. Verify.",
+	}).IsError)
+
+	res := runSkill(t, tool, SkillManageParams{
+		Action: "patch", Scope: "project", Name: "deploy-steps",
+		Old: "Run the old script.", New: "Run deploy.sh.",
+	})
+	require.False(t, res.IsError)
+
+	found := skills.Discover([]string{dirs.Project})
+	require.Len(t, found, 1)
+	require.Contains(t, found[0].Instructions, "Run deploy.sh.")
+	require.NotContains(t, found[0].Instructions, "Run the old script.")
+	require.Equal(t, "Use when deploying.", found[0].Description, "patch does not touch the description")
+}
+
+func TestSkillManagePatchNeedsAnExistingSkill(t *testing.T) {
+	t.Parallel()
+	tool, _ := newSkillTool(t)
+
+	res := runSkill(t, tool, SkillManageParams{
+		Action: "patch", Scope: "project", Name: "never-written", Old: "a", New: "b",
+	})
+
+	require.True(t, res.IsError)
+	require.Contains(t, res.Content, "no skill named")
+}
+
+func TestSkillManagePatchRequiresAUniqueMatch(t *testing.T) {
+	t.Parallel()
+	tool, _ := newSkillTool(t)
+
+	require.False(t, runSkill(t, tool, SkillManageParams{
+		Action: "create", Scope: "project", Name: "ambiguous",
+		Description: "d", Instructions: "dup dup",
+	}).IsError)
+
+	res := runSkill(t, tool, SkillManageParams{
+		Action: "patch", Scope: "project", Name: "ambiguous", Old: "dup", New: "x",
+	})
+	require.True(t, res.IsError)
+	require.Contains(t, res.Content, "more than once")
+}
