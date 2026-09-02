@@ -5,19 +5,30 @@ import (
 	"testing"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
-// roundedBorderRunes are chars that only appear when a pill has a visible
-// rounded border.
-const roundedBorderRunes = "╭╮╰╯"
+// cornerRunes are the characters that only appear when a pill has a visible
+// border. Which glyphs those are is a runtime decision -- a Windows host that
+// does not announce itself is given the ASCII bevel, because the legacy
+// console draws the rounded set as replacement boxes -- so the test asks for
+// the corners in force rather than naming them.
+func cornerRunes() string {
+	return styles.BoxTopLeft + styles.BoxTopRight +
+		styles.BoxBottomLeft + styles.BoxBottomRight
+}
 
-func hasRoundedBorder(s string) bool {
-	return strings.ContainsAny(s, roundedBorderRunes)
+func topCornerRunes() string {
+	return styles.BoxTopLeft + styles.BoxTopRight
+}
+
+func hasBorder(s string) bool {
+	return strings.ContainsAny(s, cornerRunes())
 }
 
 // queuePillHasBorder reports whether the "N Queued" pill is wrapped in a
-// rounded border by checking the line directly above the queue label for a
-// top border corner.
+// border by checking the line directly above the queue label for a top
+// border corner.
 func queuePillHasBorder(view string) bool {
 	lines := strings.Split(view, "\n")
 	for i, line := range lines {
@@ -27,14 +38,14 @@ func queuePillHasBorder(view string) bool {
 		if i == 0 {
 			return false
 		}
-		return strings.ContainsAny(lines[i-1], "╭╮")
+		return strings.ContainsAny(lines[i-1], topCornerRunes())
 	}
 	return false
 }
 
 // TestQueuePillAlwaysHasBorder guards CHARM-1678: the queued-prompts pill must
-// render with its rounded border regardless of panel expansion or which pill
-// section is nominally focused.
+// render with its border regardless of panel expansion or which pill section
+// is nominally focused.
 func TestQueuePillAlwaysHasBorder(t *testing.T) {
 	incompleteTodos := []session.Todo{{Content: "a", Status: session.TodoStatusPending}}
 
@@ -61,8 +72,8 @@ func TestQueuePillAlwaysHasBorder(t *testing.T) {
 			u.updateLayoutAndSize()
 			u.renderPills()
 
-			if !hasRoundedBorder(u.pillsView) {
-				t.Fatalf("expected a rounded border somewhere in pills view:\n%s", u.pillsView)
+			if !hasBorder(u.pillsView) {
+				t.Fatalf("expected a border somewhere in pills view:\n%s", u.pillsView)
 			}
 			if !queuePillHasBorder(u.pillsView) {
 				t.Fatalf("expected the queue pill to have a border:\n%s", u.pillsView)
