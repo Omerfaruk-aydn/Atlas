@@ -50,7 +50,7 @@ func downloadDescription() string {
 	})
 }
 
-func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client) fantasy.AgentTool {
+func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client, policy URLPolicy) fantasy.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -76,6 +76,10 @@ func NewDownloadTool(permissions permission.Service, workingDir string, client *
 
 			if !strings.HasPrefix(params.URL, "http://") && !strings.HasPrefix(params.URL, "https://") {
 				return fantasy.NewTextErrorResponse("URL must start with http:// or https://"), nil
+			}
+
+			if err := policy.Check(params.URL); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
 			}
 
 			filePath := filepathext.SmartJoin(workingDir, params.FilePath)

@@ -21,8 +21,10 @@ var webFetchDescriptionTpl = template.Must(
 		Parse(string(webFetchDescriptionTmpl)),
 )
 
-// NewWebFetchTool creates a simple web fetch tool for sub-agents (no permissions needed).
-func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
+// NewWebFetchTool creates a simple web fetch tool for sub-agents (no
+// permissions needed). Since nothing else in its path asks the user, policy
+// is this tool's only point of control over where the sub-agent can go.
+func NewWebFetchTool(workingDir string, client *http.Client, policy URLPolicy) fantasy.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -41,6 +43,10 @@ func NewWebFetchTool(workingDir string, client *http.Client) fantasy.AgentTool {
 		func(ctx context.Context, params WebFetchParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
 			if params.URL == "" {
 				return fantasy.NewTextErrorResponse("url is required"), nil
+			}
+
+			if err := policy.Check(params.URL); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
 			}
 
 			content, err := FetchURLAndConvert(ctx, client, params.URL)

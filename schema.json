@@ -519,6 +519,26 @@
             5
           ]
         },
+        "allowed_domains": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "docs.example.com"
+            ]
+          },
+          "type": "array",
+          "description": "If set, the only domains (and their subdomains) the fetch/download tools may reach"
+        },
+        "blocked_domains": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "internal.example.com"
+            ]
+          },
+          "type": "array",
+          "description": "Domains (and their subdomains) the fetch/download tools may never reach, checked before allowed_domains"
+        },
         "data_directory": {
           "type": "string",
           "description": "Directory for storing application data. Relative paths are resolved against the working directory; absolute paths are used as-is.",

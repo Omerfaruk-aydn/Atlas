@@ -385,6 +385,11 @@ type Options struct {
 	// before the request is dispatched, so it costs nothing beyond the
 	// spend already on the session.
 	MaxSessionCost float64 `json:"max_session_cost,omitempty" jsonschema:"description=Refuse a new prompt once a session's accumulated cost (USD) reaches this. Zero or unset means unbounded.,example=5"`
+	// AllowedDomains and BlockedDomains govern which hosts the fetch,
+	// download, and agentic-fetch tools may reach. Blocked wins over
+	// allowed. Matching a domain also matches its subdomains.
+	AllowedDomains []string `json:"allowed_domains,omitempty" jsonschema:"description=If set\\, the only domains (and their subdomains) the fetch/download tools may reach,example=docs.example.com"`
+	BlockedDomains []string `json:"blocked_domains,omitempty" jsonschema:"description=Domains (and their subdomains) the fetch/download tools may never reach\\, checked before allowed_domains,example=internal.example.com"`
 	// DataDirectory is where ATLAS-AGENT keeps per-project state such as
 	// the SQLite database and workspace overrides. Relative paths are
 	// resolved against the working directory; absolute paths are used
