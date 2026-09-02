@@ -37,9 +37,9 @@ type viewDescriptionData struct {
 	MaxViewSizeKB    int
 }
 
-func viewDescription() string {
+func viewDescription(limits ViewLimits) string {
 	return renderTemplate(viewDescriptionTpl, viewDescriptionData{
-		DefaultReadLimit: DefaultReadLimit,
+		DefaultReadLimit: limits.readLimit(),
 		MaxViewSizeKB:    MaxViewSize / 1024,
 	})
 }
@@ -93,11 +93,12 @@ func NewViewTool(
 	filetracker filetracker.Service,
 	skillTracker *skills.Tracker,
 	workingDir string,
+	limits ViewLimits,
 	skillsPaths ...string,
 ) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
 		ViewToolName,
-		viewDescription(),
+		viewDescription(limits),
 		func(ctx context.Context, params ViewParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
 			if params.FilePath == "" {
 				return fantasy.NewTextErrorResponse("file_path is required"), nil
@@ -196,7 +197,7 @@ func NewViewTool(
 				if isSkillFile {
 					params.Limit = 1000000 // Effectively no limit for skill files
 				} else {
-					params.Limit = DefaultReadLimit
+					params.Limit = limits.readLimit()
 				}
 			}
 
@@ -232,7 +233,7 @@ func NewViewTool(
 			if isSkillFile {
 				maxContentSize = 0
 			}
-			content, hasMore, err := readTextFile(filePath, params.Offset, params.Limit, maxContentSize)
+			content, hasMore, err := readTextFile(filePath, params.Offset, params.Limit, maxContentSize, limits.lineLength())
 			if err != nil {
 				var tooLarge contentTooLargeError
 				if errors.As(err, &tooLarge) {
@@ -304,7 +305,10 @@ func addLineNumbers(content string, startLine int) string {
 	return strings.Join(result, "\n")
 }
 
-func readTextFile(filePath string, offset, limit, maxContentSize int) (string, bool, error) {
+func readTextFile(filePath string, offset, limit, maxContentSize, maxLineLength int) (string, bool, error) {
+	if maxLineLength <= 0 {
+		maxLineLength = MaxLineLength
+	}
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", false, err
@@ -334,10 +338,10 @@ func readTextFile(filePath string, offset, limit, maxContentSize int) (string, b
 		}
 		lineText = strings.TrimSuffix(lineText, "\n")
 		lineText = strings.TrimSuffix(lineText, "\r")
-		if len(lineText) > MaxLineLength {
+		if len(lineText) > maxLineLength {
 			// Truncate at a rune boundary to avoid splitting
 			// multi-byte characters.
-			lineText = strings.ToValidUTF8(lineText[:MaxLineLength], "") + "..."
+			lineText = strings.ToValidUTF8(lineText[:maxLineLength], "") + "..."
 		}
 		projectedSize := contentSize + len(lineText)
 		if len(lines) > 0 {

@@ -722,6 +722,19 @@ type Tools struct {
 	Grep ToolGrep `json:"grep,omitzero"`
 	Glob ToolGlob `json:"glob,omitzero"`
 	Bash ToolBash `json:"bash,omitzero"`
+	View ToolView `json:"view,omitzero"`
+}
+
+type ToolView struct {
+	DefaultReadLimit *int `json:"default_read_limit,omitempty" jsonschema:"description=Lines the view tool returns when the model does not say,default=200,example=500"`
+	MaxLineLength    *int `json:"max_line_length,omitempty" jsonschema:"description=How much of a single long line survives before it is cut,default=2000,example=500"`
+}
+
+// Limits returns the user-defined read limit and line length. Zero means
+// "unset": the view tool substitutes its own defaults rather than returning
+// nothing.
+func (t ToolView) Limits() (defaultReadLimit, maxLineLength int) {
+	return ptrValOr(t.DefaultReadLimit, 0), ptrValOr(t.MaxLineLength, 0)
 }
 
 type ToolBash struct {

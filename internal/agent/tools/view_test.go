@@ -70,7 +70,7 @@ func TestReadTextFileBoundaryCases(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			gotContent, gotHasMore, err := readTextFile(filePath, tt.offset, tt.limit, 0)
+			gotContent, gotHasMore, err := readTextFile(filePath, tt.offset, tt.limit, 0, 0)
 			require.NoError(t, err)
 			require.Equal(t, tt.wantContent, gotContent)
 			require.Equal(t, tt.wantHasMore, gotHasMore)
@@ -87,7 +87,7 @@ func TestReadTextFileTruncatesLongLines(t *testing.T) {
 	longLine := strings.Repeat("a", MaxLineLength+10)
 	require.NoError(t, os.WriteFile(filePath, []byte(longLine), 0o644))
 
-	content, hasMore, err := readTextFile(filePath, 0, 1, 0)
+	content, hasMore, err := readTextFile(filePath, 0, 1, 0, 0)
 	require.NoError(t, err)
 	require.False(t, hasMore)
 	require.Equal(t, strings.Repeat("a", MaxLineLength)+"...", content)
@@ -102,7 +102,7 @@ func TestReadTextFileLineExceeding1MB(t *testing.T) {
 	hugeLine := strings.Repeat("A", 2*1024*1024) // 2MB — exceeds bufio.Scanner max
 	require.NoError(t, os.WriteFile(filePath, []byte(hugeLine), 0o644))
 
-	content, hasMore, err := readTextFile(filePath, 0, 1, 0)
+	content, hasMore, err := readTextFile(filePath, 0, 1, 0, 0)
 	require.NoError(t, err)
 	require.False(t, hasMore)
 	require.Equal(t, strings.Repeat("A", MaxLineLength)+"...", content)
@@ -184,12 +184,12 @@ func TestReadTextFileEnforcesMaxContentSize(t *testing.T) {
 	}
 	require.NoError(t, os.WriteFile(filePath, []byte(strings.Join(lines, "\n")), 0o644))
 
-	content, hasMore, err := readTextFile(filePath, 0, len(lines), MaxLineLength)
+	content, hasMore, err := readTextFile(filePath, 0, len(lines), MaxLineLength, 0)
 	require.ErrorAs(t, err, &contentTooLargeError{})
 	require.Empty(t, content)
 	require.False(t, hasMore)
 
-	content, hasMore, err = readTextFile(filePath, 2, 1, MaxLineLength)
+	content, hasMore, err = readTextFile(filePath, 2, 1, MaxLineLength, 0)
 	require.NoError(t, err)
 	require.Equal(t, "target line", content)
 	require.False(t, hasMore)
@@ -202,7 +202,7 @@ func TestReadTextFileAllowsExactMaxContentSize(t *testing.T) {
 	filePath := filepath.Join(workingDir, "exact-size.txt")
 	require.NoError(t, os.WriteFile(filePath, []byte("abcd\nefgh"), 0o644))
 
-	content, hasMore, err := readTextFile(filePath, 0, 2, len("abcd\nefgh"))
+	content, hasMore, err := readTextFile(filePath, 0, 2, len("abcd\nefgh"), 0)
 	require.NoError(t, err)
 	require.Equal(t, "abcd\nefgh", content)
 	require.False(t, hasMore)
@@ -256,7 +256,7 @@ func (m mockFileTracker) ListReadFiles(ctx context.Context, sessionID string) ([
 
 func newViewToolForTest(workingDir string) fantasy.AgentTool {
 	permissions := &mockViewPermissionService{Broker: pubsub.NewBroker[permission.PermissionRequest]()}
-	return NewViewTool(nil, permissions, mockFileTracker{}, nil, workingDir)
+	return NewViewTool(nil, permissions, mockFileTracker{}, nil, workingDir, ViewLimits{})
 }
 
 func runViewTool(t *testing.T, tool fantasy.AgentTool, ctx context.Context, params ViewParams) fantasy.ToolResponse {
