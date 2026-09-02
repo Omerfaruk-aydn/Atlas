@@ -390,6 +390,10 @@ type Options struct {
 	// allowed. Matching a domain also matches its subdomains.
 	AllowedDomains []string `json:"allowed_domains,omitempty" jsonschema:"description=If set\\, the only domains (and their subdomains) the fetch/download tools may reach,example=docs.example.com"`
 	BlockedDomains []string `json:"blocked_domains,omitempty" jsonschema:"description=Domains (and their subdomains) the fetch/download tools may never reach\\, checked before allowed_domains,example=internal.example.com"`
+	// MaxStepsPerTurn caps how many model/tool-call steps a single turn
+	// may take, independent of whether it is repeating itself (that is
+	// hasRepeatedToolCalls's job). Zero means unbounded.
+	MaxStepsPerTurn int `json:"max_steps_per_turn,omitempty" jsonschema:"description=Stop a turn once it has taken this many model/tool-call steps\\, whether or not it is making progress. Zero or unset means unbounded.,example=50"`
 	// DataDirectory is where ATLAS-AGENT keeps per-project state such as
 	// the SQLite database and workspace overrides. Relative paths are
 	// resolved against the working directory; absolute paths are used

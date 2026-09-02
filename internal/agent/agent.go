@@ -182,10 +182,13 @@ type sessionAgent struct {
 	// Run, before any dispatch state or DB write, so a session over
 	// budget costs nothing more to refuse.
 	maxSessionCost float64
-	isYolo         bool
-	permissions    permission.Service
-	notify         pubsub.Publisher[notify.Notification]
-	runComplete    pubsub.Publisher[notify.RunComplete]
+	// maxStepsPerTurn caps how many steps one Run may take. Zero means
+	// unbounded. See maxStepsReached.
+	maxStepsPerTurn int
+	isYolo          bool
+	permissions     permission.Service
+	notify          pubsub.Publisher[notify.Notification]
+	runComplete     pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -241,13 +244,16 @@ type SessionAgentOptions struct {
 	// MaxSessionCost caps what a single session may spend, in the same
 	// currency as Model.CatwalkCfg pricing (USD). Zero means unbounded.
 	MaxSessionCost float64
-	IsYolo         bool
-	Permissions    permission.Service
-	Sessions       session.Service
-	Messages       message.Service
-	Tools          []fantasy.AgentTool
-	Notify         pubsub.Publisher[notify.Notification]
-	RunComplete    pubsub.Publisher[notify.RunComplete]
+	// MaxStepsPerTurn caps how many model/tool-call steps one turn may
+	// take. Zero means unbounded.
+	MaxStepsPerTurn int
+	IsYolo          bool
+	Permissions     permission.Service
+	Sessions        session.Service
+	Messages        message.Service
+	Tools           []fantasy.AgentTool
+	Notify          pubsub.Publisher[notify.Notification]
+	RunComplete     pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -264,6 +270,7 @@ func NewSessionAgent(
 		messages:             opts.Messages,
 		disableAutoSummarize: opts.DisableAutoSummarize,
 		maxSessionCost:       opts.MaxSessionCost,
+		maxStepsPerTurn:      opts.MaxStepsPerTurn,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
 		permissions:          opts.Permissions,
@@ -1096,6 +1103,9 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 			},
 			func(steps []fantasy.StepResult) bool {
 				return hasRepeatedToolCalls(steps, loopDetectionWindowSize, loopDetectionMaxRepeats)
+			},
+			func(steps []fantasy.StepResult) bool {
+				return maxStepsReached(steps, a.maxStepsPerTurn)
 			},
 		},
 	})
