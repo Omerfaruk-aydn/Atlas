@@ -370,7 +370,7 @@ func (Attribution) JSONSchemaExtend(schema *jsonschema.Schema) {
 type Options struct {
 	ContextPaths         []string    `json:"context_paths,omitempty" jsonschema:"description=Paths to files containing context information for the AI,example=.cursorrules,example=ATLAS-AGENT.md"`
 	GlobalContextPaths   []string    `json:"global_context_paths,omitempty" jsonschema:"description=Paths to files containing global context information for the AI,default=~/.config/Atlas-Agent/ATLAS-AGENT.md,default=~/.config/AGENTS.md"`
-	SkillsPaths          []string    `json:"skills_paths,omitempty" jsonschema:"description=Paths to directories containing Agent Skills (folders with SKILL.md files),example=~/.config/Atlas-Agent/skills,example=./skills"`
+	SkillsPaths          []string    `json:"skills_paths,omitempty" jsonschema:"description=Paths to directories containing Agent Skills (folders with SKILL.md files),example=~/.config/atlas/skills,example=./skills"`
 	TUI                  *TUIOptions `json:"tui,omitempty" jsonschema:"description=Terminal user interface options"`
 	Debug                bool        `json:"debug,omitempty" jsonschema:"description=Enable debug logging,default=false"`
 	DebugLSP             bool        `json:"debug_lsp,omitempty" jsonschema:"description=Enable debug logging for LSP servers,default=false"`
@@ -876,12 +876,16 @@ func (c *Config) SmallModel() *catwalk.Model {
 
 const maxRecentModelsPerType = 5
 
+// allToolNames is the allowlist every agent's tool set is filtered
+// through. A tool the coordinator builds but that is missing here is
+// silently dropped: it is never offered to the model and nothing says so.
+// TestEveryBuiltToolIsAllowed in internal/agent guards against that drift.
 func allToolNames() []string {
 	return []string{
 		"agent",
 		"bash",
-		"Atlas-Agent_info",
-		"Atlas-Agent_logs",
+		"atlas_info",
+		"atlas_logs",
 		"job_output",
 		"job_kill",
 		"download",
@@ -901,7 +905,9 @@ func allToolNames() []string {
 		"glob",
 		"grep",
 		"ls",
+		"memory",
 		"question",
+		"session_search",
 		"sourcegraph",
 		"todos",
 		"view",
@@ -920,7 +926,7 @@ func resolveAllowedTools(allTools []string, disabledTools []string) []string {
 }
 
 func resolveReadOnlyTools(tools []string) []string {
-	readOnlyTools := []string{"glob", "grep", "ls", "lsp_call_hierarchy", "lsp_definition", "lsp_symbols", "sourcegraph", "view"}
+	readOnlyTools := []string{"glob", "grep", "ls", "lsp_call_hierarchy", "lsp_definition", "lsp_symbols", "session_search", "sourcegraph", "view"}
 	// filter to only include tools that are in allowedtools (include mode)
 	return filterSlice(tools, readOnlyTools, true)
 }

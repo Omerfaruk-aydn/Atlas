@@ -337,6 +337,22 @@
       },
       "type": "object"
     },
+    "Memory": {
+      "properties": {
+        "project_limit": {
+          "type": "integer",
+          "description": "Character limit for the project memory store (MEMORY.md). Negative means unbounded.",
+          "default": 3200
+        },
+        "user_limit": {
+          "type": "integer",
+          "description": "Character limit for the user profile store (USER.md). Negative means unbounded.",
+          "default": 2000
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Model": {
       "properties": {
         "id": {
@@ -470,7 +486,7 @@
           "items": {
             "type": "string",
             "examples": [
-              "~/.config/Atlas-Agent/skills",
+              "~/.config/atlas/skills",
               "./skills"
             ]
           },
@@ -576,6 +592,10 @@
           },
           "type": "array",
           "description": "List of skill names to disable and hide from the agent"
+        },
+        "memory": {
+          "$ref": "#/$defs/Memory",
+          "description": "Bounds on the prose the agent carries between sessions"
         }
       },
       "additionalProperties": false,

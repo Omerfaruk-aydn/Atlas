@@ -681,6 +681,25 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 }
 
 func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubAgent bool) ([]fantasy.AgentTool, error) {
+	allTools, err := c.assembleTools(ctx, agent, isSubAgent)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build hook runner if PreToolUse hooks are configured.
+	var hookRunner *hooks.Runner
+	if preToolHooks := c.cfg.Config().Hooks[hooks.EventPreToolUse]; len(preToolHooks) > 0 {
+		hookRunner = hooks.NewRunner(preToolHooks, c.cfg.WorkingDir(), c.cfg.WorkingDir())
+	}
+
+	return c.filterTools(allTools, agent, hookRunner, isSubAgent), nil
+}
+
+// assembleTools builds every tool this workspace can offer, before the
+// agent's allowlist is applied. It is separate from the filtering so a test
+// can see what was built: a tool missing from the allowlist is dropped
+// silently, with no error and no log line.
+func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isSubAgent bool) ([]fantasy.AgentTool, error) {
 	var allTools []fantasy.AgentTool
 	if slices.Contains(agent.AllowedTools, AgentToolName) {
 		agentTool, err := c.agentTool(ctx)
@@ -707,12 +726,6 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 	}
 
 	logFile := filepath.Join(c.cfg.Config().Options.DataDirectory, "logs", "atlas.log")
-
-	// Build hook runner if PreToolUse hooks are configured.
-	var hookRunner *hooks.Runner
-	if preToolHooks := c.cfg.Config().Hooks[hooks.EventPreToolUse]; len(preToolHooks) > 0 {
-		hookRunner = hooks.NewRunner(preToolHooks, c.cfg.WorkingDir(), c.cfg.WorkingDir())
-	}
 
 	allTools = append(
 		allTools,
@@ -765,6 +778,10 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		)
 	}
 
+	return allTools, nil
+}
+
+func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Agent, hookRunner *hooks.Runner, isSubAgent bool) []fantasy.AgentTool {
 	var filteredTools []fantasy.AgentTool
 	for _, tool := range allTools {
 		if slices.Contains(agent.AllowedTools, tool.Info().Name) {
@@ -806,7 +823,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 	// itself is still wrapped from the coder's side.
 	filteredTools = wrapToolsWithHooks(filteredTools, hookRunner, isSubAgent)
 
-	return filteredTools, nil
+	return filteredTools
 }
 
 // TODO: when we support multiple agents we need to change this so that we pass in the agent specific model config
