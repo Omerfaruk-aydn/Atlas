@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// slowUpdateQuerier wraps a [db.Querier] and forces UpdateMessage to
+// slowUpdateQuerier wraps a [db.FullQuerier] and forces UpdateMessage to
 // hang on a release channel. Used to simulate an in-flight SQL write.
 type slowUpdateQuerier struct {
-	db.Querier
+	db.FullQuerier
 	release   chan struct{}
 	started   chan struct{}
 	startOnce sync.Once
@@ -29,7 +29,7 @@ func (s *slowUpdateQuerier) UpdateMessage(ctx context.Context, arg db.UpdateMess
 	case <-ctx.Done():
 		return ctx.Err()
 	}
-	return s.Querier.UpdateMessage(ctx, arg)
+	return s.FullQuerier.UpdateMessage(ctx, arg)
 }
 
 // newTestService spins up a fresh in-memory message.Service backed by a
@@ -495,9 +495,9 @@ func TestFlush_WaitsForInFlightWrite(t *testing.T) {
 	require.NoError(t, err)
 
 	slow := &slowUpdateQuerier{
-		Querier: q,
-		release: make(chan struct{}),
-		started: make(chan struct{}),
+		FullQuerier: q,
+		release:     make(chan struct{}),
+		started:     make(chan struct{}),
 	}
 	// Short debounce so the timer fires quickly.
 	svc := NewService(slow, WithDebounce(10*time.Millisecond))
@@ -559,9 +559,9 @@ func TestFlushAll_WaitsForInFlightWrite(t *testing.T) {
 	require.NoError(t, err)
 
 	slow := &slowUpdateQuerier{
-		Querier: q,
-		release: make(chan struct{}),
-		started: make(chan struct{}),
+		FullQuerier: q,
+		release:     make(chan struct{}),
+		started:     make(chan struct{}),
 	}
 	svc := NewService(slow, WithDebounce(10*time.Millisecond))
 

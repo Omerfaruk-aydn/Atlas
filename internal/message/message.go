@@ -63,6 +63,13 @@ type Service interface {
 	// opposed to the title-only filter in the sessions dialog.
 	SearchSessionIDs(ctx context.Context, query string) ([]string, error)
 
+	// Search returns the messages best matching a full-text query, most
+	// relevant first, each with a snippet of the text that matched. Unlike
+	// SearchSessionIDs this reads the FTS5 index, so it ranks rather than
+	// merely filters, and it sees only prose -- the text of a message and
+	// the command line of a shell call, not tool output.
+	Search(ctx context.Context, params SearchParams) ([]SearchHit, error)
+
 	// Flush synchronously drains any pending debounced state for the
 	// given message ID, performs the SQL write, and publishes the
 	// resulting [pubsub.UpdatedEvent]. Idempotent; cheap no-op if no
@@ -111,7 +118,7 @@ type pendingState struct {
 
 type service struct {
 	*pubsub.Broker[Message]
-	q        db.Querier
+	q        db.FullQuerier
 	debounce time.Duration
 
 	mu      sync.Mutex
@@ -130,7 +137,7 @@ func WithDebounce(d time.Duration) ServiceOption {
 	}
 }
 
-func NewService(q db.Querier, opts ...ServiceOption) Service {
+func NewService(q db.FullQuerier, opts ...ServiceOption) Service {
 	s := &service{
 		Broker:   pubsub.NewBroker[Message](),
 		q:        q,
@@ -218,6 +225,68 @@ func (s *service) DeleteSessionMessages(ctx context.Context, sessionID string) e
 		}
 	}
 	return nil
+}
+
+// SearchParams narrows a full-text search over past messages.
+type SearchParams struct {
+	// Query is what the person or the model typed, not FTS5 syntax; it
+	// is quoted for them.
+	Query string
+	// SessionID limits the search to one session. Empty searches all.
+	SessionID string
+	// Limit caps the hits returned. Zero means DefaultSearchLimit.
+	Limit int
+}
+
+// SearchHit is one matching message.
+type SearchHit struct {
+	MessageID    string
+	SessionID    string
+	SessionTitle string
+	Role         MessageRole
+	CreatedAt    int64
+	// Snippet is the stretch of the message around the match, cut to
+	// roughly two dozen tokens.
+	Snippet string
+}
+
+// DefaultSearchLimit is what [Service.Search] returns when the caller does
+// not say. It is small on purpose: these results are read by a model, and a
+// hundred half-relevant snippets cost more than they are worth.
+const DefaultSearchLimit = 20
+
+// Search implements [Service].
+func (s *service) Search(ctx context.Context, params SearchParams) ([]SearchHit, error) {
+	match := db.MatchQuery(params.Query)
+	if match == "" {
+		return nil, nil
+	}
+	limit := params.Limit
+	if limit <= 0 {
+		limit = DefaultSearchLimit
+	}
+
+	rows, err := s.q.SearchMessages(ctx, db.SearchMessagesParams{
+		Query:     match,
+		SessionID: params.SessionID,
+		Limit:     int64(limit),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	hits := make([]SearchHit, len(rows))
+	for i, row := range rows {
+		hits[i] = SearchHit{
+			MessageID:    row.MessageID,
+			SessionID:    row.SessionID,
+			SessionTitle: row.SessionTitle,
+			Role:         MessageRole(row.Role),
+			CreatedAt:    row.CreatedAt,
+			Snippet:      strings.TrimSpace(row.Snippet),
+		}
+	}
+	return hits, nil
 }
 
 // SearchSessionIDs implements [Service].
