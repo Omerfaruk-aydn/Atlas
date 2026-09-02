@@ -972,6 +972,28 @@
         "expires_at"
       ]
     },
+    "ToolBash": {
+      "properties": {
+        "max_output_length": {
+          "type": "integer",
+          "description": "Maximum width of the output the bash tool returns before its middle is dropped",
+          "default": 30000,
+          "examples": [
+            10000
+          ]
+        },
+        "auto_background_after": {
+          "type": "integer",
+          "description": "Seconds a command may run in the foreground before it becomes a background job",
+          "default": 60,
+          "examples": [
+            120
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolGlob": {
       "properties": {
         "timeout": {
@@ -1024,6 +1046,9 @@
         },
         "glob": {
           "$ref": "#/$defs/ToolGlob"
+        },
+        "bash": {
+          "$ref": "#/$defs/ToolBash"
         }
       },
       "additionalProperties": false,
