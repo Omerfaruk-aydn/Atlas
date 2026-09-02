@@ -49,6 +49,7 @@ func NewWriteTool(
 	files history.Service,
 	filetracker filetracker.Service,
 	workingDir string,
+	pathPolicy PathPolicy,
 ) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
 		WriteToolName,
@@ -64,6 +65,10 @@ func NewWriteTool(
 			}
 
 			filePath := filepathext.SmartJoin(workingDir, params.FilePath)
+
+			if err := pathPolicy.Check(filePath); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
+			}
 
 			fileInfo, err := os.Stat(filePath)
 			fileExisted := err == nil

@@ -722,6 +722,8 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, agenticFetchTool)
 	}
 
+	pathPolicy := tools.NewPathPolicy(c.cfg.Config(), c.cfg.WorkingDir())
+
 	// Get the model name for the agent
 	modelID := ""
 	if modelCfg, ok := c.cfg.Config().Models[agent.Model]; ok {
@@ -739,10 +741,10 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewAtlasLogsTool(logFile),
 		tools.NewJobOutputTool(),
 		tools.NewJobKillTool(),
-		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil, urlPolicy(c.cfg)),
-		tools.NewEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir()),
+		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil, urlPolicy(c.cfg), pathPolicy),
+		tools.NewEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir(), pathPolicy),
 		tools.NewExitPlanModeTool(c.permissions, c.cfg.WorkingDir()),
-		tools.NewMultiEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir()),
+		tools.NewMultiEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir(), pathPolicy),
 		tools.NewFetchTool(c.permissions, c.cfg.WorkingDir(), nil, urlPolicy(c.cfg)),
 		tools.NewGlobTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Glob),
 		tools.NewGrepTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Grep),
@@ -754,7 +756,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewSourcegraphTool(nil),
 		tools.NewTodosTool(c.sessions),
 		tools.NewViewTool(c.lspManager, c.permissions, c.filetracker, c.skillTracker, c.cfg.WorkingDir(), c.cfg.Config().Options.SkillsPaths...),
-		tools.NewWriteTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir()),
+		tools.NewWriteTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir(), pathPolicy),
 	)
 
 	// Question tool is interactive-only and not available to sub-agents.

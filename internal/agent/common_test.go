@@ -180,16 +180,16 @@ func coderAgent(r *vcr.Recorder, env fakeEnv, large, small fantasy.LanguageModel
 
 	allTools := []fantasy.AgentTool{
 		tools.NewBashTool(env.permissions, env.workingDir, cfg.Config().Options.Attribution, modelName, tools.NewCommandPolicy(cfg.Config()), tools.NewBashLimits(cfg.Config())),
-		tools.NewDownloadTool(env.permissions, env.workingDir, r.GetDefaultClient(), tools.URLPolicy{}),
-		tools.NewEditTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir),
-		tools.NewMultiEditTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir),
+		tools.NewDownloadTool(env.permissions, env.workingDir, r.GetDefaultClient(), tools.URLPolicy{}, tools.PathPolicy{}),
+		tools.NewEditTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir, tools.PathPolicy{}),
+		tools.NewMultiEditTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir, tools.PathPolicy{}),
 		tools.NewFetchTool(env.permissions, env.workingDir, r.GetDefaultClient(), tools.URLPolicy{}),
 		tools.NewGlobTool(env.workingDir, cfg.Config().Tools.Glob),
 		tools.NewGrepTool(env.workingDir, cfg.Config().Tools.Grep),
 		tools.NewLsTool(env.permissions, env.workingDir, cfg.Config().Tools.Ls),
 		tools.NewSourcegraphTool(r.GetDefaultClient()),
 		tools.NewViewTool(nil, env.permissions, *env.filetracker, nil, env.workingDir),
-		tools.NewWriteTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir),
+		tools.NewWriteTool(nil, env.permissions, env.history, *env.filetracker, env.workingDir, tools.PathPolicy{}),
 	}
 
 	return testSessionAgent(env, large, small, systemPrompt, allTools...), nil

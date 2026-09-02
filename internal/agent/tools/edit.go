@@ -61,6 +61,7 @@ func NewEditTool(
 	files history.Service,
 	filetracker filetracker.Service,
 	workingDir string,
+	pathPolicy PathPolicy,
 ) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
 		EditToolName,
@@ -71,6 +72,10 @@ func NewEditTool(
 			}
 
 			params.FilePath = filepathext.SmartJoin(workingDir, params.FilePath)
+
+			if err := pathPolicy.Check(params.FilePath); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
+			}
 
 			var response fantasy.ToolResponse
 			var err error

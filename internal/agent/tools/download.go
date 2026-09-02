@@ -50,7 +50,7 @@ func downloadDescription() string {
 	})
 }
 
-func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client, policy URLPolicy) fantasy.AgentTool {
+func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client, policy URLPolicy, pathPolicy PathPolicy) fantasy.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -83,6 +83,10 @@ func NewDownloadTool(permissions permission.Service, workingDir string, client *
 			}
 
 			filePath := filepathext.SmartJoin(workingDir, params.FilePath)
+
+			if err := pathPolicy.Check(filePath); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
+			}
 			relPath, _ := filepath.Rel(workingDir, filePath)
 			relPath = filepath.ToSlash(cmp.Or(relPath, filePath))
 

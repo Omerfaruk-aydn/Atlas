@@ -62,6 +62,7 @@ func NewMultiEditTool(
 	files history.Service,
 	filetracker filetracker.Service,
 	workingDir string,
+	pathPolicy PathPolicy,
 ) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
 		MultiEditToolName,
@@ -76,6 +77,10 @@ func NewMultiEditTool(
 			}
 
 			params.FilePath = filepathext.SmartJoin(workingDir, params.FilePath)
+
+			if err := pathPolicy.Check(params.FilePath); err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
+			}
 
 			// Validate all edits before applying any
 			if err := validateEdits(params.Edits); err != nil {
