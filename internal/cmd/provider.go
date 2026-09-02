@@ -25,8 +25,18 @@ var providerTestCmd = &cobra.Command{
 	RunE: runProviderTest,
 }
 
+var providerListCmd = &cobra.Command{
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List configured providers",
+	Long:    "List configured providers, their type, and whether an API key is set. Does not contact any provider -- see `provider test` for that.",
+	Args:    cobra.NoArgs,
+	RunE:    runProviderList,
+}
+
 func init() {
 	providerCmd.AddCommand(providerTestCmd)
+	providerCmd.AddCommand(providerListCmd)
 	rootCmd.AddCommand(providerCmd)
 }
 
@@ -95,5 +105,53 @@ func testOneProvider(cmd *cobra.Command, cfg *config.ConfigStore, name string) e
 	}
 
 	fmt.Fprintf(cmd.OutOrStdout(), "%s: ok\n", name)
+	return nil
+}
+
+func runProviderList(cmd *cobra.Command, _ []string) error {
+	dataDir, _ := cmd.Flags().GetString("data-dir")
+	debug, _ := cmd.Flags().GetBool("debug")
+
+	cfg, err := config.Init("", dataDir, debug)
+	if err != nil {
+		return fmt.Errorf("failed to initialize config: %w", err)
+	}
+	return listProviders(cmd, cfg)
+}
+
+// listProviders is split out from runProviderList for the same reason
+// testAllProviders is split from runProviderTest: a test can build a
+// *config.ConfigStore directly but cannot inject one into a function that
+// calls config.Init itself.
+func listProviders(cmd *cobra.Command, cfg *config.ConfigStore) error {
+	var names []string
+	for name := range cfg.Config().Providers.Seq2() {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	if len(names) == 0 {
+		fmt.Fprintln(cmd.OutOrStdout(), "No providers configured.")
+		return nil
+	}
+
+	out := cmd.OutOrStdout()
+	for _, name := range names {
+		providerCfg, _ := cfg.Config().Providers.Get(name)
+
+		status := "no API key"
+		if providerCfg.APIKey != "" {
+			if resolved, err := cfg.Resolve(providerCfg.APIKey); err == nil && resolved != "" {
+				status = "API key set"
+			} else {
+				status = "API key not resolved"
+			}
+		}
+		if providerCfg.Disable {
+			status = "disabled"
+		}
+
+		fmt.Fprintf(out, "%s (%s): %d models, %s\n", name, providerCfg.Type, len(providerCfg.Models), status)
+	}
 	return nil
 }

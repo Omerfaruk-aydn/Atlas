@@ -117,3 +117,46 @@ func TestProviderTestAllSucceedsWhenEveryoneIsHealthy(t *testing.T) {
 
 	require.NoError(t, testAllProviders(c, cfg))
 }
+
+func TestProviderListShowsKeyStatus(t *testing.T) {
+	dataDir := t.TempDir()
+	cfg, err := config.Init(dataDir, dataDir, false)
+	require.NoError(t, err)
+	cfg.Config().Providers.Set("keyed", config.ProviderConfig{
+		ID: "keyed", Type: catwalk.TypeOpenAICompat, APIKey: "sk-abc",
+		Models: []catwalk.Model{{ID: "m1"}, {ID: "m2"}},
+	})
+	cfg.Config().Providers.Set("keyless", config.ProviderConfig{
+		ID: "keyless", Type: catwalk.TypeOpenAICompat,
+	})
+	cfg.Config().Providers.Set("off", config.ProviderConfig{
+		ID: "off", Type: catwalk.TypeOpenAICompat, APIKey: "sk-abc", Disable: true,
+	})
+
+	c := &cobra.Command{}
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, listProviders(c, cfg))
+
+	require.Contains(t, out.String(), "keyed (openai-compat): 2 models, API key set")
+	require.Contains(t, out.String(), "keyless (openai-compat): 0 models, no API key")
+	require.Contains(t, out.String(), "off (openai-compat): 0 models, disabled")
+}
+
+func TestProviderListEmpty(t *testing.T) {
+	c := &cobra.Command{}
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	cfg, err := config.Init(t.TempDir(), t.TempDir(), false)
+	require.NoError(t, err)
+	// Clear whatever the embedded catalog seeded so the empty-state
+	// message is actually exercised.
+	for name := range cfg.Config().Providers.Seq2() {
+		cfg.Config().Providers.Del(name)
+	}
+
+	require.NoError(t, listProviders(c, cfg))
+	require.Contains(t, out.String(), "No providers configured.")
+}
