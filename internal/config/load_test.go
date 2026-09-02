@@ -817,6 +817,47 @@ func TestConfig_setupAgentsWithNoDisabledTools(t *testing.T) {
 	assert.Equal(t, []string{"lsp_symbols", "lsp_definition", "lsp_call_hierarchy", "glob", "grep", "ls", "session_search", "sourcegraph", "view"}, taskAgent.AllowedTools)
 }
 
+func TestConfig_setupAgentsRoutesAgentModelsWhenSet(t *testing.T) {
+	cfg := &Config{
+		Options: &Options{
+			AgentModels: map[string]SelectedModelType{
+				AgentTask: SelectedModelTypeSmall,
+			},
+		},
+	}
+
+	cfg.SetupAgents()
+
+	assert.Equal(t, SelectedModelTypeLarge, cfg.Agents[AgentCoder].Model,
+		"coder is not named in the override, so it keeps its default")
+	assert.Equal(t, SelectedModelTypeSmall, cfg.Agents[AgentTask].Model)
+}
+
+func TestConfig_setupAgentsIgnoresAnInvalidAgentModelOverride(t *testing.T) {
+	cfg := &Config{
+		Options: &Options{
+			AgentModels: map[string]SelectedModelType{
+				AgentTask:    "gigantic",
+				"no-such-id": SelectedModelTypeSmall,
+			},
+		},
+	}
+
+	cfg.SetupAgents()
+
+	assert.Equal(t, SelectedModelTypeLarge, cfg.Agents[AgentTask].Model,
+		"an override naming no real model type must not take down startup")
+}
+
+func TestConfig_setupAgentsWithNoAgentModelsKeepsDefaults(t *testing.T) {
+	cfg := &Config{Options: &Options{}}
+
+	cfg.SetupAgents()
+
+	assert.Equal(t, SelectedModelTypeLarge, cfg.Agents[AgentCoder].Model)
+	assert.Equal(t, SelectedModelTypeLarge, cfg.Agents[AgentTask].Model)
+}
+
 func TestConfig_setupAgentsWithDisabledTools(t *testing.T) {
 	cfg := &Config{
 		Options: &Options{

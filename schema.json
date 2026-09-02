@@ -596,6 +596,13 @@
         "memory": {
           "$ref": "#/$defs/Memory",
           "description": "Bounds on the prose the agent carries between sessions"
+        },
+        "agent_models": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object",
+          "description": "Override which model type (large or small) an agent uses, keyed by agent id"
         }
       },
       "additionalProperties": false,

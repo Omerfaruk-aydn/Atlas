@@ -67,6 +67,11 @@ const (
 	SelectedModelTypeSmall SelectedModelType = "small"
 )
 
+// Valid reports whether s names a model type an agent can be routed to.
+func (s SelectedModelType) Valid() bool {
+	return s == SelectedModelTypeLarge || s == SelectedModelTypeSmall
+}
+
 const (
 	AgentCoder string = "coder"
 	AgentTask  string = "task"
@@ -391,6 +396,12 @@ type Options struct {
 	Notifications             string       `json:"notifications,omitempty" jsonschema:"description=Notification style to use. Options: auto (default)\\, native\\, osc\\, bell\\, disabled. Auto selects based on environment: native for local sessions\\, osc for SSH (with automatic OSC 99/777 detection).,enum=auto,enum=native,enum=osc,enum=bell,enum=disabled,default=auto"`
 	DisabledSkills            []string     `json:"disabled_skills,omitempty" jsonschema:"description=List of skill names to disable and hide from the agent,example=crush-config"`
 	Memory                    *Memory      `json:"memory,omitempty" jsonschema:"description=Bounds on the prose the agent carries between sessions"`
+	// AgentModels overrides which model type (large or small) a built-in
+	// agent uses, keyed by agent ID (coder, task). An agent not named here
+	// keeps its default. Unknown agent IDs and invalid model types are
+	// ignored rather than rejected, since a stale key here should not stop
+	// startup over a knob nobody is relying on any more.
+	AgentModels map[string]SelectedModelType `json:"agent_models,omitempty" jsonschema:"description=Override which model type (large or small) an agent uses\\, keyed by agent id,example={\"task\":\"small\"}"`
 }
 
 // Memory bounds the persistent stores. The bounds matter because their
@@ -952,7 +963,7 @@ func (c *Config) SetupAgents() {
 			ID:           AgentCoder,
 			Name:         "Coder",
 			Description:  "An agent that helps with executing coding tasks.",
-			Model:        SelectedModelTypeLarge,
+			Model:        c.agentModel(AgentCoder, SelectedModelTypeLarge),
 			ContextPaths: c.Options.ContextPaths,
 			AllowedTools: allowedTools,
 		},
@@ -961,7 +972,7 @@ func (c *Config) SetupAgents() {
 			ID:           AgentTask,
 			Name:         "Task",
 			Description:  "An agent that helps with searching for context and finding implementation details.",
-			Model:        SelectedModelTypeLarge,
+			Model:        c.agentModel(AgentTask, SelectedModelTypeLarge),
 			ContextPaths: c.Options.ContextPaths,
 			AllowedTools: resolveReadOnlyTools(allowedTools),
 			// NO MCPs or LSPs by default
@@ -969,6 +980,18 @@ func (c *Config) SetupAgents() {
 		},
 	}
 	c.Agents = agents
+}
+
+// agentModel resolves which model type an agent should use: the override in
+// Options.AgentModels for id, if one is set and names a real model type,
+// otherwise def. This is where a role gets routed to a model tier -- coder
+// stays on the large model by default, but a workspace that wants the task
+// agent's searches on the small model sets it there instead of here.
+func (c *Config) agentModel(id string, def SelectedModelType) SelectedModelType {
+	if override, ok := c.Options.AgentModels[id]; ok && override.Valid() {
+		return override
+	}
+	return def
 }
 
 func (c *ProviderConfig) TestConnection(resolver VariableResolver) error {
