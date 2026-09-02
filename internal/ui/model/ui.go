@@ -2151,7 +2151,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, util.ReportError(err))
 			break
 		}
-		snippets = append(snippets, dialog.Snippet{Name: msg.Name, Text: msg.Text})
+		snippets = append(snippets, dialog.Snippet(msg))
 		if err := saveSnippetsFile(snippets); err != nil {
 			cmds = append(cmds, util.ReportError(err))
 			break
@@ -2721,7 +2721,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			// Hide the banner for the duration of the upgrade; otherwise
 			// the TUI keeps re-painting it over the npm output.
 			m.status.ClearInfoMsg()
-			cmd := exec.Command(exe, "update")
+			cmd := exec.CommandContext(context.Background(), exe, "update")
 			cmds = append(cmds, tea.ExecProcess(cmd, func(runErr error) tea.Msg {
 				if runErr != nil {
 					return util.NewErrorMsg(fmt.Errorf("update failed: %w", runErr))

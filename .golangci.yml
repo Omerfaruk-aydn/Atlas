@@ -33,6 +33,11 @@ linters:
     generated: lax
     presets:
       - common-false-positives
+    # internal/deps is vendored third-party code, kept as close to upstream as
+    # possible so it can be re-synced. Linting it produces findings nobody here
+    # is allowed to act on.
+    paths:
+      - internal/deps
     rules:
       - text: '(slog|log)\.\w+'
         linters:
@@ -45,6 +50,13 @@ linters:
         text: "SA1019.*LoggingMessageHandler"
         linters:
           - staticcheck
+      # The clipboard test builds a Win32 DROPFILES blob by hand inside a
+      # GlobalAlloc'd block. The pointer arithmetic is the shape the API
+      # requires; govet cannot tell it apart from a real misuse.
+      - path: internal/clipboard/files_windows_test.go
+        text: "unsafeptr"
+        linters:
+          - govet
       # SA4023 false positive: RemoveConfigField returns non-nil errors.
       - path: internal/cmd/logout.go
         text: "SA4023"
@@ -59,3 +71,5 @@ formatters:
     # - goimports
   exclusions:
     generated: lax
+    paths:
+      - internal/deps

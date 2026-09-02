@@ -140,7 +140,7 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 			items, err := catwalkSyncer.Get(ctx)
 			if err != nil {
 				catwalkURL := fmt.Sprintf("%s/v2/providers", cmp.Or(os.Getenv("CATWALK_URL"), defaultCatwalkURL))
-				catwalkErr = fmt.Errorf("Atlas-Agent was unable to fetch an updated list of providers from %s. The embedded provider catalog bundled in this release is used as a fallback. You can also update providers manually. For more info see Atlas-Agent update-providers --help.\n\nCause: %w", catwalkURL, err) //nolint:staticcheck
+				catwalkErr = fmt.Errorf("Atlas-Agent was unable to fetch an updated list of providers from %s. The embedded provider catalog bundled in this release is used as a fallback. You can also update providers manually. For more info see Atlas-Agent update-providers --help.\n\nCause: %w", catwalkURL, err)
 			}
 			providers.Append(items...)
 		}
