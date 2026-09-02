@@ -3,9 +3,12 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +27,17 @@ var configShowCmd = &cobra.Command{
 	RunE: runConfigShow,
 }
 
+var configPathsCmd = &cobra.Command{
+	Use:   "paths",
+	Short: "List the config files this workspace merges",
+	Long: "List every config file location consulted for this workspace, in the order they are merged -- " +
+		"later files win on conflict -- and whether each one exists.",
+	Args: cobra.NoArgs,
+	RunE: runConfigPaths,
+}
+
 func init() {
+	configCmd.AddCommand(configPathsCmd)
 	configCmd.AddCommand(configShowCmd)
 	rootCmd.AddCommand(configCmd)
 }
@@ -154,4 +167,28 @@ func redactMapValues(v any) any {
 		out[key] = Redacted
 	}
 	return out
+}
+
+func runConfigPaths(cmd *cobra.Command, _ []string) error {
+	cwd, err := ResolveCwd(cmd)
+	if err != nil {
+		return err
+	}
+	return printConfigPaths(cmd.OutOrStdout(), config.ProjectConfigs(cwd))
+}
+
+// printConfigPaths lists the candidate config files in merge order. The
+// order is what makes this worth printing at all: a setting in a later file
+// wins, and that is the question people actually have when two files
+// disagree.
+func printConfigPaths(out io.Writer, paths []string) error {
+	for _, path := range paths {
+		state := "missing"
+		if info, err := os.Stat(path); err == nil && !info.IsDir() {
+			state = "present"
+		}
+		fmt.Fprintf(out, "[%s] %s\n", state, home.Short(path))
+	}
+	fmt.Fprintln(out, "\nMerged in this order; a setting in a later file wins.")
+	return nil
 }

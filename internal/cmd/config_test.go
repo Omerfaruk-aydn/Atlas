@@ -3,6 +3,9 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -93,4 +96,44 @@ func TestRedactMapValuesHandlesNonMaps(t *testing.T) {
 	encoded, err := json.Marshal(got)
 	require.NoError(t, err)
 	require.NotContains(t, string(encoded), `"s"`)
+}
+
+func TestConfigPathsListsCandidatesInMergeOrder(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"options":{"max_steps_per_turn":1}}`)
+
+	c := newSkillTestCmd(t, runConfigPaths, workingDir, t.TempDir())
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, nil))
+	got := out.String()
+
+	require.Contains(t, got, "atlas.json")
+	require.Contains(t, got, "[present]")
+	require.Contains(t, got, "a setting in a later file wins")
+}
+
+func TestPrintConfigPathsMarksWhatExists(t *testing.T) {
+	dir := t.TempDir()
+	present := filepath.Join(dir, "atlas.json")
+	require.NoError(t, os.WriteFile(present, []byte("{}"), 0o644))
+	missing := filepath.Join(dir, "nowhere", "atlas.json")
+
+	var out bytes.Buffer
+	require.NoError(t, printConfigPaths(&out, []string{missing, present}))
+
+	lines := strings.Split(strings.TrimSpace(out.String()), "\n")
+	require.Contains(t, lines[0], "[missing]")
+	require.Contains(t, lines[1], "[present]")
+}
+
+// A directory where a config file could go is not a config file.
+func TestPrintConfigPathsDoesNotCountADirectory(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.MkdirAll(filepath.Join(dir, "atlas.json"), 0o755))
+
+	var out bytes.Buffer
+	require.NoError(t, printConfigPaths(&out, []string{filepath.Join(dir, "atlas.json")}))
+	require.Contains(t, out.String(), "[missing]")
 }
