@@ -539,6 +539,40 @@
           "type": "array",
           "description": "Domains (and their subdomains) the fetch/download tools may never reach, checked before allowed_domains"
         },
+        "auto_summarize_at": {
+          "type": "number",
+          "description": "Summarize once this fraction of the context window is used (0-1 exclusive). Unset keeps the built-in thresholds.",
+          "examples": [
+            0.8
+          ]
+        },
+        "max_provider_retries": {
+          "type": "integer",
+          "description": "How many times to retry a failed provider request. Unset keeps the default; 0 disables retries.",
+          "examples": [
+            5
+          ]
+        },
+        "allowed_commands": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "curl"
+            ]
+          },
+          "type": "array",
+          "description": "Commands to lift from the bash tool's built-in block list (their subcommand blocks are lifted too)"
+        },
+        "blocked_commands": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "kubectl"
+            ]
+          },
+          "type": "array",
+          "description": "Extra commands the bash tool may never run - on top of the built-in block list"
+        },
         "max_steps_per_turn": {
           "type": "integer",
           "description": "Stop a turn once it has taken this many model/tool-call steps, whether or not it is making progress. Zero or unset means unbounded.",
