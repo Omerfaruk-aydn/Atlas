@@ -58,6 +58,7 @@ type Session struct {
 	SummaryMessageID string
 	Cost             float64
 	Todos            []Todo
+	Tags             []string
 	// CreatedAt and UpdatedAt are Unix seconds, from the database's
 	// strftime('%s', 'now') -- not milliseconds, despite what the initial
 	// migration's column comment says.
@@ -84,6 +85,10 @@ type Service interface {
 	Save(ctx context.Context, session Session) (Session, error)
 	UpdateTitleAndUsage(ctx context.Context, sessionID, title string, promptTokens, completionTokens int64, cost float64) error
 	Rename(ctx context.Context, id string, title string) error
+	// SetTags replaces a session's tags wholesale. An empty slice clears
+	// them, the same way Rename replaces the title wholesale rather than
+	// appending to it.
+	SetTags(ctx context.Context, id string, tags []string) error
 	Delete(ctx context.Context, id string) error
 
 	// Agent tool session management
@@ -287,6 +292,23 @@ func (s *service) Rename(ctx context.Context, id string, title string) error {
 	return nil
 }
 
+// SetTags replaces a session's tags wholesale, the same way Rename replaces
+// the title wholesale rather than appending to it.
+func (s *service) SetTags(ctx context.Context, id string, tags []string) error {
+	tagsJSON, err := marshalTags(tags)
+	if err != nil {
+		return err
+	}
+	if err := s.q.SetSessionTags(ctx, db.SetSessionTagsParams{
+		ID:   id,
+		Tags: sql.NullString{String: tagsJSON, Valid: tagsJSON != ""},
+	}); err != nil {
+		return err
+	}
+	s.publishSessionUpdate(ctx, id)
+	return nil
+}
+
 func (s *service) List(ctx context.Context) ([]Session, error) {
 	dbSessions, err := s.q.ListSessions(ctx)
 	if err != nil {
@@ -338,6 +360,10 @@ func (s *service) fromDBItem(item db.Session) Session {
 	if err != nil {
 		slog.Error("Failed to unmarshal todos", "session_id", item.ID, "error", err)
 	}
+	tags, err := unmarshalTags(item.Tags.String)
+	if err != nil {
+		slog.Error("Failed to unmarshal tags", "session_id", item.ID, "error", err)
+	}
 	return Session{
 		ID:               item.ID,
 		ParentSessionID:  item.ParentSessionID.String,
@@ -348,6 +374,7 @@ func (s *service) fromDBItem(item db.Session) Session {
 		SummaryMessageID: item.SummaryMessageID.String,
 		Cost:             item.Cost,
 		Todos:            todos,
+		Tags:             tags,
 		CreatedAt:        item.CreatedAt,
 		UpdatedAt:        item.UpdatedAt,
 	}
@@ -373,6 +400,28 @@ func unmarshalTodos(data string) ([]Todo, error) {
 		return []Todo{}, err
 	}
 	return todos, nil
+}
+
+func marshalTags(tags []string) (string, error) {
+	if len(tags) == 0 {
+		return "", nil
+	}
+	data, err := json.Marshal(tags)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+func unmarshalTags(data string) ([]string, error) {
+	if data == "" {
+		return []string{}, nil
+	}
+	var tags []string
+	if err := json.Unmarshal([]byte(data), &tags); err != nil {
+		return []string{}, err
+	}
+	return tags, nil
 }
 
 func NewService(q *db.Queries, conn *sql.DB) Service {

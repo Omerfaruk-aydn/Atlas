@@ -40,6 +40,7 @@ var sessionCmd = &cobra.Command{
 
 var (
 	sessionListJSON   bool
+	sessionListTag    string
 	sessionShowJSON   bool
 	sessionLastJSON   bool
 	sessionDeleteJSON bool
@@ -50,7 +51,7 @@ var sessionListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List all sessions",
-	Long:    "List all sessions. Use --json for machine-readable output.",
+	Long:    "List all sessions. Use --tag to show only sessions carrying a given tag. Use --json for machine-readable output.",
 	RunE:    runSessionList,
 }
 
@@ -88,6 +89,7 @@ var sessionRenameCmd = &cobra.Command{
 
 func init() {
 	sessionListCmd.Flags().BoolVar(&sessionListJSON, "json", false, "output in JSON format")
+	sessionListCmd.Flags().StringVar(&sessionListTag, "tag", "", "only show sessions carrying this tag")
 	sessionShowCmd.Flags().BoolVar(&sessionShowJSON, "json", false, "output in JSON format")
 	sessionLastCmd.Flags().BoolVar(&sessionLastJSON, "json", false, "output in JSON format")
 	sessionDeleteCmd.Flags().BoolVar(&sessionDeleteJSON, "json", false, "output in JSON format")
@@ -152,6 +154,9 @@ func runSessionList(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to list sessions: %w", err)
 	}
+	if sessionListTag != "" {
+		list = filterSessionsByTag(list, sessionListTag)
+	}
 
 	if sessionListJSON {
 		out := cmd.OutOrStdout()
@@ -163,6 +168,7 @@ func runSessionList(cmd *cobra.Command, _ []string) error {
 				Title:    s.Title,
 				Created:  time.Unix(s.CreatedAt, 0).Format(time.RFC3339),
 				Modified: time.Unix(s.UpdatedAt, 0).Format(time.RFC3339),
+				Tags:     s.Tags,
 			}
 		}
 		enc := json.NewEncoder(out)
@@ -201,11 +207,12 @@ func runSessionList(cmd *cobra.Command, _ []string) error {
 }
 
 type sessionJSON struct {
-	ID       string `json:"id"`
-	UUID     string `json:"uuid"`
-	Title    string `json:"title"`
-	Created  string `json:"created"`
-	Modified string `json:"modified"`
+	ID       string   `json:"id"`
+	UUID     string   `json:"uuid"`
+	Title    string   `json:"title"`
+	Created  string   `json:"created"`
+	Modified string   `json:"modified"`
+	Tags     []string `json:"tags,omitempty"`
 }
 
 type sessionMutationResult struct {

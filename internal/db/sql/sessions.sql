@@ -75,6 +75,12 @@ SET
     title = ?
 WHERE id = ?;
 
+-- name: SetSessionTags :exec
+UPDATE sessions
+SET
+    tags = ?
+WHERE id = ?;
+
 -- name: DeleteSession :exec
 DELETE FROM sessions
 WHERE id = ?;

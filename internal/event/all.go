@@ -48,3 +48,6 @@ func SessionDeletedCommand(bool) {}
 
 // SessionRenamed is a no-op.
 func SessionRenamed(bool) {}
+
+// SessionTagged is a no-op.
+func SessionTagged(bool) {}
