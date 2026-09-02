@@ -553,6 +553,25 @@
             5
           ]
         },
+        "max_concurrent_subagents": {
+          "type": "integer",
+          "description": "Cap how many agent-tool sub-agents run at the same time. Zero or unset means no limit.",
+          "examples": [
+            3
+          ]
+        },
+        "restrict_writes_to_working_dir": {
+          "type": "boolean",
+          "description": "Refuse writes outside the working directory outright",
+          "default": false
+        },
+        "max_download_bytes": {
+          "type": "integer",
+          "description": "Refuse a download larger than this many bytes. Zero or unset means no limit.",
+          "examples": [
+            52428800
+          ]
+        },
         "allowed_commands": {
           "items": {
             "type": "string",
@@ -1036,6 +1055,28 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolView": {
+      "properties": {
+        "default_read_limit": {
+          "type": "integer",
+          "description": "Lines the view tool returns when the model does not say",
+          "default": 200,
+          "examples": [
+            500
+          ]
+        },
+        "max_line_length": {
+          "type": "integer",
+          "description": "How much of a single long line survives before it is cut",
+          "default": 2000,
+          "examples": [
+            500
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Tools": {
       "properties": {
         "ls": {
@@ -1049,6 +1090,9 @@
         },
         "bash": {
           "$ref": "#/$defs/ToolBash"
+        },
+        "view": {
+          "$ref": "#/$defs/ToolView"
         }
       },
       "additionalProperties": false,
