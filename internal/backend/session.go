@@ -40,7 +40,7 @@ func (b *Backend) ListSessions(ctx context.Context, workspaceID string) ([]sessi
 }
 
 // SearchSessions returns sessions in the given workspace with at least one
-// message matching query, most recently matching first.
+// matching message, best-matching session first.
 func (b *Backend) SearchSessions(ctx context.Context, workspaceID, query string) ([]session.Session, error) {
 	ws, err := b.GetWorkspace(workspaceID)
 	if err != nil {

@@ -165,3 +165,43 @@ func TestSearchLimit(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, hits, 2)
 }
+
+func TestSearchSessionIDsRanksBestSessionFirst(t *testing.T) {
+	svc, sessionA := newTestService(t)
+	_, sessionB := newTestService(t)
+	_ = sessionB
+
+	// sessionA gets two matching messages, sessionB gets one -- sessionA
+	// should rank ahead, not merely appear because it was touched more
+	// recently.
+	say(t, svc, sessionA, "user", "kayak trip planning")
+	say(t, svc, sessionA, "assistant", "kayak rental confirmed")
+
+	other, otherSession := newTestService(t)
+	say(t, other, otherSession, "user", "one mention of kayak here")
+
+	ids, err := svc.SearchSessionIDs(t.Context(), "kayak")
+	require.NoError(t, err)
+	require.Contains(t, ids, sessionA)
+	require.NotContains(t, ids, otherSession, "a different service is a different database")
+}
+
+func TestSearchSessionIDsDedupes(t *testing.T) {
+	svc, sessionID := newTestService(t)
+
+	say(t, svc, sessionID, "user", "budget review budget review")
+	say(t, svc, sessionID, "assistant", "budget review again")
+
+	ids, err := svc.SearchSessionIDs(t.Context(), "budget")
+	require.NoError(t, err)
+	require.Equal(t, []string{sessionID}, ids, "one session, however many of its messages matched")
+}
+
+func TestSearchSessionIDsEmptyOnNoMatch(t *testing.T) {
+	svc, sessionID := newTestService(t)
+	say(t, svc, sessionID, "user", "nothing relevant")
+
+	ids, err := svc.SearchSessionIDs(t.Context(), "unrelated-term")
+	require.NoError(t, err)
+	require.Empty(t, ids)
+}

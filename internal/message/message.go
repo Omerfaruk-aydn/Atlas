@@ -57,9 +57,8 @@ type Service interface {
 	DeleteSessionMessages(ctx context.Context, sessionID string) error
 
 	// SearchSessionIDs returns the IDs of sessions with at least one
-	// message whose content contains query (case-sensitive substring,
-	// since it runs as a SQL LIKE over the stored parts JSON), most
-	// recently matching first. Used for content-based session search, as
+	// matching message, best-matching session first (by its best-ranked
+	// message; see Search). Used for content-based session search, as
 	// opposed to the title-only filter in the sessions dialog.
 	SearchSessionIDs(ctx context.Context, query string) ([]string, error)
 
@@ -289,25 +288,36 @@ func (s *service) Search(ctx context.Context, params SearchParams) ([]SearchHit,
 	return hits, nil
 }
 
+// searchSessionIDsHitLimit is how many ranked message hits
+// SearchSessionIDs pulls from Search before deduping into distinct
+// sessions. Wider than maxSearchSessionIDs because several of the
+// best-ranked hits often land in the same session.
+const searchSessionIDsHitLimit = 200
+
+// maxSearchSessionIDs caps how many distinct sessions SearchSessionIDs
+// returns.
+const maxSearchSessionIDs = 50
+
 // SearchSessionIDs implements [Service].
 func (s *service) SearchSessionIDs(ctx context.Context, query string) ([]string, error) {
-	rows, err := s.q.SearchSessionIDsByMessageContent(ctx, likeContains(query))
+	hits, err := s.Search(ctx, SearchParams{Query: query, Limit: searchSessionIDsHitLimit})
 	if err != nil {
 		return nil, err
 	}
-	ids := make([]string, len(rows))
-	for i, row := range rows {
-		ids[i] = row.SessionID
+
+	seen := make(map[string]bool, len(hits))
+	ids := make([]string, 0, min(len(hits), maxSearchSessionIDs))
+	for _, hit := range hits {
+		if seen[hit.SessionID] {
+			continue
+		}
+		seen[hit.SessionID] = true
+		ids = append(ids, hit.SessionID)
+		if len(ids) == maxSearchSessionIDs {
+			break
+		}
 	}
 	return ids, nil
-}
-
-// likeContains escapes SQL LIKE metacharacters in query and wraps it for a
-// "contains" match, so a literal % or _ in the user's search text is
-// matched literally instead of acting as a wildcard.
-func likeContains(query string) string {
-	escaped := strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(query)
-	return "%" + escaped + "%"
 }
 
 // Update accepts a new state for a message and either flushes
