@@ -58,8 +58,11 @@ type Session struct {
 	SummaryMessageID string
 	Cost             float64
 	Todos            []Todo
-	CreatedAt        int64
-	UpdatedAt        int64
+	// CreatedAt and UpdatedAt are Unix seconds, from the database's
+	// strftime('%s', 'now') -- not milliseconds, despite what the initial
+	// migration's column comment says.
+	CreatedAt int64
+	UpdatedAt int64
 }
 
 type Service interface {

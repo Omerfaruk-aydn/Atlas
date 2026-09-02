@@ -31,7 +31,7 @@ func Markdown(sess session.Session, msgs []message.Message) string {
 	fmt.Fprintf(&b, "# %s\n\n", nonEmpty(sess.Title, "Untitled session"))
 	fmt.Fprintf(&b, "- Exported: %s\n", time.Now().UTC().Format(time.RFC3339))
 	if sess.CreatedAt > 0 {
-		fmt.Fprintf(&b, "- Started: %s\n", time.UnixMilli(sess.CreatedAt).UTC().Format(time.RFC3339))
+		fmt.Fprintf(&b, "- Started: %s\n", time.Unix(sess.CreatedAt, 0).UTC().Format(time.RFC3339))
 	}
 	fmt.Fprintf(&b, "- Messages: %d\n\n", len(msgs))
 	b.WriteString("---\n\n")

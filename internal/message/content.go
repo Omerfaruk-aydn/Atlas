@@ -167,12 +167,15 @@ func (m *Message) ShellCommands() []ShellCommand {
 }
 
 type Message struct {
-	ID               string
-	Role             MessageRole
-	SessionID        string
-	Parts            []ContentPart
-	Model            string
-	Provider         string
+	ID        string
+	Role      MessageRole
+	SessionID string
+	Parts     []ContentPart
+	Model     string
+	Provider  string
+	// CreatedAt and UpdatedAt are Unix seconds, from the database's
+	// strftime('%s', 'now') -- not milliseconds, despite what the initial
+	// migration's column comment says.
 	CreatedAt        int64
 	UpdatedAt        int64
 	IsSummaryMessage bool

@@ -68,7 +68,7 @@ func NewSessionSearchTool(messages message.Service) fantasy.AgentTool {
 					hit.Role,
 					title,
 					hit.SessionID,
-					time.UnixMilli(hit.CreatedAt).Format(time.DateOnly),
+					time.Unix(hit.CreatedAt, 0).Format(time.DateOnly),
 					collapse(hit.Snippet),
 				)
 			}

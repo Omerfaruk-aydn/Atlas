@@ -12,7 +12,10 @@ import (
 func TestMarkdownIncludesTitleAndRoles(t *testing.T) {
 	t.Parallel()
 
-	sess := session.Session{Title: "Fixing the parser", CreatedAt: 1_700_000_000_000}
+	// CreatedAt is Unix seconds, matching what the DB layer actually writes
+	// (strftime('%s', 'now')) despite the migration comment calling it
+	// milliseconds.
+	sess := session.Session{Title: "Fixing the parser", CreatedAt: 1_700_000_000}
 	msgs := []message.Message{
 		{Role: message.User, Parts: []message.ContentPart{message.TextContent{Text: "why does this crash"}}},
 		{Role: message.Assistant, Parts: []message.ContentPart{message.TextContent{Text: "because of a nil pointer"}}},
@@ -25,6 +28,8 @@ func TestMarkdownIncludesTitleAndRoles(t *testing.T) {
 	require.Contains(t, doc, "why does this crash")
 	require.Contains(t, doc, "## Assistant")
 	require.Contains(t, doc, "because of a nil pointer")
+	require.Contains(t, doc, "- Started: 2023-11-14",
+		"1_700_000_000 is Unix seconds; treating it as milliseconds would print a date thousands of years off")
 }
 
 func TestMarkdownDefaultsAnEmptyTitle(t *testing.T) {

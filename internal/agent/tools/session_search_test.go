@@ -3,6 +3,7 @@ package tools
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
@@ -91,4 +92,25 @@ func TestSessionSearchToolPutsEachHitOnOneLine(t *testing.T) {
 	require.False(t, res.IsError)
 	require.Contains(t, res.Content, "second line about kestrels")
 	require.NotContains(t, res.Content, "\n\n  ", "the snippet is collapsed so one hit stays one block")
+}
+
+// TestSessionSearchToolShowsTheRealDate guards against a bug where a
+// message's created_at -- Unix seconds, matching what the DB layer writes
+// (strftime('%s', 'now')) -- was formatted with time.UnixMilli, which
+// treats seconds as milliseconds and prints a date decades off.
+func TestSessionSearchToolShowsTheRealDate(t *testing.T) {
+	t.Parallel()
+	tool, messages, sessionID := newSearchFixture(t)
+
+	_, err := messages.Create(t.Context(), sessionID, message.CreateMessageParams{
+		Role:  message.User,
+		Parts: []message.ContentPart{message.TextContent{Text: "the flaky timestamp bug"}},
+	})
+	require.NoError(t, err)
+
+	res := runSearch(t, tool, SessionSearchParams{Query: "flaky timestamp"})
+
+	require.False(t, res.IsError)
+	require.Contains(t, res.Content, time.Now().UTC().Format(time.DateOnly),
+		"a message created just now must show today's date")
 }
