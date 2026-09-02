@@ -321,7 +321,8 @@ func (p *Permissions) respond(action PermissionAction) tea.Msg {
 
 func (p *Permissions) hasDiffView() bool {
 	switch p.permission.ToolName {
-	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ReplaceSymbolToolName:
+	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ReplaceSymbolToolName,
+		tools.MemoryToolName:
 		return true
 	}
 	return false
@@ -460,7 +461,7 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 	switch p.permission.ToolName {
 	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName,
 		tools.ViewToolName, tools.ReplaceSymbolToolName,
-		tools.DownloadToolName, tools.LSToolName:
+		tools.DownloadToolName, tools.LSToolName, tools.MemoryToolName:
 		// These tools show their own File/Directory line below.
 	default:
 		lines = append(lines, p.renderKeyValue("Path", fsext.PrettyPath(p.permission.Path), contentWidth))
@@ -477,9 +478,12 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 			lines = append(lines, p.renderKeyValue("URL", params.URL, contentWidth))
 			lines = append(lines, p.renderKeyValue("File", fsext.PrettyPath(params.FilePath), contentWidth))
 		}
-	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ViewToolName, tools.ReplaceSymbolToolName:
+	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ViewToolName,
+		tools.ReplaceSymbolToolName, tools.MemoryToolName:
 		var filePath string
 		switch params := p.permission.Params.(type) {
+		case tools.MemoryPermissionParams:
+			filePath = params.FilePath
 		case tools.EditPermissionsParams:
 			filePath = params.FilePath
 		case tools.WritePermissionsParams:
@@ -545,6 +549,8 @@ func (p *Permissions) renderContent(width int) string {
 		return p.renderEditContent(width)
 	case tools.WriteToolName:
 		return p.renderWriteContent(width)
+	case tools.MemoryToolName:
+		return p.renderMemoryContent(width)
 	case tools.MultiEditToolName:
 		return p.renderMultiEditContent(width)
 	case tools.ReplaceSymbolToolName:
@@ -588,6 +594,16 @@ func (p *Permissions) renderEditContent(contentWidth int) string {
 
 func (p *Permissions) renderWriteContent(contentWidth int) string {
 	params, ok := p.permission.Params.(tools.WritePermissionsParams)
+	if !ok {
+		return ""
+	}
+	return p.renderDiff(params.FilePath, params.OldContent, params.NewContent, contentWidth)
+}
+
+// renderMemoryContent shows what the agent wants to remember as a diff of
+// the store, because what matters is the one line changing, not the file.
+func (p *Permissions) renderMemoryContent(contentWidth int) string {
+	params, ok := p.permission.Params.(tools.MemoryPermissionParams)
 	if !ok {
 		return ""
 	}

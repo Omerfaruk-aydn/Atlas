@@ -215,6 +215,11 @@ type ViewResponseMetadata struct {
 	Content  string `json:"content"`
 }
 
+const MemoryToolName = "memory"
+
+// MemoryPermissionParams represents the permission parameters for the memory tool.
+type MemoryPermissionParams = tools.MemoryPermissionParams
+
 const WriteToolName = "write"
 
 // WriteParams represents the parameters for the write tool.

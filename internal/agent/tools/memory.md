@@ -14,4 +14,6 @@ Actions:
 
 Both stores are bounded, because every entry is prepended to every request from the next session on. A write that would exceed the bound is refused and tells you by how much; consolidate with `set` rather than dropping something at random.
 
+Every write is shown to the user for approval before it lands, as a diff of the store. Say what you are recording in your own words too; an entry that needs the diff to make sense is an entry worth rewording.
+
 Write sparingly. A store full of the obvious is worse than an empty one: it costs tokens on every request and buries the two or three things that actually matter.

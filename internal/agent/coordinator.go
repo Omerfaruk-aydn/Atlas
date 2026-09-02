@@ -729,7 +729,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		tools.NewGlobTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Glob),
 		tools.NewGrepTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Grep),
 		tools.NewLsTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Ls),
-		tools.NewMemoryTool(c.memory),
+		tools.NewMemoryTool(c.memory, c.permissions),
 		tools.NewSessionSearchTool(c.messages),
 		tools.NewSourcegraphTool(nil),
 		tools.NewTodosTool(c.sessions),
