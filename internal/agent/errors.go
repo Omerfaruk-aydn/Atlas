@@ -8,4 +8,5 @@ var (
 	ErrEmptyPrompt           = errors.New("prompt is empty")
 	ErrSessionMissing        = errors.New("session id is missing")
 	ErrSessionBudgetExceeded = errors.New("session cost budget exceeded")
+	ErrPromptBlockedByHook   = errors.New("prompt blocked by a UserPromptSubmit hook")
 )

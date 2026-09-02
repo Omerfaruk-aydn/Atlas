@@ -18,6 +18,11 @@ const (
 	// but it can halt the turn, and its context is appended to what the
 	// model sees.
 	EventPostToolUse = "PostToolUse"
+	// EventUserPromptSubmit fires before a prompt reaches the model, with
+	// the prompt in the payload. It can refuse the prompt outright, or
+	// add context the model sees alongside it. Matchers do not apply:
+	// there is no tool name to match against.
+	EventUserPromptSubmit = "UserPromptSubmit"
 )
 
 // HaltExitCode is the exit code that halts the whole turn. 2 blocks the

@@ -643,6 +643,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		MaxProviderRetries:   c.cfg.Config().Options.MaxProviderRetries,
 		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
 		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
+		PromptHooks:          c.hookRunner(hooks.EventUserPromptSubmit),
 		IsYolo:               c.permissions.SkipRequests(),
 		Permissions:          c.permissions,
 		Sessions:             c.sessions,

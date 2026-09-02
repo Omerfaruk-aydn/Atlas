@@ -1452,6 +1452,8 @@ func normalizeHookEvent(name string) string {
 		return "PreToolUse"
 	case "posttooluse":
 		return "PostToolUse"
+	case "userpromptsubmit":
+		return "UserPromptSubmit"
 	default:
 		return name
 	}

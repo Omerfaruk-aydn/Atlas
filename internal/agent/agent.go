@@ -41,6 +41,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/vercel"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
@@ -193,10 +194,13 @@ type sessionAgent struct {
 	// maxStepsPerTurn caps how many steps one Run may take. Zero means
 	// unbounded. See maxStepsReached.
 	maxStepsPerTurn int
-	isYolo          bool
-	permissions     permission.Service
-	notify          pubsub.Publisher[notify.Notification]
-	runComplete     pubsub.Publisher[notify.RunComplete]
+	// promptHooks fires UserPromptSubmit hooks before a prompt reaches the
+	// model. Nil when none are configured.
+	promptHooks *hooks.Runner
+	isYolo      bool
+	permissions permission.Service
+	notify      pubsub.Publisher[notify.Notification]
+	runComplete pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -263,13 +267,16 @@ type SessionAgentOptions struct {
 	// MaxStepsPerTurn caps how many model/tool-call steps one turn may
 	// take. Zero means unbounded.
 	MaxStepsPerTurn int
-	IsYolo          bool
-	Permissions     permission.Service
-	Sessions        session.Service
-	Messages        message.Service
-	Tools           []fantasy.AgentTool
-	Notify          pubsub.Publisher[notify.Notification]
-	RunComplete     pubsub.Publisher[notify.RunComplete]
+	// PromptHooks runs UserPromptSubmit hooks. Nil means none are
+	// configured, which is the common case.
+	PromptHooks *hooks.Runner
+	IsYolo      bool
+	Permissions permission.Service
+	Sessions    session.Service
+	Messages    message.Service
+	Tools       []fantasy.AgentTool
+	Notify      pubsub.Publisher[notify.Notification]
+	RunComplete pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -289,6 +296,7 @@ func NewSessionAgent(
 		maxProviderRetries:   opts.MaxProviderRetries,
 		maxSessionCost:       opts.MaxSessionCost,
 		maxStepsPerTurn:      opts.MaxStepsPerTurn,
+		promptHooks:          opts.PromptHooks,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
 		permissions:          opts.Permissions,
@@ -608,6 +616,12 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	if err := ValidateCall(call); err != nil {
 		return nil, err
 	}
+
+	prompt, err := a.applyPromptHooks(ctx, call)
+	if err != nil {
+		return nil, err
+	}
+	call.Prompt = prompt
 
 	if a.maxSessionCost > 0 {
 		if sess, err := a.sessions.Get(ctx, call.SessionID); err == nil && sess.Cost >= a.maxSessionCost {

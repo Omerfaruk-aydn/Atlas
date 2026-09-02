@@ -92,19 +92,55 @@ func (r *Runner) MatchingHooks(toolName string) []config.HookConfig {
 	return r.matchingHooks(toolName)
 }
 
+// runInput carries the varying parts of one hook invocation. The set
+// differs per event -- a tool call has input and output, a prompt has
+// neither -- so they travel in a struct rather than as a growing list of
+// mostly-empty positional arguments.
+type runInput struct {
+	eventName     string
+	sessionID     string
+	toolName      string
+	toolInputJSON string
+	toolResponse  string
+	prompt        string
+}
+
 // Run executes all matching hooks for the given event and tool, returning
 // an aggregated result.
 func (r *Runner) Run(ctx context.Context, eventName, sessionID, toolName, toolInputJSON string) (AggregateResult, error) {
-	return r.run(ctx, eventName, sessionID, toolName, toolInputJSON, "")
+	return r.run(ctx, runInput{
+		eventName:     eventName,
+		sessionID:     sessionID,
+		toolName:      toolName,
+		toolInputJSON: toolInputJSON,
+	})
 }
 
 // RunPost executes the matching hooks for EventPostToolUse, handing them the
 // tool's output as well as its input.
 func (r *Runner) RunPost(ctx context.Context, sessionID, toolName, toolInputJSON, toolResponse string) (AggregateResult, error) {
-	return r.run(ctx, EventPostToolUse, sessionID, toolName, toolInputJSON, toolResponse)
+	return r.run(ctx, runInput{
+		eventName:     EventPostToolUse,
+		sessionID:     sessionID,
+		toolName:      toolName,
+		toolInputJSON: toolInputJSON,
+		toolResponse:  toolResponse,
+	})
 }
 
-func (r *Runner) run(ctx context.Context, eventName, sessionID, toolName, toolInputJSON, toolResponse string) (AggregateResult, error) {
+// RunPrompt executes the matching hooks for EventUserPromptSubmit, handing
+// them the prompt that is about to reach the model.
+func (r *Runner) RunPrompt(ctx context.Context, sessionID, prompt string) (AggregateResult, error) {
+	return r.run(ctx, runInput{
+		eventName: EventUserPromptSubmit,
+		sessionID: sessionID,
+		prompt:    prompt,
+	})
+}
+
+func (r *Runner) run(ctx context.Context, in runInput) (AggregateResult, error) {
+	eventName, sessionID := in.eventName, in.sessionID
+	toolName, toolInputJSON := in.toolName, in.toolInputJSON
 	matching := r.matchingHooks(toolName)
 	if len(matching) == 0 {
 		return AggregateResult{Decision: DecisionNone}, nil
@@ -122,7 +158,7 @@ func (r *Runner) run(ctx context.Context, eventName, sessionID, toolName, toolIn
 	}
 
 	envVars := BuildEnv(eventName, toolName, sessionID, r.cwd, r.projectDir, toolInputJSON)
-	payload := BuildPayloadWithResponse(eventName, sessionID, r.cwd, toolName, toolInputJSON, toolResponse)
+	payload := buildPayload(in, r.cwd)
 
 	results := make([]HookResult, len(deduped))
 	var wg sync.WaitGroup

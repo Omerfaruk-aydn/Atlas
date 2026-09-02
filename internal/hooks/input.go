@@ -31,6 +31,8 @@ type Payload struct {
 	// this off a pipe, and a tool that returned megabytes should not
 	// stall the turn feeding them to a shell script.
 	ToolResponse string `json:"tool_response,omitempty"`
+	// Prompt is what the user submitted. Only UserPromptSubmit hooks see it.
+	Prompt string `json:"prompt,omitempty"`
 }
 
 // MaxToolResponseInPayload caps how much of a tool's output is handed to a
@@ -45,20 +47,32 @@ func BuildPayload(eventName, sessionID, cwd, toolName, toolInputJSON string) []b
 // BuildPayloadWithResponse is BuildPayload plus the tool's output, for
 // PostToolUse hooks.
 func BuildPayloadWithResponse(eventName, sessionID, cwd, toolName, toolInputJSON, toolResponse string) []byte {
-	toolInput := json.RawMessage(toolInputJSON)
+	return buildPayload(runInput{
+		eventName:     eventName,
+		sessionID:     sessionID,
+		toolName:      toolName,
+		toolInputJSON: toolInputJSON,
+		toolResponse:  toolResponse,
+	}, cwd)
+}
+
+func buildPayload(in runInput, cwd string) []byte {
+	toolInput := json.RawMessage(in.toolInputJSON)
 	if !json.Valid(toolInput) {
 		toolInput = json.RawMessage("{}")
 	}
+	toolResponse := in.toolResponse
 	if len(toolResponse) > MaxToolResponseInPayload {
 		toolResponse = toolResponse[:MaxToolResponseInPayload] + "\n... [truncated]"
 	}
 	p := Payload{
-		Event:        eventName,
-		SessionID:    sessionID,
+		Event:        in.eventName,
+		SessionID:    in.sessionID,
 		CWD:          cwd,
-		ToolName:     toolName,
+		ToolName:     in.toolName,
 		ToolInput:    toolInput,
 		ToolResponse: toolResponse,
+		Prompt:       in.prompt,
 	}
 	data, err := json.Marshal(p)
 	if err != nil {
