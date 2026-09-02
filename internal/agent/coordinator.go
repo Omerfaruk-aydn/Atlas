@@ -744,6 +744,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewLsTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Ls),
 		tools.NewMemoryTool(c.memory, c.permissions),
 		tools.NewSessionSearchTool(c.messages),
+		tools.NewSkillManageTool(skillDirs(c.cfg), c.allSkills, c.permissions),
 		tools.NewSourcegraphTool(nil),
 		tools.NewTodosTool(c.sessions),
 		tools.NewViewTool(c.lspManager, c.permissions, c.filetracker, c.skillTracker, c.cfg.WorkingDir(), c.cfg.Config().Options.SkillsPaths...),

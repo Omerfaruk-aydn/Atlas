@@ -215,6 +215,11 @@ type ViewResponseMetadata struct {
 	Content  string `json:"content"`
 }
 
+const SkillManageToolName = "skill_manage"
+
+// SkillManagePermissionParams represents the permission parameters for the skill_manage tool.
+type SkillManagePermissionParams = tools.SkillManagePermissionParams
+
 const MemoryToolName = "memory"
 
 // MemoryPermissionParams represents the permission parameters for the memory tool.

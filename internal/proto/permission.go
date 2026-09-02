@@ -112,6 +112,12 @@ func unmarshalToolParams(toolName string, raw json.RawMessage) (any, error) {
 			return nil, err
 		}
 		return params, nil
+	case SkillManageToolName:
+		var params SkillManagePermissionParams
+		if err := json.Unmarshal(raw, &params); err != nil {
+			return nil, err
+		}
+		return params, nil
 	case MultiEditToolName:
 		var params MultiEditPermissionsParams
 		if err := json.Unmarshal(raw, &params); err != nil {

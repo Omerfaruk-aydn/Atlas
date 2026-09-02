@@ -322,7 +322,7 @@ func (p *Permissions) respond(action PermissionAction) tea.Msg {
 func (p *Permissions) hasDiffView() bool {
 	switch p.permission.ToolName {
 	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ReplaceSymbolToolName,
-		tools.MemoryToolName:
+		tools.MemoryToolName, tools.SkillManageToolName:
 		return true
 	}
 	return false
@@ -461,7 +461,8 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 	switch p.permission.ToolName {
 	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName,
 		tools.ViewToolName, tools.ReplaceSymbolToolName,
-		tools.DownloadToolName, tools.LSToolName, tools.MemoryToolName:
+		tools.DownloadToolName, tools.LSToolName, tools.MemoryToolName,
+		tools.SkillManageToolName:
 		// These tools show their own File/Directory line below.
 	default:
 		lines = append(lines, p.renderKeyValue("Path", fsext.PrettyPath(p.permission.Path), contentWidth))
@@ -479,10 +480,12 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 			lines = append(lines, p.renderKeyValue("File", fsext.PrettyPath(params.FilePath), contentWidth))
 		}
 	case tools.EditToolName, tools.WriteToolName, tools.MultiEditToolName, tools.ViewToolName,
-		tools.ReplaceSymbolToolName, tools.MemoryToolName:
+		tools.ReplaceSymbolToolName, tools.MemoryToolName, tools.SkillManageToolName:
 		var filePath string
 		switch params := p.permission.Params.(type) {
 		case tools.MemoryPermissionParams:
+			filePath = params.FilePath
+		case tools.SkillManagePermissionParams:
 			filePath = params.FilePath
 		case tools.EditPermissionsParams:
 			filePath = params.FilePath
@@ -551,6 +554,8 @@ func (p *Permissions) renderContent(width int) string {
 		return p.renderWriteContent(width)
 	case tools.MemoryToolName:
 		return p.renderMemoryContent(width)
+	case tools.SkillManageToolName:
+		return p.renderSkillManageContent(width)
 	case tools.MultiEditToolName:
 		return p.renderMultiEditContent(width)
 	case tools.ReplaceSymbolToolName:
@@ -594,6 +599,17 @@ func (p *Permissions) renderEditContent(contentWidth int) string {
 
 func (p *Permissions) renderWriteContent(contentWidth int) string {
 	params, ok := p.permission.Params.(tools.WritePermissionsParams)
+	if !ok {
+		return ""
+	}
+	return p.renderDiff(params.FilePath, params.OldContent, params.NewContent, contentWidth)
+}
+
+// renderSkillManageContent shows a skill about to be written as a diff of
+// its file, so a rewrite reads as a rewrite rather than as a wall of new
+// text.
+func (p *Permissions) renderSkillManageContent(contentWidth int) string {
+	params, ok := p.permission.Params.(tools.SkillManagePermissionParams)
 	if !ok {
 		return ""
 	}

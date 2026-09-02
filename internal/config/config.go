@@ -908,6 +908,7 @@ func allToolNames() []string {
 		"memory",
 		"question",
 		"session_search",
+		"skill_manage",
 		"sourcegraph",
 		"todos",
 		"view",

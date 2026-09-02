@@ -3,6 +3,7 @@ package agent
 import (
 	"path/filepath"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/memory"
@@ -25,4 +26,16 @@ func memoryStore(cfg *config.ConfigStore) *memory.Store {
 		opts.UserLimit = m.UserLimit
 	}
 	return memory.New(opts)
+}
+
+// skillDirs says where a skill the agent writes should go: into the
+// repository for something about this code, or into the user's config
+// directory for something about how they work. Both are already on the
+// discovery path, so a skill written to either is found without any
+// configuration.
+func skillDirs(cfg *config.ConfigStore) tools.SkillDirs {
+	return tools.SkillDirs{
+		Project: filepath.Join(cfg.WorkingDir(), ".atlas", "skills"),
+		User:    filepath.Join(home.Config(), "atlas", "skills"),
+	}
 }
