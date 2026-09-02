@@ -2,7 +2,6 @@
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -19,7 +18,6 @@ func resetProviderState() {
 	providerList = nil
 	providerErr = nil
 	catwalkSyncer = &catwalkSync{}
-	hyperSyncer = &hyperSync{}
 }
 
 func TestProviders_Integration_AutoUpdateDisabled(t *testing.T) {
@@ -28,17 +26,13 @@ func TestProviders_Integration_AutoUpdateDisabled(t *testing.T) {
 
 	// Use a test-specific instance to avoid global state interference.
 	testCatwalkSyncer := &catwalkSync{}
-	testHyperSyncer := &hyperSync{}
 
 	originalCatwalSyncer := catwalkSyncer
-	originalHyperSyncer := hyperSyncer
 	defer func() {
 		catwalkSyncer = originalCatwalSyncer
-		hyperSyncer = originalHyperSyncer
 	}()
 
 	catwalkSyncer = testCatwalkSyncer
-	hyperSyncer = testHyperSyncer
 
 	resetProviderState()
 	defer resetProviderState()
@@ -59,54 +53,32 @@ func TestProviders_Integration_WithMockClients(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
 
-	// Create fresh syncers for this test.
+	// Create a fresh syncer for this test.
 	testCatwalkSyncer := &catwalkSync{}
-	testHyperSyncer := &hyperSync{}
 
-	// Initialize with mock clients.
+	// Initialize with a mock client.
 	mockCatwalkClient := &mockCatwalkClient{
 		providers: []catwalk.Provider{
 			{Name: "Provider1", ID: "p1"},
 			{Name: "Provider2", ID: "p2"},
 		},
 	}
-	mockHyperClient := &mockHyperClient{
-		provider: catwalk.Provider{
-			Name: "Hyper",
-			ID:   "hyper",
-			Models: []catwalk.Model{
-				{ID: "hyper-1", Name: "Hyper Model"},
-			},
-		},
-	}
 
 	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
-	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
-
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
-	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
 
-	// Get providers from each syncer.
 	catwalkProviders, err := testCatwalkSyncer.Get(t.Context())
 	require.NoError(t, err)
 	require.Len(t, catwalkProviders, 2)
-
-	hyperProvider, err := testHyperSyncer.Get(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, "Hyper", hyperProvider.Name)
-
-	// Verify total.
-	allProviders := append(catwalkProviders, hyperProvider)
-	require.Len(t, allProviders, 3)
+	require.Equal(t, "Provider1", catwalkProviders[0].Name)
 }
 
 func TestProviders_Integration_WithCachedData(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
 
-	// Create cache files.
+	// Create the cache file.
 	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
-	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
 
 	require.NoError(t, os.MkdirAll(tmpDir+"/Atlas-Agent", 0o755))
 
@@ -119,105 +91,41 @@ func TestProviders_Integration_WithCachedData(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(catwalkPath, data, 0o644))
 
-	// Write Hyper cache.
-	hyperProvider := catwalk.Provider{
-		Name: "Cached Hyper",
-		ID:   "hyper",
-	}
-	data, err = json.Marshal(hyperProvider)
-	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(hyperPath, data, 0o644))
-
-	// Create fresh syncers.
+	// Create a fresh syncer.
 	testCatwalkSyncer := &catwalkSync{}
-	testHyperSyncer := &hyperSync{}
 
-	// Mock clients that return ErrNotModified.
+	// A client that reports the catalog is unchanged, so the cache is used.
 	mockCatwalkClient := &mockCatwalkClient{
-		err: catwalk.ErrNotModified,
-	}
-	mockHyperClient := &mockHyperClient{
 		err: catwalk.ErrNotModified,
 	}
 
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
-	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
 
 	// Get providers - should use cached.
 	catwalkResult, err := testCatwalkSyncer.Get(t.Context())
 	require.NoError(t, err)
 	require.Len(t, catwalkResult, 2)
 	require.Equal(t, "Cached1", catwalkResult[0].Name)
-
-	hyperResult, err := testHyperSyncer.Get(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, "Cached Hyper", hyperResult.Name)
 }
 
-func TestProviders_Integration_CatwalkFailsHyperSucceeds(t *testing.T) {
+// TestProviders_FallsBackToEmbeddedCatalog covers the case that keeps the
+// program usable offline: nothing is cached and the fetch does not produce a
+// catalog, so the copy bundled with this release is what callers get.
+func TestProviders_FallsBackToEmbeddedCatalog(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("XDG_DATA_HOME", tmpDir)
 
 	testCatwalkSyncer := &catwalkSync{}
-	testHyperSyncer := &hyperSync{}
-
-	// Catwalk fails, Hyper succeeds.
-	mockCatwalkClient := &mockCatwalkClient{
-		err: catwalk.ErrNotModified, // Will use embedded.
-	}
-	mockHyperClient := &mockHyperClient{
-		provider: catwalk.Provider{
-			Name: "Hyper",
-			ID:   "hyper",
-			Models: []catwalk.Model{
-				{ID: "hyper-1", Name: "Hyper Model"},
-			},
-		},
-	}
-
-	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
-	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
-
-	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
-	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
-
-	catwalkResult, err := testCatwalkSyncer.Get(t.Context())
-	require.NoError(t, err)
-	require.NotEmpty(t, catwalkResult) // Should have embedded.
-
-	hyperResult, err := testHyperSyncer.Get(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, "Hyper", hyperResult.Name)
-}
-
-func TestProviders_Integration_BothFail(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("XDG_DATA_HOME", tmpDir)
-
-	testCatwalkSyncer := &catwalkSync{}
-	testHyperSyncer := &hyperSync{}
-
-	// Both fail.
 	mockCatwalkClient := &mockCatwalkClient{
 		err: catwalk.ErrNotModified,
 	}
-	mockHyperClient := &mockHyperClient{
-		provider: catwalk.Provider{}, // Empty provider.
-	}
 
 	catwalkPath := tmpDir + "/Atlas-Agent/providers.json"
-	hyperPath := tmpDir + "/Atlas-Agent/hyper.json"
-
 	testCatwalkSyncer.Init(mockCatwalkClient, catwalkPath, true)
-	testHyperSyncer.Init(mockHyperClient, hyperPath, true)
 
 	catwalkResult, err := testCatwalkSyncer.Get(t.Context())
 	require.NoError(t, err)
-	require.NotEmpty(t, catwalkResult) // Should fall back to embedded.
-
-	hyperResult, err := testHyperSyncer.Get(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, "Atlas Hyper", hyperResult.Name) // Falls back to embedded when no models.
+	require.NotEmpty(t, catwalkResult, "the embedded catalog stands in")
 }
 
 func TestCache_StoreAndGet(t *testing.T) {
@@ -334,65 +242,26 @@ func TestProviders_KeepsCatalogWhenCachingFails(t *testing.T) {
 	resetProviderState()
 	defer resetProviderState()
 
-	// Prime both syncers with mock clients so Providers reuses the memoized
+	// Prime the syncer with a mock client so Providers reuses the memoized
 	// outcome instead of reaching the network.
 	catwalkSyncer.Init(&mockCatwalkClient{
 		providers: []catwalk.Provider{{Name: "Provider1", ID: "p1"}},
-	}, unwritable, true)
-	hyperSyncer.Init(&mockHyperClient{
-		provider: catwalk.Provider{
-			Name:   "Hyper",
-			ID:     "hyper",
-			Models: []catwalk.Model{{ID: "hyper-1", Name: "Hyper Model"}},
-		},
 	}, unwritable, true)
 
 	catwalkProviders, catwalkErr := catwalkSyncer.Get(t.Context())
 	require.Error(t, catwalkErr, "cache write should fail")
 	require.NotEmpty(t, catwalkProviders, "syncer still returns a usable catalog")
 
-	hyperProvider, hyperErr := hyperSyncer.Get(t.Context())
-	require.Error(t, hyperErr, "cache write should fail")
-	require.Equal(t, "Hyper", hyperProvider.Name)
-
 	providers, err := Providers(&Config{Options: &Options{}})
 
 	// The failure is reported, but as a warning alongside a usable catalog.
 	require.Error(t, err)
-	require.Len(t, providers, 2)
-	require.Equal(t, catwalk.InferenceProvider("hyper"), providers[0].ID, "Hyper stays at the front")
-	require.Equal(t, catwalk.InferenceProvider("p1"), providers[1].ID)
+	require.Len(t, providers, 1)
+	require.Equal(t, catwalk.InferenceProvider("p1"), providers[0].ID)
 }
 
-// TestProviders_FallsBackToEmbeddedHyper checks that Hyper is still in the
-// catalog when it could not be fetched at all, using the copy bundled with
-// this release.
-func TestProviders_FallsBackToEmbeddedHyper(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Setenv("XDG_DATA_HOME", tmpDir)
-
-	resetProviderState()
-	defer resetProviderState()
-
-	catwalkSyncer.Init(&mockCatwalkClient{
-		providers: []catwalk.Provider{{Name: "Provider1", ID: "p1"}},
-	}, filepath.Join(tmpDir, "providers.json"), true)
-	hyperSyncer.Init(&mockHyperClient{
-		err: errors.New("network error"),
-	}, filepath.Join(tmpDir, "hyper.json"), true)
-
-	_, _ = catwalkSyncer.Get(t.Context())
-	_, _ = hyperSyncer.Get(t.Context())
-
-	providers, err := Providers(&Config{Options: &Options{}})
-	require.NoError(t, err)
-	require.Len(t, providers, 2)
-	require.Equal(t, catwalk.InferenceProvider("hyper"), providers[0].ID)
-	require.NotEmpty(t, providers[0].Models, "the embedded Hyper provider carries models")
-}
-
-// TestProviders_HonorsDisableDefaultProviders makes sure the embedded Hyper
-// fallback does not smuggle a default provider back in.
+// TestProviders_HonorsDisableDefaultProviders makes sure the embedded
+// catalog fallback does not smuggle a default provider back in.
 func TestProviders_HonorsDisableDefaultProviders(t *testing.T) {
 	t.Setenv("XDG_DATA_HOME", t.TempDir())
 

@@ -1,4 +1,4 @@
-﻿package config
+package config
 
 import (
 	"fmt"
@@ -49,6 +49,16 @@ func TestResolvedEnv_RealShell_Success(t *testing.T) {
 	// treats backslashes as escapes, forward slashes work on every OS.
 	withNL := filepath.ToSlash(writeTempFile(t, "token-with-nl\n"))
 	noNL := filepath.ToSlash(writeTempFile(t, "token-no-nl"))
+
+	// cat is not one of the embedded shell's builtins, so it has to come
+	// from PATH, and a stock Windows install does not have it. Ask the
+	// shell itself rather than looking the binary up: exec.LookPath finds
+	// MSYS paths such as /usr/bin/cat that the shell cannot then run, so
+	// only the shell's own answer is worth trusting. Without this a
+	// missing tool is reported as a bug in variable resolution.
+	if _, err := realShellResolver(nil).ResolveValue(fmt.Sprintf("$(cat %s)", noNL)); err != nil {
+		t.Skipf("the embedded shell cannot run cat here: %v", err)
+	}
 
 	m := MCPConfig{
 		Env: map[string]string{
