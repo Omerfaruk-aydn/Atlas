@@ -177,6 +177,10 @@ type sessionAgent struct {
 	sessions             session.Service
 	messages             message.Service
 	disableAutoSummarize bool
+	// autoSummarizeAt is the fraction of the context window that may be
+	// used before the turn stops to summarize. Out of (0,1) means "use
+	// the built-in thresholds" -- see shouldAutoSummarize.
+	autoSummarizeAt float64
 	// maxSessionCost is a per-session spend cap in the session's cost
 	// currency (USD). Zero means unbounded. Checked once at the start of
 	// Run, before any dispatch state or DB write, so a session over
@@ -241,6 +245,10 @@ type SessionAgentOptions struct {
 	SystemPrompt         string
 	IsSubAgent           bool
 	DisableAutoSummarize bool
+	// AutoSummarizeAt is the fraction of the context window that may be
+	// used before summarizing. Zero (or any value outside (0,1)) keeps
+	// the built-in thresholds.
+	AutoSummarizeAt float64
 	// MaxSessionCost caps what a single session may spend, in the same
 	// currency as Model.CatwalkCfg pricing (USD). Zero means unbounded.
 	MaxSessionCost float64
@@ -269,6 +277,7 @@ func NewSessionAgent(
 		sessions:             opts.Sessions,
 		messages:             opts.Messages,
 		disableAutoSummarize: opts.DisableAutoSummarize,
+		autoSummarizeAt:      opts.AutoSummarizeAt,
 		maxSessionCost:       opts.MaxSessionCost,
 		maxStepsPerTurn:      opts.MaxStepsPerTurn,
 		tools:                csync.NewSliceFrom(opts.Tools),
@@ -1081,25 +1090,16 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 		},
 		StopWhen: []fantasy.StopCondition{
 			func(_ []fantasy.StepResult) bool {
-				cw := int64(largeModel.CatwalkCfg.ContextWindow)
-				// If context window is unknown (0), skip auto-summarize
-				// to avoid immediately truncating custom/local models.
-				if cw == 0 {
+				if a.disableAutoSummarize {
 					return false
 				}
+				cw := int64(largeModel.CatwalkCfg.ContextWindow)
 				tokens := currentSession.CompletionTokens + currentSession.PromptTokens
-				remaining := cw - tokens
-				var threshold int64
-				if cw > largeContextWindowThreshold {
-					threshold = largeContextWindowBuffer
-				} else {
-					threshold = int64(float64(cw) * smallContextWindowRatio)
+				if !shouldAutoSummarize(cw, tokens, a.autoSummarizeAt) {
+					return false
 				}
-				if (remaining <= threshold) && !a.disableAutoSummarize {
-					shouldSummarize = true
-					return true
-				}
-				return false
+				shouldSummarize = true
+				return true
 			},
 			func(steps []fantasy.StepResult) bool {
 				return hasRepeatedToolCalls(steps, loopDetectionWindowSize, loopDetectionMaxRepeats)

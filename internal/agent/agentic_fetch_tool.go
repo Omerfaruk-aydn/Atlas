@@ -184,6 +184,7 @@ func (c *coordinator) agenticFetchTool(_ context.Context, client *http.Client) (
 				SystemPromptPrefix:   smallProviderCfg.SystemPromptPrefix,
 				SystemPrompt:         systemPrompt,
 				DisableAutoSummarize: c.cfg.Config().Options.DisableAutoSummarize,
+				AutoSummarizeAt:      c.cfg.Config().Options.AutoSummarizeAt,
 				IsYolo:               c.permissions.SkipRequests(),
 				Permissions:          c.permissions,
 				Sessions:             c.sessions,

@@ -390,6 +390,10 @@ type Options struct {
 	// allowed. Matching a domain also matches its subdomains.
 	AllowedDomains []string `json:"allowed_domains,omitempty" jsonschema:"description=If set\\, the only domains (and their subdomains) the fetch/download tools may reach,example=docs.example.com"`
 	BlockedDomains []string `json:"blocked_domains,omitempty" jsonschema:"description=Domains (and their subdomains) the fetch/download tools may never reach\\, checked before allowed_domains,example=internal.example.com"`
+	// AutoSummarizeAt is the fraction of the model's context window that
+	// may be used before a turn stops to summarize. Values outside (0,1)
+	// keep the built-in thresholds.
+	AutoSummarizeAt float64 `json:"auto_summarize_at,omitempty" jsonschema:"description=Summarize once this fraction of the context window is used (0-1 exclusive). Unset keeps the built-in thresholds.,example=0.8"`
 	// AllowedCommands and BlockedCommands adjust the bash tool's built-in
 	// list of banned commands. Allowing a command also lifts the
 	// subcommand blocks on it (e.g. allowing "npm" permits "npm install
