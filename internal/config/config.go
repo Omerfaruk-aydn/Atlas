@@ -390,6 +390,13 @@ type Options struct {
 	// allowed. Matching a domain also matches its subdomains.
 	AllowedDomains []string `json:"allowed_domains,omitempty" jsonschema:"description=If set\\, the only domains (and their subdomains) the fetch/download tools may reach,example=docs.example.com"`
 	BlockedDomains []string `json:"blocked_domains,omitempty" jsonschema:"description=Domains (and their subdomains) the fetch/download tools may never reach\\, checked before allowed_domains,example=internal.example.com"`
+	// AllowedCommands and BlockedCommands adjust the bash tool's built-in
+	// list of banned commands. Allowing a command also lifts the
+	// subcommand blocks on it (e.g. allowing "npm" permits "npm install
+	// -g"), so an allow is the more specific instruction and wins over a
+	// block of the same name.
+	AllowedCommands []string `json:"allowed_commands,omitempty" jsonschema:"description=Commands to lift from the bash tool's built-in block list (their subcommand blocks are lifted too),example=curl"`
+	BlockedCommands []string `json:"blocked_commands,omitempty" jsonschema:"description=Extra commands the bash tool may never run - on top of the built-in block list,example=kubectl"`
 	// MaxStepsPerTurn caps how many model/tool-call steps a single turn
 	// may take, independent of whether it is repeating itself (that is
 	// hasRepeatedToolCalls's job). Zero means unbounded.
