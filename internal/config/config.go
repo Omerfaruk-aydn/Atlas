@@ -390,6 +390,15 @@ type Options struct {
 	Progress                  *bool        `json:"progress,omitempty" jsonschema:"description=Show indeterminate progress updates during long operations,default=true"`
 	Notifications             string       `json:"notifications,omitempty" jsonschema:"description=Notification style to use. Options: auto (default)\\, native\\, osc\\, bell\\, disabled. Auto selects based on environment: native for local sessions\\, osc for SSH (with automatic OSC 99/777 detection).,enum=auto,enum=native,enum=osc,enum=bell,enum=disabled,default=auto"`
 	DisabledSkills            []string     `json:"disabled_skills,omitempty" jsonschema:"description=List of skill names to disable and hide from the agent,example=crush-config"`
+	Memory                    *Memory      `json:"memory,omitempty" jsonschema:"description=Bounds on the prose the agent carries between sessions"`
+}
+
+// Memory bounds the persistent stores. The bounds matter because their
+// contents are prepended to every request: raising them raises the cost of
+// every turn. A negative value means unbounded.
+type Memory struct {
+	ProjectLimit int `json:"project_limit,omitempty" jsonschema:"description=Character limit for the project memory store (MEMORY.md). Negative means unbounded.,default=3200"`
+	UserLimit    int `json:"user_limit,omitempty" jsonschema:"description=Character limit for the user profile store (USER.md). Negative means unbounded.,default=2000"`
 }
 
 type MCPs map[string]MCPConfig

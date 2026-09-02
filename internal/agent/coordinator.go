@@ -30,6 +30,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/memory"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
@@ -130,6 +131,9 @@ type coordinator struct {
 	activeSkills []*skills.Skill // Post-filter: active skills only.
 	skillTracker *skills.Tracker
 
+	// memory is the bounded prose the agent carries between sessions.
+	memory *memory.Store
+
 	readyWg errgroup.Group
 }
 
@@ -180,6 +184,7 @@ func NewCoordinator(ctx context.Context, opts CoordinatorOptions) (Coordinator, 
 		allSkills:    allSkills,
 		activeSkills: activeSkills,
 		skillTracker: skillTracker,
+		memory:       memoryStore(opts.Config),
 		interactive:  opts.Interactive,
 	}
 
@@ -724,6 +729,7 @@ func (c *coordinator) buildTools(ctx context.Context, agent config.Agent, isSubA
 		tools.NewGlobTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Glob),
 		tools.NewGrepTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Grep),
 		tools.NewLsTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Ls),
+		tools.NewMemoryTool(c.memory),
 		tools.NewSourcegraphTool(nil),
 		tools.NewTodosTool(c.sessions),
 		tools.NewViewTool(c.lspManager, c.permissions, c.filetracker, c.skillTracker, c.cfg.WorkingDir(), c.cfg.Config().Options.SkillsPaths...),
