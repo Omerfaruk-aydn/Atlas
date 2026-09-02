@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"fmt"
@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2/tree"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2/tree"
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
 )

@@ -1,4 +1,4 @@
-﻿// Package notification provides desktop notification support for the UI.
+// Package notification provides desktop notification support for the UI.
 //
 // This package supports multiple notification backends:
 //   - NativeBackend: Uses the native OS notification system (macOS, Windows, Linux)

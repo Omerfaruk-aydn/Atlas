@@ -1,4 +1,4 @@
-﻿package completions
+package completions
 
 import (
 	"cmp"
@@ -7,14 +7,14 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ordered"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
 )
 
 const (

@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
 

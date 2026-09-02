@@ -1,11 +1,11 @@
-﻿package model
+package model
 
 import (
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
 	"github.com/stretchr/testify/require"

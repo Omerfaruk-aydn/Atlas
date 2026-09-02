@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"bytes"
@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"image"
 	"log/slog"
 	"math/rand"
@@ -22,13 +21,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/help"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/spinner"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textarea"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
+
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
 	agenttools "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
@@ -36,6 +30,18 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/commands"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-editor"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/layout"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/screen"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/help"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/spinner"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textarea"
+	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
@@ -62,11 +68,6 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/layout"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/screen"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-editor"
-	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 )
 
 // Compact mode breakpoints.

@@ -1,14 +1,14 @@
-﻿package model
+package model
 
 import (
 	"image"
 	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/layout"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/layout"
 )
 
 // selectedLargeModel returns the currently selected large language model as

@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"cmp"
@@ -6,14 +6,14 @@ import (
 	"image"
 	"strings"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	mcp "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet/layout"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
 )
 
 // gitStatusLine renders the branch/ahead-behind/changed-file readout shown

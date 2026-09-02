@@ -1,4 +1,4 @@
-﻿package dialog
+package dialog
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textinput"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textinput"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/dustin/go-humanize"
 	"github.com/rivo/uniseg"
 	"github.com/sahilm/fuzzy"

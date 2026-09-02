@@ -1,18 +1,18 @@
-﻿package styles
+package styles
 
 import (
 	"image/color"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/filepicker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/help"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textarea"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textinput"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2/ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 )
 
 // quickStyleOpts is the palette of colors used by quickStyle to simplify the

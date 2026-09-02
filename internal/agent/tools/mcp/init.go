@@ -1,4 +1,4 @@
-﻿// Package mcp provides functionality for managing Model Context Protocol (MCP)
+// Package mcp provides functionality for managing Model Context Protocol (MCP)
 // clients within the ATLAS-AGENT application.
 package mcp
 

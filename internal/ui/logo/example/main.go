@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 // This is an example for testing logo treatments. Do not remove.
 
@@ -7,9 +7,9 @@ import (
 	"os"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/logo"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 )
 
 func main() {

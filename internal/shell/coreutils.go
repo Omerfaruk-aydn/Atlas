@@ -1,9 +1,10 @@
-﻿package shell
+package shell
 
 import (
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"runtime"
 	"strconv"
+
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 )
 
 var useGoCoreUtils bool

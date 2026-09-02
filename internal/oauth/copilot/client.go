@@ -1,4 +1,4 @@
-﻿// Package copilot provides GitHub Copilot integration.
+// Package copilot provides GitHub Copilot integration.
 package copilot
 
 import (

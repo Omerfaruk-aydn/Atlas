@@ -1,12 +1,12 @@
-﻿package model
+package model
 
 import (
 	"strconv"
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
 	"github.com/stretchr/testify/require"
 )
 

@@ -1,4 +1,4 @@
-﻿package workspace
+package workspace
 
 import (
 	"context"
@@ -7,12 +7,12 @@ import (
 	"log/slog"
 	"time"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
 	mcptools "github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/commands"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"

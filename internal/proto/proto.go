@@ -1,12 +1,12 @@
-﻿package proto
+package proto
 
 import (
 	"encoding/json"
 	"errors"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 

@@ -1,4 +1,4 @@
-﻿// Package backend provides transport-agnostic operations for managing
+// Package backend provides transport-agnostic operations for managing
 // workspaces, sessions, agents, permissions, and events. It is consumed
 // by protocol-specific layers such as HTTP (server) and ACP.
 package backend
@@ -7,13 +7,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"log/slog"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"

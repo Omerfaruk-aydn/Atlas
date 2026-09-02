@@ -1,18 +1,18 @@
-﻿package dialog
+package dialog
 
 import (
 	"image"
 	"strings"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textarea"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 )
 
 // FreeText is an open-ended text input component for questions

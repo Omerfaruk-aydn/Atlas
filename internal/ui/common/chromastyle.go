@@ -1,12 +1,12 @@
-﻿package common
+package common
 
 import (
 	"image/color"
 	"sync"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/alecthomas/chroma/v2"
 	chromastyles "github.com/alecthomas/chroma/v2/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 )
 
 // Building a chroma style from a theme (chroma.MustNewStyle) parses every

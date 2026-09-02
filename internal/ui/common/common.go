@@ -1,17 +1,17 @@
-﻿package common
+package common
 
 import (
 	"fmt"
 	"image"
 	"os"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 )
 
 // MaxAttachmentSize defines the maximum allowed size for file attachments (5 MB).

@@ -1,4 +1,4 @@
-﻿package fsext
+package fsext
 
 import (
 	"context"
@@ -10,11 +10,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/bmatcuk/doublestar/v4"
 	"github.com/charlievieth/fastwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 )
 
 type FileInfo struct {

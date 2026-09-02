@@ -1,4 +1,4 @@
-﻿package common
+package common
 
 import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"

@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 
 type DiagnosticsParams struct {

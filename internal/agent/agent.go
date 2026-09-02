@@ -1,4 +1,4 @@
-﻿// Package agent is the core orchestration layer for ATLAS-AGENT AI agents.
+// Package agent is the core orchestration layer for ATLAS-AGENT AI agents.
 //
 // It provides session-based AI agent functionality for managing
 // conversations, tool execution, and message handling. It coordinates
@@ -15,7 +15,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"log/slog"
 	"regexp"
 	"strconv"
@@ -24,7 +23,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
+
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/anthropic"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/bedrock"
@@ -32,20 +39,14 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openai"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openrouter"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/vercel"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/stringext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
 )
 
 const (

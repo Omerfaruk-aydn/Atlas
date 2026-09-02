@@ -1,4 +1,4 @@
-﻿package workspace
+package workspace
 
 import (
 	"context"
@@ -10,13 +10,14 @@ import (
 	"sync/atomic"
 	"time"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/commands"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/herdr"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/log"
@@ -32,7 +33,6 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
 	"github.com/pkg/browser"
 )
 

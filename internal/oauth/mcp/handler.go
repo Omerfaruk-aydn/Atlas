@@ -1,4 +1,4 @@
-﻿package mcpoauth
+package mcpoauth
 
 import (
 	"bytes"

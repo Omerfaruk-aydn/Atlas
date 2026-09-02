@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"cmp"
@@ -9,8 +9,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 
 // resolvedSymbol holds the result of resolving a symbol name to an LSP position.

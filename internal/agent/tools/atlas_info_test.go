@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"errors"
@@ -8,10 +8,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/stretchr/testify/require"

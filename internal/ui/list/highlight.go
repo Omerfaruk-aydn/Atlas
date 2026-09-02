@@ -1,13 +1,13 @@
-﻿package list
+package list
 
 import (
 	"image"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/stringext"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/stringext"
 )
 
 // DefaultHighlighter is the default highlighter function that applies inverse style.

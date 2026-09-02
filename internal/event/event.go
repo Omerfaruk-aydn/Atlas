@@ -1,4 +1,4 @@
-﻿// Package event is a no-op telemetry stub.
+// Package event is a no-op telemetry stub.
 //
 // Atlas Agent does not collect any usage data. All event-tracking functions
 // in this package are kept as no-op shims to preserve the public API used

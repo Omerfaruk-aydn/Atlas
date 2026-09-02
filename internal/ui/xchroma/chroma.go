@@ -1,4 +1,4 @@
-﻿package xchroma
+package xchroma
 
 import (
 	"fmt"

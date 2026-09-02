@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"bytes"
@@ -14,8 +14,8 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"

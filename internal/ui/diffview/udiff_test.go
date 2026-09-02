@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/aymanbagabas/go-udiff"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-golden"
+	"github.com/aymanbagabas/go-udiff"
 )
 
 func TestUdiff(t *testing.T) {

@@ -1,4 +1,4 @@
-﻿// Package lsp provides a manager for Language Server Protocol (LSP) clients.
+// Package lsp provides a manager for Language Server Protocol (LSP) clients.
 package lsp
 
 import (
@@ -15,9 +15,9 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	powernapconfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/config"
 	powernap "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	"github.com/sourcegraph/jsonrpc2"
 )
 

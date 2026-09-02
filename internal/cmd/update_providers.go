@@ -1,12 +1,12 @@
-﻿package cmd
+package cmd
 
 import (
 	"fmt"
 	"log/slog"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/spf13/cobra"
 )
 

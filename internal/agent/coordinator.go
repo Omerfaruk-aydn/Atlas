@@ -1,4 +1,4 @@
-﻿package agent
+package agent
 
 import (
 	"bytes"
@@ -17,13 +17,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
@@ -876,16 +876,16 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 	}
 
 	return Model{
-		Model:      largeModel,
-		CatwalkCfg: *largeCatwalkModel,
-		ModelCfg:   largeModelCfg,
-		FlatRate:   largeProviderCfg.FlatRate,
-	}, Model{
-		Model:      smallModel,
-		CatwalkCfg: *smallCatwalkModel,
-		ModelCfg:   smallModelCfg,
-		FlatRate:   smallProviderCfg.FlatRate,
-	}, nil
+			Model:      largeModel,
+			CatwalkCfg: *largeCatwalkModel,
+			ModelCfg:   largeModelCfg,
+			FlatRate:   largeProviderCfg.FlatRate,
+		}, Model{
+			Model:      smallModel,
+			CatwalkCfg: *smallCatwalkModel,
+			ModelCfg:   smallModelCfg,
+			FlatRate:   smallProviderCfg.FlatRate,
+		}, nil
 }
 
 func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {

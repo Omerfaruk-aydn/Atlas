@@ -3,8 +3,8 @@ package diffview
 import (
 	"slices"
 
-	"github.com/aymanbagabas/go-udiff"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-slice"
+	"github.com/aymanbagabas/go-udiff"
 )
 
 type splitHunk struct {

@@ -1,4 +1,4 @@
-﻿package proto_test
+package proto_test
 
 import (
 	"encoding/json"

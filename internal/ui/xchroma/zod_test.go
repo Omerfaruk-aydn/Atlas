@@ -1,4 +1,4 @@
-﻿package xchroma
+package xchroma
 
 import (
 	"bytes"
@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 )
 
 func TestZodCase(t *testing.T) {

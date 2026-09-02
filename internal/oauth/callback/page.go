@@ -1,4 +1,4 @@
-﻿// Package callback renders the browser page a user lands on at the end of
+// Package callback renders the browser page a user lands on at the end of
 // an OAuth redirect flow.
 //
 // The page is the only part of authorization the user sees outside the

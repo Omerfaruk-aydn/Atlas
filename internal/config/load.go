@@ -1,8 +1,7 @@
-﻿package config
+package config
 
 import (
 	"cmp"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -20,15 +19,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
+
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	powernapConfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shellconfig"
-	powernapConfig "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/config"
 	"github.com/qjebbs/go-jsons"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"

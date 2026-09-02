@@ -1,4 +1,4 @@
-﻿// Package styles define styling and theming for the project.
+// Package styles define styling and theming for the project.
 package styles
 
 import (
@@ -9,15 +9,15 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2/ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/filepicker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/help"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textarea"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/textinput"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2/ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/alecthomas/chroma/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/alecthomas/chroma/v2"
 )
 
 const (

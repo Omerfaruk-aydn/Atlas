@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"cmp"
@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"
 )
 
 type ReferencesParams struct {

@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"context"
@@ -11,10 +11,10 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	md "github.com/JohannesKaufmann/html-to-markdown"
-	"github.com/PuerkitoBio/goquery"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
+	"github.com/PuerkitoBio/goquery"
 )
 
 const (

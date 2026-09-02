@@ -1,4 +1,4 @@
-﻿// Package clientserverrace_test is a regression test for the
+// Package clientserverrace_test is a regression test for the
 // ATLAS_AGENT_CLIENT_SERVER=1 socket-init race documented in
 // docs/notes/2026-05-11-client-server-socket-init-race.md (item F5).
 //

@@ -1,14 +1,14 @@
-﻿package common
+package common
 
 import (
 	"bytes"
 	"image/color"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
 )
 
 // SyntaxHighlight applies syntax highlighting to the given source code based

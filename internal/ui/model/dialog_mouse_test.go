@@ -1,11 +1,11 @@
-﻿package model
+package model
 
 import (
 	"testing"
 
 	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
 	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
 	"github.com/stretchr/testify/require"
 )
 

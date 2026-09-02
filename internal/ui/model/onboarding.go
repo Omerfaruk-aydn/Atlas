@@ -1,13 +1,13 @@
-﻿package model
+package model
 
 import (
 	"fmt"
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"

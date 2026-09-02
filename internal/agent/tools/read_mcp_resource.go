@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"cmp"
@@ -8,9 +8,9 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filepathext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 )

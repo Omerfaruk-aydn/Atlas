@@ -1,4 +1,4 @@
-﻿// Package filetracker provides functionality to track file reads in sessions.
+// Package filetracker provides functionality to track file reads in sessions.
 package filetracker
 
 import (

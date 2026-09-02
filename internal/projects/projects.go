@@ -1,4 +1,4 @@
-﻿package projects
+package projects
 
 import (
 	"encoding/json"

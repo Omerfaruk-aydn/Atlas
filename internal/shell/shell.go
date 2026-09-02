@@ -1,4 +1,4 @@
-﻿// Package shell provides cross-platform shell execution capabilities.
+// Package shell provides cross-platform shell execution capabilities.
 //
 // This package provides Shell instances for executing commands with their own
 // working directory and environment. Each shell execution is independent.

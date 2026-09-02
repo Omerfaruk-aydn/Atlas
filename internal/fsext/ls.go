@@ -1,4 +1,4 @@
-﻿package fsext
+package fsext
 
 import (
 	"cmp"
@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charlievieth/fastwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
+	"github.com/charlievieth/fastwalk"
 	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"
 )

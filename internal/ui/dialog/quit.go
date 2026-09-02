@@ -1,11 +1,11 @@
-﻿package dialog
+package dialog
 
 import (
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 )
 
 // QuitID is the identifier for the quit dialog.

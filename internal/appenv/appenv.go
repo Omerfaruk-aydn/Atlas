@@ -1,4 +1,4 @@
-﻿// Package appenv reads this program's own environment variables.
+// Package appenv reads this program's own environment variables.
 //
 // The variables are prefixed ATLAS_AGENT_. (The project was called
 // "crush" before this rebrand; the old CRUSH_-prefixed env vars and

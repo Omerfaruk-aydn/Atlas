@@ -1,4 +1,4 @@
-﻿// Package question provides services for asking the user questions
+// Package question provides services for asking the user questions
 // via the TUI and blocking until an answer is received. It mirrors
 // the permission service pattern: publish a request over pubsub,
 // block on a channel, and resolve when the UI sends back answers.

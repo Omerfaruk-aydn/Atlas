@@ -1,4 +1,4 @@
-﻿package copilot
+package copilot
 
 const (
 	SignupURL = "https://github.com/github-copilot/signup?editor=Atlas-Agent"

@@ -1,4 +1,4 @@
-﻿package backend
+package backend
 
 import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"

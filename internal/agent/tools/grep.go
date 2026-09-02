@@ -1,4 +1,4 @@
-﻿package tools
+package tools
 
 import (
 	"bufio"
@@ -19,11 +19,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
 )
 
 // regexCache provides thread-safe caching of compiled regex patterns

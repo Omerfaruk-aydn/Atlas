@@ -1,4 +1,4 @@
-﻿package filetracker
+package filetracker
 
 import (
 	"context"

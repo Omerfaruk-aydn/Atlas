@@ -1,13 +1,13 @@
-﻿package chat
+package chat
 
 import (
 	"encoding/json"
 	"strings"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2/tree"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"

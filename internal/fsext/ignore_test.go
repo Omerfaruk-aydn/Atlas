@@ -1,4 +1,4 @@
-﻿package fsext
+package fsext
 
 import (
 	"os"

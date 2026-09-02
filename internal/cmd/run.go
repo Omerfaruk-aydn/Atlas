@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"context"
@@ -10,9 +10,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-log/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-log/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/format"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/herdr"
@@ -22,8 +24,6 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )

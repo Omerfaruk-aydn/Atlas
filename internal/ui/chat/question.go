@@ -1,4 +1,4 @@
-﻿package chat
+package chat
 
 import (
 	"encoding/json"
@@ -6,9 +6,9 @@ import (
 	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 )
 
 // QuestionToolMessageItem renders question tool calls in the chat.

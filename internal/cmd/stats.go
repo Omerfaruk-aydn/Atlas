@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"bytes"
@@ -8,7 +8,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	
 	"html/template"
 	"os"
 	"os/user"

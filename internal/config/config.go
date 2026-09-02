@@ -1,4 +1,4 @@
-﻿package config
+package config
 
 import (
 	"cmp"
@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
 	"github.com/invopop/jsonschema"

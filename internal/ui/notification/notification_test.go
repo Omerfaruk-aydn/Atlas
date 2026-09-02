@@ -1,4 +1,4 @@
-﻿package notification_test
+package notification_test
 
 import (
 	"encoding/base64"

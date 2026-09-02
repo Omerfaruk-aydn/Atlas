@@ -1,4 +1,4 @@
-﻿// Package rewind lets the user jump back to an earlier point in a
+// Package rewind lets the user jump back to an earlier point in a
 // conversation and have the working directory's files restored to their
 // state as of that point, without losing anything: the target session is
 // never modified or deleted, only forked.

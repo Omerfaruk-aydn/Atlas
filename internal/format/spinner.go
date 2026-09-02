@@ -1,4 +1,4 @@
-﻿package format
+package format
 
 import (
 	"context"
@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/anim"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 )
 
 // Spinner wraps the bubbles spinner for non-interactive mode

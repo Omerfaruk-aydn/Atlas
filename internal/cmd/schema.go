@@ -1,11 +1,11 @@
-﻿package cmd
+package cmd
 
 import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
 	"github.com/invopop/jsonschema"
 	"github.com/spf13/cobra"

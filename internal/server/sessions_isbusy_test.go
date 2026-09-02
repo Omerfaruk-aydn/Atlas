@@ -1,4 +1,4 @@
-﻿package server
+package server
 
 import (
 	"context"
@@ -8,10 +8,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/backend"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"

@@ -1,4 +1,4 @@
-﻿package rewind
+package rewind
 
 import (
 	"os"

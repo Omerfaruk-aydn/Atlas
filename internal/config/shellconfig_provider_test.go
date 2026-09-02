@@ -1,11 +1,11 @@
-﻿package config_test
+package config_test
 
 import (
 	"slices"
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/stretchr/testify/require"
 )
 

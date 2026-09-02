@@ -1,13 +1,13 @@
-﻿package lsp
+package lsp
 
 import (
 	"context"
 	"encoding/json"
 	"log/slog"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp/util"
 	powernap "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp/util"
 )
 
 // HandleWorkspaceConfiguration handles workspace configuration requests

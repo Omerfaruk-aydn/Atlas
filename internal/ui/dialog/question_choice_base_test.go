@@ -1,13 +1,13 @@
-﻿package dialog
+package dialog
 
 import (
 	"image"
 	"testing"
 
 	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/stretchr/testify/require"
 )
 

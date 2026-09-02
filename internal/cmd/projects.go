@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"encoding/json"
@@ -6,9 +6,9 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2/table"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/projects"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/spf13/cobra"
 )
 

@@ -1,4 +1,4 @@
-﻿package config
+package config
 
 import (
 	"context"
@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/stretchr/testify/assert"

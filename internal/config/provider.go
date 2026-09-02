@@ -1,4 +1,4 @@
-﻿package config
+package config
 
 import (
 	"cmp"
@@ -14,11 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-etag"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/embedded"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-etag"
 )
 
 type syncer[T any] interface {
@@ -90,9 +90,7 @@ func UpdateProviders(pathOrURL string) error {
 // resolveHyperAPIKey, HyperTokenRefresher, and UpdateHyper were removed:
 // the Hyper provider has been deleted from Atlas Agent.
 
-var (
-	catwalkSyncer = &catwalkSync{}
-)
+var catwalkSyncer = &catwalkSync{}
 
 // Providers returns the list of providers, taking into account cached results
 // and whether or not auto update is enabled.

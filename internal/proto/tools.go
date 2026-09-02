@@ -1,4 +1,4 @@
-﻿package proto
+package proto
 
 // The wire schema for per-tool permission parameters is owned by the
 // tool itself, not duplicated here. We alias the canonical types so

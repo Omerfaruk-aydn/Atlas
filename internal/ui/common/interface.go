@@ -1,4 +1,4 @@
-﻿package common
+package common
 
 import (
 	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"

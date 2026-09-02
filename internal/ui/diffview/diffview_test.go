@@ -1,4 +1,4 @@
-﻿package diffview_test
+package diffview_test
 
 import (
 	_ "embed"
@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/alecthomas/chroma/v2/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-golden"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/diffview"
+	"github.com/alecthomas/chroma/v2/styles"
 )
 
 //go:embed testdata/TestDefault.before

@@ -1,4 +1,4 @@
-﻿package herdr
+package herdr
 
 import (
 	"context"

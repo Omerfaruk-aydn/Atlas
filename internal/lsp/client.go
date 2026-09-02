@@ -1,4 +1,4 @@
-﻿package lsp
+package lsp
 
 import (
 	"context"
@@ -14,11 +14,11 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	powernap "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/transport"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/fsext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 )
 
 // DiagnosticCounts holds the count of diagnostics by severity.

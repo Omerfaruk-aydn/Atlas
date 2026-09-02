@@ -6,8 +6,6 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
-
 	"io"
 	"io/fs"
 	"log/slog"
@@ -21,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/app"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/client"

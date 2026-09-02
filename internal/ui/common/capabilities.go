@@ -1,13 +1,13 @@
-﻿package common
+package common
 
 import (
 	"slices"
 	"strings"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
-	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	xstrings "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-xstrings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/notification"

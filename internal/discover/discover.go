@@ -1,4 +1,4 @@
-﻿package discover
+package discover
 
 import (
 	"bytes"

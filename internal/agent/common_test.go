@@ -1,4 +1,4 @@
-﻿package agent
+package agent
 
 import (
 	"context"
@@ -8,15 +8,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openaicompat"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-vcr"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openaicompat"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-vcr"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lsp"

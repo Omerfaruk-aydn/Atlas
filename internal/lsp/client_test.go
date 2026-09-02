@@ -1,4 +1,4 @@
-﻿package lsp
+package lsp
 
 import (
 	"context"
@@ -8,8 +8,8 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-powernap/pkg/lsp/protocol"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/stretchr/testify/require"
 )
 

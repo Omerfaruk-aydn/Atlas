@@ -1,4 +1,4 @@
-﻿package shellconfig
+package shellconfig
 
 import (
 	"context"

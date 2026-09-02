@@ -1,11 +1,11 @@
-﻿package agent
+package agent
 
 import (
 	"context"
 	"testing"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/stretchr/testify/require"

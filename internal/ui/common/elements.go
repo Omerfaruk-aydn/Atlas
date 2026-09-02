@@ -1,4 +1,4 @@
-﻿package common
+package common
 
 import (
 	"cmp"
@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )

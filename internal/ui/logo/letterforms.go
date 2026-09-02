@@ -1,11 +1,11 @@
-﻿package logo
+package logo
 
 import (
 	"strings"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-slice"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 )
 
 // renderWord renders letterforms to fork a word. stretchIndex is the index of

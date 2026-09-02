@@ -1,15 +1,16 @@
-﻿package db
+package db
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/appenv"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"

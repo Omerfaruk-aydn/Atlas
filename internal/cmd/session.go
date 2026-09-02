@@ -1,4 +1,4 @@
-﻿package cmd
+package cmd
 
 import (
 	"context"
@@ -14,20 +14,20 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-colorprofile"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/spf13/cobra"
 )
 
@@ -561,12 +561,12 @@ func sessionWriter(ctx context.Context, contentHeight int) (io.Writer, func(), b
 	}
 
 	return &colorprofile.Writer{
-		Forward: pipe,
-		Profile: profile,
-	}, func() {
-		pipe.Close()
-		_ = cmd.Wait()
-	}, true
+			Forward: pipe,
+			Profile: profile,
+		}, func() {
+			pipe.Close()
+			_ = cmd.Wait()
+		}, true
 }
 
 type sessionShowMeta struct {

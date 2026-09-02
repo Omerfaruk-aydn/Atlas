@@ -1,4 +1,4 @@
-﻿package diffview
+package diffview
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ansiext"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/aymanbagabas/go-udiff"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ansiext"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/zeebo/xxh3"
 )
 

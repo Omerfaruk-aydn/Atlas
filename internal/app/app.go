@@ -1,4 +1,4 @@
-﻿// Package app wires together services, coordinates agents, and manages
+// Package app wires together services, coordinates agents, and manages
 // application lifecycle.
 package app
 
@@ -14,15 +14,17 @@ import (
 	"sync"
 	"time"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/format"
@@ -41,8 +43,6 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/update"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 )
 
 // UpdateAvailableMsg is sent when a new version is available.

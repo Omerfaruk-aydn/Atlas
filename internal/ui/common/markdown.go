@@ -1,13 +1,13 @@
-﻿package common
+package common
 
 import (
 	"image/color"
 	"sync"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-markdown/v2"
-	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/xchroma"
+	"github.com/alecthomas/chroma/v2/formatters"
 )
 
 const formatterName = "atlas-agent"

@@ -1,4 +1,4 @@
-﻿package styles
+package styles
 
 import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-charmtone"

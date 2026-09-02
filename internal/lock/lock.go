@@ -1,4 +1,4 @@
-﻿// Package lock provides cross-process advisory file locking.
+// Package lock provides cross-process advisory file locking.
 //
 // File acquires an exclusive lock on the file at path, blocking until
 // the context is cancelled (or its deadline elapses). TryFile does the

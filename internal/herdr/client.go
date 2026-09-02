@@ -1,4 +1,4 @@
-﻿// Package herdr provides native integration with the herdr terminal
+// Package herdr provides native integration with the herdr terminal
 // multiplexer. When Atlas-Agent runs inside a herdr-managed pane it reports
 // agent state (idle, working, blocked) and session identity over
 // herdr's Unix socket API so herdr can display accurate status without
