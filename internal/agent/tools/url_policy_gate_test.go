@@ -64,7 +64,7 @@ func TestDownloadToolRefusesABlockedDomainBeforeAskingOrCalling(t *testing.T) {
 	}
 	client := &http.Client{Transport: noDialTransport{t}}
 	dir := t.TempDir()
-	tool := NewDownloadTool(permissions, dir, client, URLPolicy{Deny: []string{"blocked.example.com"}}, PathPolicy{})
+	tool := NewDownloadTool(permissions, dir, client, URLPolicy{Deny: []string{"blocked.example.com"}}, PathPolicy{}, 0)
 
 	input, err := json.Marshal(DownloadParams{URL: "https://blocked.example.com/file.zip", FilePath: "out.zip"})
 	require.NoError(t, err)

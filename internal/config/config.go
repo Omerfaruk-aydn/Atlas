@@ -405,6 +405,9 @@ type Options struct {
 	// directory outright, before any permission is requested. Off by
 	// default: editing a file in a sibling checkout is ordinary work.
 	RestrictWritesToWorkingDir bool `json:"restrict_writes_to_working_dir,omitempty" jsonschema:"description=Refuse writes outside the working directory outright,default=false"`
+	// MaxDownloadBytes caps what the download tool may write. Zero or
+	// unset means no cap beyond the client timeout.
+	MaxDownloadBytes int64 `json:"max_download_bytes,omitempty" jsonschema:"description=Refuse a download larger than this many bytes. Zero or unset means no limit.,example=52428800"`
 	// AllowedCommands and BlockedCommands adjust the bash tool's built-in
 	// list of banned commands. Allowing a command also lifts the
 	// subcommand blocks on it (e.g. allowing "npm" permits "npm install

@@ -747,7 +747,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewAtlasLogsTool(logFile),
 		tools.NewJobOutputTool(),
 		tools.NewJobKillTool(),
-		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil, urlPolicy(c.cfg), pathPolicy),
+		tools.NewDownloadTool(c.permissions, c.cfg.WorkingDir(), nil, urlPolicy(c.cfg), pathPolicy, c.cfg.Config().Options.MaxDownloadBytes),
 		tools.NewEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir(), pathPolicy),
 		tools.NewExitPlanModeTool(c.permissions, c.cfg.WorkingDir()),
 		tools.NewMultiEditTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir(), pathPolicy),

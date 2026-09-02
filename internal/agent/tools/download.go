@@ -4,9 +4,10 @@ import (
 	"cmp"
 	"context"
 	_ "embed"
+	"errors"
 	"fmt"
 	"html/template"
-	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -50,7 +51,7 @@ func downloadDescription() string {
 	})
 }
 
-func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client, policy URLPolicy, pathPolicy PathPolicy) fantasy.AgentTool {
+func NewDownloadTool(permissions permission.Service, workingDir string, client *http.Client, policy URLPolicy, pathPolicy PathPolicy, maxBytes int64) fantasy.AgentTool {
 	if client == nil {
 		transport := http.DefaultTransport.(*http.Transport).Clone()
 		transport.MaxIdleConns = 100
@@ -142,6 +143,12 @@ func NewDownloadTool(permissions permission.Service, workingDir string, client *
 				return fantasy.NewTextErrorResponse(fmt.Sprintf("Request failed with status code: %d", resp.StatusCode)), nil
 			}
 
+			if declaredTooLarge(resp.ContentLength, maxBytes) {
+				return fantasy.NewTextErrorResponse(fmt.Sprintf(
+					"The server reports %d bytes, over this workspace's limit of %d (max_download_bytes). Nothing was written.",
+					resp.ContentLength, maxBytes)), nil
+			}
+
 			// Create parent directories if they don't exist
 			if err := os.MkdirAll(filepath.Dir(filePath), 0o755); err != nil {
 				return fantasy.ToolResponse{}, fmt.Errorf("failed to create parent directories: %w", err)
@@ -154,11 +161,19 @@ func NewDownloadTool(permissions permission.Service, workingDir string, client *
 			}
 			defer outFile.Close()
 
-			// Copy data without an explicit size limit.
-			// The overall download is still constrained by the HTTP client's timeout
-			// and any upstream server limits.
-			bytesWritten, err := io.Copy(outFile, resp.Body)
+			// With no configured limit the download is still constrained
+			// by the HTTP client's timeout and any upstream server limits.
+			bytesWritten, err := copyLimited(outFile, resp.Body, maxBytes)
 			if err != nil {
+				// A partial file is worse than none: it looks like a
+				// completed download to everything downstream.
+				outFile.Close()
+				if removeErr := os.Remove(filePath); removeErr != nil {
+					slog.Warn("Failed to remove a partial download", "path", filePath, "error", removeErr)
+				}
+				if errors.Is(err, ErrDownloadTooLarge) {
+					return fantasy.NewTextErrorResponse(err.Error() + " (max_download_bytes). The partial file was removed."), nil
+				}
 				return fantasy.ToolResponse{}, fmt.Errorf("failed to write file: %w", err)
 			}
 
