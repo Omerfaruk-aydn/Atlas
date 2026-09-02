@@ -131,7 +131,10 @@ func sessionSetup(cmd *cobra.Command) (context.Context, *sessionServices, func()
 		messages: message.NewService(queries),
 		cfg:      cfg,
 	}
-	return ctx, svc, func() { conn.Close() }, nil
+	// Release, not conn.Close: db.Connect hands out a pooled handle per
+	// data directory, and closing it directly leaves the closed handle in
+	// the pool for the next Connect to find.
+	return ctx, svc, func() { _ = db.Release(dataDir) }, nil
 }
 
 func runSessionList(cmd *cobra.Command, _ []string) error {
