@@ -625,7 +625,7 @@ func mergeCallOptions(model Model, cfg config.ProviderConfig) (fantasy.ProviderO
 }
 
 func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, agent config.Agent, isSubAgent bool) (SessionAgent, error) {
-	large, small, err := c.buildAgentModels(ctx, isSubAgent)
+	large, small, largeFallbacks, err := c.buildAgentModels(ctx, isSubAgent)
 	if err != nil {
 		return nil, err
 	}
@@ -633,6 +633,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 	largeProviderCfg, _ := c.cfg.Config().Providers.Get(large.ModelCfg.Provider)
 	result := NewSessionAgent(SessionAgentOptions{
 		LargeModel:           large,
+		LargeModelFallbacks:  largeFallbacks,
 		SmallModel:           small,
 		SystemPromptPrefix:   largeProviderCfg.SystemPromptPrefix,
 		SystemPrompt:         "",
@@ -828,34 +829,41 @@ func (c *coordinator) filterTools(allTools []fantasy.AgentTool, agent config.Age
 }
 
 // TODO: when we support multiple agents we need to change this so that we pass in the agent specific model config
-func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Model, Model, error) {
+// buildAgentModels resolves the large and small models for a session, plus
+// the ordered fallback chain configured for the large role (see
+// Options.ModelFallbacks). The chain is best-effort: an entry whose
+// provider is not configured or whose model is not in that provider's
+// catalog is skipped with a warning rather than failing the whole build --
+// a broken fallback should not take down the primary model it exists to
+// back up.
+func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Model, Model, []Model, error) {
 	largeModelCfg, ok := c.cfg.Config().Models[config.SelectedModelTypeLarge]
 	if !ok {
-		return Model{}, Model{}, errLargeModelNotSelected
+		return Model{}, Model{}, nil, errLargeModelNotSelected
 	}
 	smallModelCfg, ok := c.cfg.Config().Models[config.SelectedModelTypeSmall]
 	if !ok {
-		return Model{}, Model{}, errSmallModelNotSelected
+		return Model{}, Model{}, nil, errSmallModelNotSelected
 	}
 
 	largeProviderCfg, ok := c.cfg.Config().Providers.Get(largeModelCfg.Provider)
 	if !ok {
-		return Model{}, Model{}, errLargeModelProviderNotConfigured
+		return Model{}, Model{}, nil, errLargeModelProviderNotConfigured
 	}
 
 	largeProvider, err := c.buildProvider(largeProviderCfg, largeModelCfg, isSubAgent)
 	if err != nil {
-		return Model{}, Model{}, err
+		return Model{}, Model{}, nil, err
 	}
 
 	smallProviderCfg, ok := c.cfg.Config().Providers.Get(smallModelCfg.Provider)
 	if !ok {
-		return Model{}, Model{}, errSmallModelProviderNotConfigured
+		return Model{}, Model{}, nil, errSmallModelProviderNotConfigured
 	}
 
 	smallProvider, err := c.buildProvider(smallProviderCfg, smallModelCfg, true)
 	if err != nil {
-		return Model{}, Model{}, err
+		return Model{}, Model{}, nil, err
 	}
 
 	var largeCatwalkModel *catwalk.Model
@@ -873,11 +881,11 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 	}
 
 	if largeCatwalkModel == nil {
-		return Model{}, Model{}, errLargeModelNotFound
+		return Model{}, Model{}, nil, errLargeModelNotFound
 	}
 
 	if smallCatwalkModel == nil {
-		return Model{}, Model{}, errSmallModelNotFound
+		return Model{}, Model{}, nil, errSmallModelNotFound
 	}
 
 	largeModelID := largeModelCfg.Model
@@ -893,12 +901,14 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 
 	largeModel, err := largeProvider.LanguageModel(ctx, largeModelID)
 	if err != nil {
-		return Model{}, Model{}, err
+		return Model{}, Model{}, nil, err
 	}
 	smallModel, err := smallProvider.LanguageModel(ctx, smallModelID)
 	if err != nil {
-		return Model{}, Model{}, err
+		return Model{}, Model{}, nil, err
 	}
+
+	largeFallbacks := c.buildFallbackChain(ctx, config.SelectedModelTypeLarge, isSubAgent)
 
 	return Model{
 			Model:      largeModel,
@@ -910,7 +920,58 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 			CatwalkCfg: *smallCatwalkModel,
 			ModelCfg:   smallModelCfg,
 			FlatRate:   smallProviderCfg.FlatRate,
-		}, nil
+		}, largeFallbacks, nil
+}
+
+// buildFallbackChain resolves Options.ModelFallbacks[role] into ready-to-use
+// models, in the configured order. Called at the same point as the primary
+// model so a fallback that will not build is discovered at session start,
+// not mid-conversation when it is actually needed.
+func (c *coordinator) buildFallbackChain(ctx context.Context, role config.SelectedModelType, isSubAgent bool) []Model {
+	entries := c.cfg.Config().Options.ModelFallbacks[role]
+	if len(entries) == 0 {
+		return nil
+	}
+
+	chain := make([]Model, 0, len(entries))
+	for _, modelCfg := range entries {
+		providerCfg, ok := c.cfg.Config().Providers.Get(modelCfg.Provider)
+		if !ok {
+			slog.Warn("Skipping model fallback: provider not configured", "role", role, "provider", modelCfg.Provider)
+			continue
+		}
+
+		var catwalkModel *catwalk.Model
+		for _, m := range providerCfg.Models {
+			if m.ID == modelCfg.Model {
+				catwalkModel = &m
+				break
+			}
+		}
+		if catwalkModel == nil {
+			slog.Warn("Skipping model fallback: model not in provider catalog", "role", role, "provider", modelCfg.Provider, "model", modelCfg.Model)
+			continue
+		}
+
+		provider, err := c.buildProvider(providerCfg, modelCfg, isSubAgent)
+		if err != nil {
+			slog.Warn("Skipping model fallback: could not build provider", "role", role, "provider", modelCfg.Provider, "error", err)
+			continue
+		}
+		languageModel, err := provider.LanguageModel(ctx, modelCfg.Model)
+		if err != nil {
+			slog.Warn("Skipping model fallback: could not build model", "role", role, "provider", modelCfg.Provider, "model", modelCfg.Model, "error", err)
+			continue
+		}
+
+		chain = append(chain, Model{
+			Model:      languageModel,
+			CatwalkCfg: *catwalkModel,
+			ModelCfg:   modelCfg,
+			FlatRate:   providerCfg.FlatRate,
+		})
+	}
+	return chain
 }
 
 func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {
@@ -1229,11 +1290,11 @@ func (c *coordinator) Model() Model {
 
 func (c *coordinator) UpdateModels(ctx context.Context) error {
 	// build the models again so we make sure we get the latest config
-	large, small, err := c.buildAgentModels(ctx, false)
+	large, small, largeFallbacks, err := c.buildAgentModels(ctx, false)
 	if err != nil {
 		return err
 	}
-	c.currentAgent.SetModels(large, small)
+	c.currentAgent.SetModels(large, small, largeFallbacks)
 
 	agentCfg, ok := c.cfg.Config().Agents[config.AgentCoder]
 	if !ok {

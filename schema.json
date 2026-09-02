@@ -603,6 +603,16 @@
           },
           "type": "object",
           "description": "Override which model type (large or small) an agent uses, keyed by agent id"
+        },
+        "model_fallbacks": {
+          "additionalProperties": {
+            "items": {
+              "$ref": "#/$defs/SelectedModel"
+            },
+            "type": "array"
+          },
+          "type": "object",
+          "description": "Alternate provider/model pairs to fail over to, in order, when a model role hits a 429/rate-limit response"
         }
       },
       "additionalProperties": false,

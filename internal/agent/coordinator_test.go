@@ -32,10 +32,10 @@ func (m *mockSessionAgent) BeginAccepted(sessionID string) *AcceptedRun {
 	return &AcceptedRun{sessionID: sessionID}
 }
 
-func (m *mockSessionAgent) Model() Model                        { return m.model }
-func (m *mockSessionAgent) SetModels(large, small Model)        {}
-func (m *mockSessionAgent) SetTools(tools []fantasy.AgentTool)  {}
-func (m *mockSessionAgent) SetSystemPrompt(systemPrompt string) {}
+func (m *mockSessionAgent) Model() Model                                         { return m.model }
+func (m *mockSessionAgent) SetModels(large, small Model, largeFallbacks []Model) {}
+func (m *mockSessionAgent) SetTools(tools []fantasy.AgentTool)                   {}
+func (m *mockSessionAgent) SetSystemPrompt(systemPrompt string)                  {}
 func (m *mockSessionAgent) Cancel(sessionID string) {
 	m.cancelled = append(m.cancelled, sessionID)
 }
@@ -579,4 +579,43 @@ func TestGetProviderOptionsReasoningEffortFallback(t *testing.T) {
 	thinking, ok := parsed.ExtraBody["thinking"].(map[string]any)
 	require.True(t, ok)
 	assert.Equal(t, "enabled", thinking["type"])
+}
+
+func TestBuildFallbackChainSkipsBrokenEntriesAndKeepsGoodOnes(t *testing.T) {
+	const primaryProvider = "primary-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, primaryProvider, config.ProviderConfig{ID: primaryProvider})
+
+	const goodProvider = "fallback-provider"
+	coord.cfg.Config().Providers.Set(goodProvider, config.ProviderConfig{
+		ID:   goodProvider,
+		Type: openaicompat.Name,
+		Models: []catwalk.Model{
+			{ID: "good-model"},
+		},
+	})
+
+	coord.cfg.Config().Options.ModelFallbacks = map[config.SelectedModelType][]config.SelectedModel{
+		config.SelectedModelTypeLarge: {
+			{Provider: "no-such-provider", Model: "x"},                  // provider not configured
+			{Provider: goodProvider, Model: "no-such-model-in-catalog"}, // not in the provider's catalog
+			{Provider: goodProvider, Model: "good-model"},               // resolves
+		},
+	}
+
+	chain := coord.buildFallbackChain(t.Context(), config.SelectedModelTypeLarge, false)
+
+	require.Len(t, chain, 1, "the two broken entries must be skipped, not fail the whole chain")
+	assert.Equal(t, goodProvider, chain[0].ModelCfg.Provider)
+	assert.Equal(t, "good-model", chain[0].ModelCfg.Model)
+}
+
+func TestBuildFallbackChainIsEmptyWhenNoneConfigured(t *testing.T) {
+	const primaryProvider = "primary-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, primaryProvider, config.ProviderConfig{ID: primaryProvider})
+
+	chain := coord.buildFallbackChain(t.Context(), config.SelectedModelTypeLarge, false)
+
+	require.Empty(t, chain)
 }

@@ -402,6 +402,12 @@ type Options struct {
 	// ignored rather than rejected, since a stale key here should not stop
 	// startup over a knob nobody is relying on any more.
 	AgentModels map[string]SelectedModelType `json:"agent_models,omitempty" jsonschema:"description=Override which model type (large or small) an agent uses\\, keyed by agent id,example={\"task\":\"small\"}"`
+	// ModelFallbacks lists, per model role, alternate provider/model pairs
+	// tried in order when the role's primary model answers with a
+	// rate-limit or quota error (HTTP 429). Applies to the large model,
+	// which is what the main conversation runs on; the small model has no
+	// fallback chain yet.
+	ModelFallbacks map[SelectedModelType][]SelectedModel `json:"model_fallbacks,omitempty" jsonschema:"description=Alternate provider/model pairs to fail over to\\, in order\\, when a model role hits a 429/rate-limit response,example={\"large\":[{\"model\":\"gpt-4o-mini\",\"provider\":\"openai\"}]}"`
 }
 
 // Memory bounds the persistent stores. The bounds matter because their

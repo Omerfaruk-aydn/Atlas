@@ -134,7 +134,7 @@ type SessionAgentCall struct {
 type SessionAgent interface {
 	Run(context.Context, SessionAgentCall) (*fantasy.AgentResult, error)
 	BeginAccepted(sessionID string) *AcceptedRun
-	SetModels(large Model, small Model)
+	SetModels(large Model, small Model, largeFallbacks []Model)
 	SetTools(tools []fantasy.AgentTool)
 	SetSystemPrompt(systemPrompt string)
 	Cancel(sessionID string)
@@ -166,11 +166,12 @@ type activeCancel struct {
 }
 
 type sessionAgent struct {
-	largeModel         *csync.Value[Model]
-	smallModel         *csync.Value[Model]
-	systemPromptPrefix *csync.Value[string]
-	systemPrompt       *csync.Value[string]
-	tools              *csync.Slice[fantasy.AgentTool]
+	largeModel          *csync.Value[Model]
+	largeModelFallbacks *csync.Slice[Model]
+	smallModel          *csync.Value[Model]
+	systemPromptPrefix  *csync.Value[string]
+	systemPrompt        *csync.Value[string]
+	tools               *csync.Slice[fantasy.AgentTool]
 
 	isSubAgent           bool
 	sessions             session.Service
@@ -223,7 +224,10 @@ type sessionAgent struct {
 }
 
 type SessionAgentOptions struct {
-	LargeModel           Model
+	LargeModel Model
+	// LargeModelFallbacks are tried, in order, when LargeModel keeps
+	// answering with a rate-limit/quota error. See modelChain.
+	LargeModelFallbacks  []Model
 	SmallModel           Model
 	SystemPromptPrefix   string
 	SystemPrompt         string
@@ -243,6 +247,7 @@ func NewSessionAgent(
 ) SessionAgent {
 	return &sessionAgent{
 		largeModel:           csync.NewValue(opts.LargeModel),
+		largeModelFallbacks:  csync.NewSliceFrom(opts.LargeModelFallbacks),
 		smallModel:           csync.NewValue(opts.SmallModel),
 		systemPromptPrefix:   csync.NewValue(opts.SystemPromptPrefix),
 		systemPrompt:         csync.NewValue(opts.SystemPrompt),
@@ -661,6 +666,9 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	// Copy mutable fields under lock to avoid races with SetTools/SetModels.
 	agentTools := a.tools.Copy()
 	largeModel := a.largeModel.Get()
+	// chain starts on largeModel and, on a 429, moves through
+	// a.largeModelFallbacks for the rest of this turn. See modelChain.
+	chain := newModelChain(largeModel, a.largeModelFallbacks.Copy())
 	systemPrompt := a.systemPrompt.Get()
 	promptPrefix := a.systemPromptPrefix.Get()
 	var instructions strings.Builder
@@ -931,6 +939,12 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 			return a.messages.Update(ctx, *currentAssistant)
 		},
 		OnRetry: func(err *fantasy.ProviderError, delay time.Duration) {
+			if chain.HandleRetry(err) {
+				next := chain.Current()
+				slog.Warn("Model rate-limited, failing over",
+					"from_provider", largeModel.ModelCfg.Provider, "from_model", largeModel.ModelCfg.Model,
+					"to_provider", next.ModelCfg.Provider, "to_model", next.ModelCfg.Model)
+			}
 			slog.Warn("Provider request failed, retrying", providerRetryLogFields(err, delay)...)
 			// Reset streamed content so the retried response doesn't
 			// concatenate with partial content from the failed attempt.
@@ -943,7 +957,7 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 		},
 		OnAuthRefresh: call.OnAuthRefresh,
 		ModelProvider: func() fantasy.LanguageModel {
-			m := a.largeModel.Get()
+			m := chain.Current()
 			slog.Info("ModelProvider called",
 				"provider", m.ModelCfg.Provider,
 				"model", m.ModelCfg.Model)
@@ -1027,7 +1041,11 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 				return getSessionErr
 			}
 			usage, estimated := fallbackStepUsage(stepMessages, stepResult)
-			a.updateSessionUsage(largeModel, &updatedSession, usage, a.openrouterCost(stepResult.ProviderMetadata), estimated)
+			// Bill whichever model actually answered this step: after a
+			// 429 failover chain.Current() differs from largeModel, and
+			// pricing the fallback's tokens at the primary's rate would
+			// misreport cost.
+			a.updateSessionUsage(chain.Current(), &updatedSession, usage, a.openrouterCost(stepResult.ProviderMetadata), estimated)
 			_, sessionErr := a.sessions.Save(ctx, updatedSession)
 			if sessionErr != nil {
 				return sessionErr
@@ -2058,8 +2076,9 @@ func (a *sessionAgent) QueuedPromptsList(sessionID string) []string {
 	return prompts
 }
 
-func (a *sessionAgent) SetModels(large Model, small Model) {
+func (a *sessionAgent) SetModels(large Model, small Model, largeFallbacks []Model) {
 	a.largeModel.Set(large)
+	a.largeModelFallbacks.SetSlice(largeFallbacks)
 	a.smallModel.Set(small)
 }
 
