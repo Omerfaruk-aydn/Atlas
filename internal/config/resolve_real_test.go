@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
@@ -240,10 +242,15 @@ func TestResolvedEnv_RealShell_FailureDetail(t *testing.T) {
 	// status N" + stderr; Windows' in-process coreutils surfaces the
 	// Go OS error instead. Accept either shape so the test is
 	// portable without weakening the intent.
+	//
+	// The Windows half is recognised by the wrapped error rather than by
+	// English text: the system reports the reason in the machine's own
+	// language, so matching "cannot find" fails on every non-English
+	// Windows.
 	lower := strings.ToLower(msg)
 	hasDetail := strings.Contains(lower, "exit status") ||
-		strings.Contains(lower, "no such file") ||
-		strings.Contains(lower, "cannot find")
+		errors.Is(err, fs.ErrNotExist) ||
+		strings.Contains(lower, "open "+strings.ToLower(missing)+":")
 	require.True(t, hasDetail, "must surface inner error detail: %s", msg)
 }
 
