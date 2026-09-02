@@ -40,13 +40,17 @@ type UserMessageItem struct {
 	message     *message.Message
 	sty         *styles.Styles
 
-	// imgEnc/cellSize pick how (and at what fidelity) attached images
-	// render inline below the attachment chips. imgEnc defaults to
-	// EncodingBlocks (half-block glyphs carrying two pixels per cell —
-	// works on any terminal with SGR color) and upgrades to a true pixel
-	// image (EncodingKitty) where the terminal speaks that protocol.
-	// Sixel is deliberately not offered: it paints at the cursor rather
-	// than into cells, so it cannot survive a diff-based cell renderer.
+	// imgEnc/cellSize decide whether an attached image is drawn inline
+	// below its chip. imgEnc is EncodingNone unless the terminal speaks
+	// the Kitty graphics protocol, which is the only way to put real
+	// pixels on the screen; everywhere else the chip's filename is all
+	// that is shown.
+	//
+	// A half-block mosaic used to fill that gap, but its resolution is
+	// the cell grid — a preview was 48x48 pixels at best, which reads as
+	// a mosaic rather than a picture, so it was removed. Sixel is not
+	// offered either: it paints at the cursor rather than into cells, so
+	// it cannot survive a diff-based cell renderer.
 	imgEnc   fimage.Encoding
 	cellSize fimage.CellSize
 	isTmux   bool
@@ -56,7 +60,7 @@ type UserMessageItem struct {
 // attached images are rendered inline (see imgEnc).
 func NewUserMessageItem(sty *styles.Styles, message *message.Message, attachments *attachments.Renderer, caps common.Capabilities) MessageItem {
 	v := list.NewVersioned()
-	imgEnc := fimage.EncodingBlocks
+	imgEnc := fimage.EncodingNone
 	if caps.SupportsKittyGraphics() {
 		imgEnc = fimage.EncodingKitty
 	}
@@ -188,20 +192,9 @@ func (m *UserMessageItem) ID() string {
 	return m.message.ID
 }
 
-// imagePreviewCols/Rows bound the inline preview rendered below an image
-// attachment's chip.
-//
-// These numbers are the preview's entire resolution. A half-block cell
-// carries two stacked pixels, so the mosaic is imagePreviewCols wide by
-// imagePreviewRows*2 tall in pixels - at the original 24x12 every picture
-// arrived as a 24x24 thumbnail regardless of how much room the terminal
-// had, which is what made attachments look like mosaics rather than
-// photographs. Rows is half of Cols so the pixel grid stays square.
-//
-// The ceiling is the message column (maxTextWidth, 120), not the terminal;
-// 48 leaves the preview comfortably inside it even on a narrow window
-// while quadrupling the pixel count. A terminal that speaks the Kitty
-// graphics protocol never gets here - it draws real pixels instead.
+// imagePreviewCols/Rows size the Kitty graphics placement below an image
+// attachment's chip. They are cells, not pixels: the terminal scales the
+// transmitted image into that box.
 const (
 	imagePreviewCols = 48
 	imagePreviewRows = 24

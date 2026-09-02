@@ -1,4 +1,4 @@
-﻿package image
+package image
 
 import (
 	"bytes"
@@ -8,13 +8,12 @@ import (
 	"image/color"
 	"io"
 	"log/slog"
-	"strings"
 	"sync"
 
-	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi/kitty"
+	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/disintegration/imaging"
 )
 
@@ -29,15 +28,13 @@ type Encoding byte
 
 // Image encodings.
 const (
-	EncodingBlocks Encoding = iota
+	// EncodingNone draws nothing. It is the zero value, so an encoding that
+	// was never set shows no image at all rather than an approximation of
+	// one: a terminal that cannot draw pixels now shows the attachment's
+	// name and nothing else.
+	EncodingNone Encoding = iota
 	EncodingKitty
 )
-
-// halfBlock is the upper half block glyph. Drawn with a foreground and a
-// background color it paints two stacked pixels in one cell, which is what
-// lets [EncodingBlocks] reach a square pixel: a terminal cell is about twice
-// as tall as it is wide, so half of one is roughly square.
-const halfBlock = "▀"
 
 type imageKey struct {
 	id   string
@@ -130,7 +127,7 @@ func HasTransmitted(id string, cols, rows int) bool {
 // Transmit transmits the image data to the terminal if needed. This is used to
 // cache the image on the terminal for later rendering.
 func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows int, tmux bool) tea.Cmd {
-	if img == nil {
+	if img == nil || e == EncodingNone {
 		return nil
 	}
 
@@ -144,17 +141,6 @@ func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows i
 	}
 
 	cmd := func() tea.Msg {
-		if e != EncodingKitty {
-			cachedMutex.Lock()
-			cachedImages[key] = cachedImage{
-				img:  img,
-				cols: cols,
-				rows: rows,
-			}
-			cachedMutex.Unlock()
-			return TransmittedMsg{ID: key.ID()}
-		}
-
 		var buf bytes.Buffer
 		img := fitImage(id, img, cs, cols, rows)
 		bounds := img.Bounds()
@@ -198,17 +184,15 @@ func (e Encoding) Transmit(id string, img image.Image, cs CellSize, cols, rows i
 func (e Encoding) Render(id string, cols, rows int) string {
 	key := imageKey{id: id, cols: cols, rows: rows}
 	cachedMutex.RLock()
-	cached, ok := cachedImages[key]
+	_, ok := cachedImages[key]
 	cachedMutex.RUnlock()
 	if !ok {
 		return ""
 	}
 
-	img := cached.img
-
 	switch e {
-	case EncodingBlocks:
-		return renderHalfBlocks(img, cols, rows)
+	case EncodingNone:
+		return ""
 	case EncodingKitty:
 		// Build Kitty graphics unicode place holders
 		var fg color.Color
@@ -257,57 +241,4 @@ func (e Encoding) Render(id string, cols, rows int) string {
 	default:
 		return ""
 	}
-}
-
-// renderHalfBlocks draws the image out of half-block glyphs: each cell carries
-// two vertically stacked pixels, the upper one as the foreground color and the
-// lower one as the background. That doubles the vertical resolution a cell grid
-// can hold and reproduces the image's own colors, where a shape-matching ASCII
-// renderer only approximates them with glyph outlines.
-//
-// It needs nothing but SGR color, so it is the fallback for every terminal
-// without a graphics protocol — which, Kitty aside, is all of them. Sixel is
-// not an option here: it paints pixels at the cursor rather than into cells,
-// so it cannot survive a diff-based cell renderer.
-//
-// Alpha is ignored. A transparent pixel comes out as whatever its stored RGB
-// is, usually black, because the encoding has no way to leave a cell
-// unpainted while still using its background for the lower pixel.
-func renderHalfBlocks(img image.Image, cols, rows int) string {
-	if img == nil || cols <= 0 || rows <= 0 {
-		return ""
-	}
-
-	// Two pixel rows per cell row. Fit preserves the aspect ratio, so a wide
-	// image simply uses fewer rows than it was offered.
-	fitted := imaging.Fit(img, cols, rows*2, imaging.Lanczos)
-	b := fitted.Bounds()
-	w, h := b.Dx(), b.Dy()
-	if w <= 0 || h <= 0 {
-		return ""
-	}
-
-	var buf strings.Builder
-	for y := 0; y < h; y += 2 {
-		if y > 0 {
-			buf.WriteByte('\n')
-		}
-		for x := range w {
-			top := fitted.At(b.Min.X+x, b.Min.Y+y)
-			// An odd pixel height leaves the last row without a lower
-			// neighbour. Reusing the upper pixel paints the cell as a solid
-			// block instead of half the image sitting on the terminal
-			// background.
-			bottom := top
-			if y+1 < h {
-				bottom = fitted.At(b.Min.X+x, b.Min.Y+y+1)
-			}
-			buf.WriteString(ansi.NewStyle().ForegroundColor(top).BackgroundColor(bottom).String())
-			buf.WriteString(halfBlock)
-		}
-		// Close the run so the row's last background doesn't bleed into
-		// whatever the layout draws to the right of the preview.
-		buf.WriteString(ansi.ResetStyle)
-	}
-	return buf.String()
 }
