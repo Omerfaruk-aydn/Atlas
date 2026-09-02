@@ -210,6 +210,42 @@ func TestAtlasInfo_Options(t *testing.T) {
 	require.Contains(t, output, "debug = true")
 }
 
+func TestAtlasInfo_AgentModelsAndFallbacks(t *testing.T) {
+	t.Parallel()
+
+	cfg := config.NewTestStore(&config.Config{
+		Providers: csync.NewMap[string, config.ProviderConfig](),
+		Options: &config.Options{
+			AgentModels: map[string]config.SelectedModelType{
+				"task": config.SelectedModelTypeSmall,
+			},
+			ModelFallbacks: map[config.SelectedModelType][]config.SelectedModel{
+				config.SelectedModelTypeLarge: {
+					{Provider: "openai", Model: "gpt-4o-mini"},
+					{Provider: "groq", Model: "llama"},
+				},
+			},
+		},
+	})
+
+	output := buildAtlasInfo(cfg, nil, nil, nil, nil)
+	require.Contains(t, output, "agent_models = task->small")
+	require.Contains(t, output, "model_fallbacks = large (2)")
+}
+
+func TestAtlasInfo_NoAgentModelsOrFallbacksOmitted(t *testing.T) {
+	t.Parallel()
+
+	cfg := config.NewTestStore(&config.Config{
+		Providers: csync.NewMap[string, config.ProviderConfig](),
+		Options:   &config.Options{},
+	})
+
+	output := buildAtlasInfo(cfg, nil, nil, nil, nil)
+	require.NotContains(t, output, "agent_models")
+	require.NotContains(t, output, "model_fallbacks")
+}
+
 func TestAtlasInfo_TUIOptions(t *testing.T) {
 	t.Parallel()
 

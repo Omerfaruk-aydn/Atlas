@@ -416,6 +416,24 @@ func writeOptions(b *strings.Builder, cfg *config.ConfigStore) {
 		}
 	}
 
+	if len(c.Options.AgentModels) > 0 {
+		routes := make([]string, 0, len(c.Options.AgentModels))
+		for id, typ := range c.Options.AgentModels {
+			routes = append(routes, fmt.Sprintf("%s->%s", id, typ))
+		}
+		slices.Sort(routes)
+		opts = append(opts, kv{"agent_models", strings.Join(routes, ", ")})
+	}
+
+	if len(c.Options.ModelFallbacks) > 0 {
+		chains := make([]string, 0, len(c.Options.ModelFallbacks))
+		for role, entries := range c.Options.ModelFallbacks {
+			chains = append(chains, fmt.Sprintf("%s (%d)", role, len(entries)))
+		}
+		slices.Sort(chains)
+		opts = append(opts, kv{"model_fallbacks", strings.Join(chains, ", ")})
+	}
+
 	slices.SortFunc(opts, func(a, b kv) int { return strings.Compare(a.key, b.key) })
 	b.WriteString("[options]\n")
 	for _, o := range opts {
