@@ -14,6 +14,9 @@ concurrency:
 jobs:
   build:
     strategy:
+      # Without this one failing platform cancels the other two, so a run
+      # only ever reports the first failure it happens to hit.
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
