@@ -734,7 +734,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 
 	allTools = append(
 		allTools,
-		tools.NewBashTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Options.Attribution, modelID, tools.NewCommandPolicy(c.cfg.Config())),
+		tools.NewBashTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Options.Attribution, modelID, tools.NewCommandPolicy(c.cfg.Config()), tools.NewBashLimits(c.cfg.Config())),
 		tools.NewAtlasInfoTool(c.cfg, c.lspManager, c.allSkills, c.activeSkills, c.skillTracker),
 		tools.NewAtlasLogsTool(logFile),
 		tools.NewJobOutputTool(),

@@ -145,12 +145,12 @@ var bannedCommands = []string{
 	"ufw",
 }
 
-func bashDescription(attribution *config.Attribution, modelID string, policy CommandPolicy) string {
+func bashDescription(attribution *config.Attribution, modelID string, policy CommandPolicy, limits BashLimits) string {
 	bannedCommandsStr := strings.Join(policy.banned(), ", ")
 	var out bytes.Buffer
 	if err := bashDescriptionTpl.Execute(&out, bashDescriptionData{
 		BannedCommands:  bannedCommandsStr,
-		MaxOutputLength: MaxOutputLength,
+		MaxOutputLength: cmp.Or(limits.MaxOutputLength, MaxOutputLength),
 		Attribution:     *attribution,
 		ModelID:         modelID,
 		RgAvailable:     getRg() != "",
@@ -162,11 +162,11 @@ func bashDescription(attribution *config.Attribution, modelID string, policy Com
 	return out.String()
 }
 
-func NewBashTool(permissions permission.Service, workingDir string, attribution *config.Attribution, modelID string, policy CommandPolicy) fantasy.AgentTool {
+func NewBashTool(permissions permission.Service, workingDir string, attribution *config.Attribution, modelID string, policy CommandPolicy, limits BashLimits) fantasy.AgentTool {
 	blocks := policy.blockFuncs()
 	return fantasy.NewAgentTool(
 		BashToolName,
-		string(bashDescription(attribution, modelID, policy)),
+		string(bashDescription(attribution, modelID, policy, limits)),
 		func(ctx context.Context, params BashParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
 			if params.Command == "" {
 				return fantasy.NewTextErrorResponse("missing command"), nil
@@ -242,7 +242,7 @@ func NewBashTool(permissions permission.Service, workingDir string, attribution 
 						return fantasy.ToolResponse{}, fmt.Errorf("[Job %s] error executing command: %w", bgShell.ID, execErr)
 					}
 
-					stdout = formatOutput(stdout, stderr, execErr)
+					stdout = formatOutput(stdout, stderr, execErr, limits.MaxOutputLength)
 
 					metadata := BashResponseMetadata{
 						StartTime:        startTime.UnixMilli(),
@@ -287,7 +287,7 @@ func NewBashTool(permissions permission.Service, workingDir string, attribution 
 			ticker := time.NewTicker(100 * time.Millisecond)
 			defer ticker.Stop()
 
-			autoBackgroundAfter := cmp.Or(params.AutoBackgroundAfter, DefaultAutoBackgroundAfter)
+			autoBackgroundAfter := limits.autoBackgroundAfter(params.AutoBackgroundAfter)
 			autoBackgroundThreshold := time.Duration(autoBackgroundAfter) * time.Second
 			timeout := time.After(autoBackgroundThreshold)
 
@@ -326,7 +326,7 @@ func NewBashTool(permissions permission.Service, workingDir string, attribution 
 					return fantasy.ToolResponse{}, fmt.Errorf("[Job %s] error executing command: %w", bgShell.ID, execErr)
 				}
 
-				stdout = formatOutput(stdout, stderr, execErr)
+				stdout = formatOutput(stdout, stderr, execErr, limits.MaxOutputLength)
 
 				metadata := BashResponseMetadata{
 					StartTime:        startTime.UnixMilli(),
@@ -359,12 +359,12 @@ func NewBashTool(permissions permission.Service, workingDir string, attribution 
 }
 
 // formatOutput formats the output of a completed command with error handling
-func formatOutput(stdout, stderr string, execErr error) string {
+func formatOutput(stdout, stderr string, execErr error, maxOutputLength int) string {
 	interrupted := shell.IsInterrupt(execErr)
 	exitCode := shell.ExitCode(execErr)
 
-	stdout = truncateOutput(stdout)
-	stderr = truncateOutput(stderr)
+	stdout = TruncateOutputTo(stdout, maxOutputLength)
+	stderr = TruncateOutputTo(stderr, maxOutputLength)
 
 	errorMessage := stderr
 	if errorMessage == "" && execErr != nil {
@@ -397,20 +397,26 @@ func formatOutput(stdout, stderr string, execErr error) string {
 }
 
 func TruncateOutput(content string) string {
-	if ansi.StringWidth(content) <= MaxOutputLength {
+	return TruncateOutputTo(content, MaxOutputLength)
+}
+
+// TruncateOutputTo keeps the head and tail of content, dropping the middle,
+// so that what comes back is at most maxLength wide. A maxLength of zero or
+// less means the built-in limit rather than "keep nothing".
+func TruncateOutputTo(content string, maxLength int) string {
+	if maxLength <= 0 {
+		maxLength = MaxOutputLength
+	}
+	if ansi.StringWidth(content) <= maxLength {
 		return content
 	}
 
-	halfLength := MaxOutputLength / 2
+	halfLength := maxLength / 2
 	start := ansi.Truncate(content, halfLength, "")
 	end := ansi.TruncateLeft(content, ansi.StringWidth(content)-halfLength, "")
 
 	truncatedLinesCount := max(strings.Count(content, "\n")-strings.Count(start, "\n")-strings.Count(end, "\n"), 0)
 	return fmt.Sprintf("%s\n\n... [%d lines truncated] ...\n\n%s", start, truncatedLinesCount, end)
-}
-
-func truncateOutput(content string) string {
-	return TruncateOutput(content)
 }
 
 func normalizeWorkingDir(path string) string {

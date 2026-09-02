@@ -711,6 +711,19 @@ type Tools struct {
 	Ls   ToolLs   `json:"ls,omitzero"`
 	Grep ToolGrep `json:"grep,omitzero"`
 	Glob ToolGlob `json:"glob,omitzero"`
+	Bash ToolBash `json:"bash,omitzero"`
+}
+
+type ToolBash struct {
+	MaxOutputLength     *int `json:"max_output_length,omitempty" jsonschema:"description=Maximum width of the output the bash tool returns before its middle is dropped,default=30000,example=10000"`
+	AutoBackgroundAfter *int `json:"auto_background_after,omitempty" jsonschema:"description=Seconds a command may run in the foreground before it becomes a background job,default=60,example=120"`
+}
+
+// Limits returns the user-defined output width and auto-background
+// threshold. Zero means "unset": the bash tool substitutes its own defaults
+// rather than truncating to nothing or backgrounding immediately.
+func (t ToolBash) Limits() (maxOutputLength, autoBackgroundAfter int) {
+	return ptrValOr(t.MaxOutputLength, 0), ptrValOr(t.AutoBackgroundAfter, 0)
 }
 
 type ToolLs struct {
