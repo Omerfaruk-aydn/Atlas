@@ -398,6 +398,9 @@ type Options struct {
 	// provider is retried before the turn gives up. Unset keeps the
 	// provider library's default; 0 disables retries.
 	MaxProviderRetries *int `json:"max_provider_retries,omitempty" jsonschema:"description=How many times to retry a failed provider request. Unset keeps the default; 0 disables retries.,example=5"`
+	// MaxConcurrentSubAgents caps how many agent-tool sub-agents run at
+	// once. Zero or unset means no limit.
+	MaxConcurrentSubAgents int `json:"max_concurrent_subagents,omitempty" jsonschema:"description=Cap how many agent-tool sub-agents run at the same time. Zero or unset means no limit.,example=3"`
 	// AllowedCommands and BlockedCommands adjust the bash tool's built-in
 	// list of banned commands. Allowing a command also lifts the
 	// subcommand blocks on it (e.g. allowing "npm" permits "npm install

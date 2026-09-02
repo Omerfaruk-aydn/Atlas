@@ -37,6 +37,11 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 	if err != nil {
 		return nil, err
 	}
+
+	// One limiter for the tool, not per call: the point is to bound the
+	// sub-agents running across all of this tool's concurrent calls.
+	limiter := newConcurrencyLimiter(c.cfg.Config().Options.MaxConcurrentSubAgents)
+
 	return fantasy.NewParallelAgentTool(
 		AgentToolName,
 		agentToolDescription,
@@ -54,6 +59,11 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 			if agentMessageID == "" {
 				return fantasy.ToolResponse{}, errors.New("agent message id missing from context")
 			}
+
+			if err := limiter.acquire(ctx); err != nil {
+				return fantasy.ToolResponse{}, err
+			}
+			defer limiter.release()
 
 			return c.runSubAgent(ctx, subAgentParams{
 				Agent:          agent,
