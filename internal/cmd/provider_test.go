@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -68,4 +69,51 @@ func TestProviderConnectionFailsOn401(t *testing.T) {
 	}
 
 	require.Error(t, providerCfg.TestConnection(config.IdentityResolver()))
+}
+
+func TestProviderTestAllReportsEachOne(t *testing.T) {
+	ok := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(ok.Close)
+	bad := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	t.Cleanup(bad.Close)
+
+	dataDir := t.TempDir()
+	cfg, err := config.Init(dataDir, dataDir, false)
+	require.NoError(t, err)
+	cfg.Config().Providers.Set("good", config.ProviderConfig{ID: "good", Type: catwalk.TypeOpenAICompat, BaseURL: ok.URL, APIKey: "k"})
+	cfg.Config().Providers.Set("bad", config.ProviderConfig{ID: "bad", Type: catwalk.TypeOpenAICompat, BaseURL: bad.URL, APIKey: "k"})
+	cfg.Config().Providers.Set("disabled", config.ProviderConfig{ID: "disabled", Type: catwalk.TypeOpenAICompat, BaseURL: bad.URL, Disable: true})
+
+	c := &cobra.Command{}
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	err = testAllProviders(c, cfg)
+
+	require.Error(t, err, "one of the two enabled providers failed, so the run as a whole failed")
+	require.Contains(t, out.String(), "good: ok")
+	require.Contains(t, out.String(), "bad: failed")
+	require.NotContains(t, out.String(), "disabled", "a disabled provider is not tested")
+}
+
+func TestProviderTestAllSucceedsWhenEveryoneIsHealthy(t *testing.T) {
+	ok := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	t.Cleanup(ok.Close)
+
+	dataDir := t.TempDir()
+	cfg, err := config.Init(dataDir, dataDir, false)
+	require.NoError(t, err)
+	cfg.Config().Providers.Set("good", config.ProviderConfig{ID: "good", Type: catwalk.TypeOpenAICompat, BaseURL: ok.URL, APIKey: "k"})
+
+	c := &cobra.Command{}
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, testAllProviders(c, cfg))
 }
