@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"testing"
 
@@ -107,4 +108,23 @@ func TestCheckStatusNames(t *testing.T) {
 	require.Equal(t, "ok", statusOK.String())
 	require.Equal(t, "warn", statusWarn.String())
 	require.Equal(t, "fail", statusFail.String())
+}
+
+func TestPrintChecksJSON(t *testing.T) {
+	doctorJSON = true
+	t.Cleanup(func() { doctorJSON = false })
+
+	var out bytes.Buffer
+	err := printChecks(&out, []checkResult{
+		{"data directory", statusFail, "not writable"},
+		{"database", statusOK, "fine"},
+	})
+	require.Error(t, err)
+
+	var got []jsonCheckResult
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+	require.Equal(t, []jsonCheckResult{
+		{Name: "data directory", Status: "fail", Detail: "not writable"},
+		{Name: "database", Status: "ok", Detail: "fine"},
+	}, got)
 }

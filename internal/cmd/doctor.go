@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -15,17 +16,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var doctorJSON bool
+
 var doctorCmd = &cobra.Command{
 	Use:   "doctor",
 	Short: "Check that this workspace is set up to run",
 	Long: "Check the things a session needs before it starts: a writable data directory, a working " +
 		"database, a configured provider and model, and the commands the configured MCP and LSP " +
-		"servers are supposed to run. Reports what is wrong rather than fixing it.",
+		"servers are supposed to run. Reports what is wrong rather than fixing it. " +
+		"Use --json for machine-readable output.",
 	Args: cobra.NoArgs,
 	RunE: runDoctor,
 }
 
 func init() {
+	doctorCmd.Flags().BoolVar(&doctorJSON, "json", false, "output in JSON format")
 	rootCmd.AddCommand(doctorCmd)
 }
 
@@ -79,20 +84,50 @@ func reportDiagnostics(cmd *cobra.Command, cfg *config.ConfigStore) error {
 	return printChecks(cmd.OutOrStdout(), diagnose(cmd.Context(), cfg))
 }
 
+// jsonCheckResult is checkResult's wire form: Status renders as its string
+// name rather than the underlying int, since a consumer that is not this
+// package has no reason to know the iota ordering.
+type jsonCheckResult struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+	Detail string `json:"detail"`
+}
+
 // printChecks writes the report and turns any failure into an error, so a
 // script can act on the exit status instead of parsing the output.
 func printChecks(out io.Writer, results []checkResult) error {
-	var failures int
-	for _, r := range results {
-		fmt.Fprintf(out, "[%s] %s: %s\n", r.Status, r.Name, r.Detail)
-		if r.Status == statusFail {
-			failures++
+	failures := countFailures(results)
+
+	if doctorJSON {
+		wire := make([]jsonCheckResult, len(results))
+		for i, r := range results {
+			wire[i] = jsonCheckResult{Name: r.Name, Status: r.Status.String(), Detail: r.Detail}
+		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(wire); err != nil {
+			return err
+		}
+	} else {
+		for _, r := range results {
+			fmt.Fprintf(out, "[%s] %s: %s\n", r.Status, r.Name, r.Detail)
 		}
 	}
+
 	if failures > 0 {
 		return fmt.Errorf("%d check(s) failed", failures)
 	}
 	return nil
+}
+
+func countFailures(results []checkResult) int {
+	var failures int
+	for _, r := range results {
+		if r.Status == statusFail {
+			failures++
+		}
+	}
+	return failures
 }
 
 func diagnose(ctx context.Context, cfg *config.ConfigStore) []checkResult {
