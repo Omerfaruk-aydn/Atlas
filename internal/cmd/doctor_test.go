@@ -190,6 +190,21 @@ func TestDoctorReportsSandboxStatusWhenEnabled(t *testing.T) {
 	}
 }
 
+// Team tools are opt-in, so doctor says nothing about them unless
+// they're turned on.
+func TestDoctorSaysNothingAboutTeamsWhenItIsOff(t *testing.T) {
+	got, _ := doctorOutput(t, t.TempDir(), t.TempDir())
+	require.NotContains(t, got, "teams:")
+}
+
+func TestDoctorReportsTeamsStatusWhenEnabled(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"tools":{"teams":{"enabled":true}}}`)
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	require.Contains(t, got, "[ok] teams: in-memory mailbox active")
+}
+
 func TestPrintChecksJSON(t *testing.T) {
 	doctorJSON = true
 	t.Cleanup(func() { doctorJSON = false })

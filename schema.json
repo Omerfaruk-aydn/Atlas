@@ -1205,6 +1205,17 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolTeams": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on team_send / team_read so sub-agents spawned by the same task can broadcast short notes to each other while still running.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolView": {
       "properties": {
         "default_read_limit": {
@@ -1254,6 +1265,9 @@
         },
         "debugger": {
           "$ref": "#/$defs/ToolDebugger"
+        },
+        "teams": {
+          "$ref": "#/$defs/ToolTeams"
         }
       },
       "additionalProperties": false,

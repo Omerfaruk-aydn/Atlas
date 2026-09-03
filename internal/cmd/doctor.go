@@ -150,7 +150,22 @@ func diagnose(ctx context.Context, cfg *config.ConfigStore) []checkResult {
 	if r := checkSandbox(cfg); r != nil {
 		results = append(results, *r)
 	}
+	if r := checkTeams(cfg); r != nil {
+		results = append(results, *r)
+	}
 	return results
+}
+
+// checkTeams reports whether the team_send/team_read tools are turned
+// on. Unlike browser/debugger/sandbox there is nothing external to
+// verify -- the mailbox is in-memory -- so this is only ever a status
+// line, never a warning or failure, and nothing is reported when the
+// tool is off (same opt-in reasoning as the others).
+func checkTeams(cfg *config.ConfigStore) *checkResult {
+	if !cfg.Config().Tools.Teams.IsEnabled() {
+		return nil
+	}
+	return &checkResult{"teams", statusOK, "in-memory mailbox active"}
 }
 
 // browserCandidates are the binary names checkBrowser looks for on PATH

@@ -42,6 +42,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/teams"
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/anthropic"
@@ -143,6 +144,10 @@ type coordinator struct {
 	// rotation survives process restarts. See internal/credentials.
 	credentials *credentials.Rotator
 
+	// teams tracks which sub-agents (however deeply nested) share a
+	// mailbox for the team_send/team_read tools. See internal/teams.
+	teams *teams.Registry
+
 	readyWg errgroup.Group
 }
 
@@ -196,6 +201,7 @@ func NewCoordinator(ctx context.Context, opts CoordinatorOptions) (Coordinator, 
 		memory:       memoryStore(opts.Config),
 		interactive:  opts.Interactive,
 		credentials:  credentials.Load(filepath.Join(opts.Config.Config().Options.DataDirectory, credentials.StateFileName)),
+		teams:        teams.NewRegistry(),
 	}
 
 	agentCfg, ok := opts.Config.Config().Agents[config.AgentCoder]
@@ -819,6 +825,13 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	// and requires Delve installed.
 	if c.cfg.Config().Tools.Debugger.IsEnabled() {
 		allTools = append(allTools, tools.NewDebuggerTool(c.permissions, c.cfg.Config().Tools.Debugger))
+	}
+
+	// Team tools are opt-in like the others above, even though they have
+	// no external footprint: they only matter once sub-agents are in
+	// play, so they stay out of the palette otherwise.
+	if c.cfg.Config().Tools.Teams.IsEnabled() {
+		allTools = append(allTools, tools.NewTeamSendTool(c.teams), tools.NewTeamReadTool(c.teams))
 	}
 
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
@@ -1657,6 +1670,16 @@ func (c *coordinator) runSubAgent(ctx context.Context, params subAgentParams) (f
 	// Call session setup function if provided
 	if params.SessionSetup != nil {
 		params.SessionSetup(session.ID)
+	}
+
+	// Every sub-agent joins its parent's team so team_send/team_read
+	// work regardless of whether the tools are registered for this
+	// particular agent -- cheap bookkeeping, no goroutines or resources
+	// involved (see internal/teams). c.teams is nil in tests that build
+	// a coordinator by struct literal instead of NewCoordinator, the
+	// same as c.notify/c.runComplete elsewhere in this file.
+	if c.teams != nil {
+		c.teams.Join(params.SessionID, session.ID)
 	}
 
 	// Get model configuration

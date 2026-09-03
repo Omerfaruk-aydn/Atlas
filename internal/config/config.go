@@ -850,6 +850,24 @@ type Tools struct {
 	View     ToolView     `json:"view,omitzero"`
 	Browser  ToolBrowser  `json:"browser,omitzero"`
 	Debugger ToolDebugger `json:"debugger,omitzero"`
+	Teams    ToolTeams    `json:"teams,omitzero"`
+}
+
+// ToolTeams configures the team_send / team_read tools, which let
+// sub-agents spawned from the same task (running in parallel or nested
+// arbitrarily deep) broadcast short notes to each other via an in-memory
+// mailbox. Off by default like the other opt-in tools, even though this
+// one has no filesystem/network/process footprint at all -- it only
+// matters once sub-agents are in play, so it stays out of the tool
+// palette otherwise.
+type ToolTeams struct {
+	Enabled *bool `json:"enabled,omitempty" jsonschema:"description=Turn on team_send / team_read so sub-agents spawned by the same task can broadcast short notes to each other while still running.,default=false"`
+}
+
+// IsEnabled reports whether the team_send/team_read tools should be
+// registered.
+func (t ToolTeams) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
 }
 
 // ToolDebugger configures the debugger tool, which drives a Go program
