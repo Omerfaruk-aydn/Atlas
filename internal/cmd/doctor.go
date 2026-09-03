@@ -139,7 +139,44 @@ func diagnose(ctx context.Context, cfg *config.ConfigStore) []checkResult {
 	}
 	results = append(results, checkMCPCommands(cfg)...)
 	results = append(results, checkLSPCommands(cfg)...)
+	if r := checkBrowser(cfg); r != nil {
+		results = append(results, *r)
+	}
 	return results
+}
+
+// browserCandidates are the binary names checkBrowser looks for on PATH
+// when the user hasn't set an explicit executable_path.
+var browserCandidates = []string{
+	"google-chrome", "google-chrome-stable", "chromium", "chromium-browser", "chrome", "msedge",
+}
+
+// checkBrowser reports whether the browser tool, if turned on, has a
+// Chrome/Chromium/Edge binary to launch. It reports nothing when the tool
+// is off, since it is opt-in and a missing browser is irrelevant until
+// then. A miss is a warning, not a failure: chromedp also probes common
+// install directories beyond PATH, so this check can under-report a
+// browser that is actually there -- the tool itself gives a clearer error
+// the first time it tries to launch one.
+func checkBrowser(cfg *config.ConfigStore) *checkResult {
+	b := cfg.Config().Tools.Browser
+	if !b.IsEnabled() {
+		return nil
+	}
+
+	if b.ExecutablePath != "" {
+		if _, err := os.Stat(b.ExecutablePath); err != nil {
+			return &checkResult{"browser", statusFail, fmt.Sprintf("executable_path %s: %s", b.ExecutablePath, err)}
+		}
+		return &checkResult{"browser", statusOK, b.ExecutablePath}
+	}
+
+	for _, name := range browserCandidates {
+		if path, err := exec.LookPath(name); err == nil {
+			return &checkResult{"browser", statusOK, path}
+		}
+	}
+	return &checkResult{"browser", statusWarn, "no Chrome/Chromium/Edge found on PATH; set tools.browser.executable_path if one is installed elsewhere"}
 }
 
 func checkDataDirectory(cfg *config.ConfigStore) checkResult {

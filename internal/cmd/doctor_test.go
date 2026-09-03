@@ -3,7 +3,9 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"os"
+	"os/exec"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -108,6 +110,35 @@ func TestCheckStatusNames(t *testing.T) {
 	require.Equal(t, "ok", statusOK.String())
 	require.Equal(t, "warn", statusWarn.String())
 	require.Equal(t, "fail", statusFail.String())
+}
+
+// The browser tool is opt-in, so doctor says nothing about it unless it's
+// turned on.
+func TestDoctorSaysNothingAboutBrowserWhenItIsOff(t *testing.T) {
+	got, _ := doctorOutput(t, t.TempDir(), t.TempDir())
+	require.NotContains(t, got, "browser:")
+}
+
+func TestDoctorFailsWhenBrowserExecutablePathDoesNotExist(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"tools":{"browser":{"enabled":true,"executable_path":"/definitely/not/a/real/binary"}}}`)
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	require.Contains(t, got, "[fail] browser:")
+	require.Contains(t, got, "/definitely/not/a/real/binary")
+}
+
+func TestDoctorAcceptsAnExistingBrowserExecutablePath(t *testing.T) {
+	// go is what runs this test, so it is guaranteed to exist -- the check
+	// only stats the path, it does not care whether it is really a browser.
+	goPath, err := exec.LookPath("go")
+	require.NoError(t, err)
+
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, fmt.Sprintf(`{"tools":{"browser":{"enabled":true,"executable_path":%q}}}`, goPath))
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	require.Contains(t, got, "[ok] browser: "+goPath)
 }
 
 func TestPrintChecksJSON(t *testing.T) {
