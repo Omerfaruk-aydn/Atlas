@@ -169,10 +169,18 @@ type activeCancel struct {
 type sessionAgent struct {
 	largeModel          *csync.Value[Model]
 	largeModelFallbacks *csync.Slice[Model]
-	smallModel          *csync.Value[Model]
-	systemPromptPrefix  *csync.Value[string]
-	systemPrompt        *csync.Value[string]
-	tools               *csync.Slice[fantasy.AgentTool]
+	// fallbackCooldown is SessionAgentOptions.FallbackCooldown, copied here
+	// because it never changes after construction.
+	fallbackCooldown time.Duration
+	// fallbackSticky remembers which fallback model the chain last moved
+	// to, and until when, so a cooldown can survive across Run calls
+	// instead of always resetting to the primary on the next turn. See
+	// modelChain and stickyFallback.
+	fallbackSticky     *csync.Value[stickyFallback]
+	smallModel         *csync.Value[Model]
+	systemPromptPrefix *csync.Value[string]
+	systemPrompt       *csync.Value[string]
+	tools              *csync.Slice[fantasy.AgentTool]
 
 	isSubAgent           bool
 	sessions             session.Service
@@ -247,7 +255,12 @@ type SessionAgentOptions struct {
 	LargeModel Model
 	// LargeModelFallbacks are tried, in order, when LargeModel keeps
 	// answering with a rate-limit/quota error. See modelChain.
-	LargeModelFallbacks  []Model
+	LargeModelFallbacks []Model
+	// FallbackCooldown is how long a fallback the chain moved to on a 429
+	// stays in use before a later turn is willing to try the primary model
+	// again. Zero means every turn starts over on the primary, which is
+	// the historical behavior.
+	FallbackCooldown     time.Duration
 	SmallModel           Model
 	SystemPromptPrefix   string
 	SystemPrompt         string
@@ -285,6 +298,8 @@ func NewSessionAgent(
 	return &sessionAgent{
 		largeModel:           csync.NewValue(opts.LargeModel),
 		largeModelFallbacks:  csync.NewSliceFrom(opts.LargeModelFallbacks),
+		fallbackCooldown:     opts.FallbackCooldown,
+		fallbackSticky:       csync.NewValue(stickyFallback{}),
 		smallModel:           csync.NewValue(opts.SmallModel),
 		systemPromptPrefix:   csync.NewValue(opts.SystemPromptPrefix),
 		systemPrompt:         csync.NewValue(opts.SystemPrompt),
@@ -724,9 +739,11 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	// Copy mutable fields under lock to avoid races with SetTools/SetModels.
 	agentTools := a.tools.Copy()
 	largeModel := a.largeModel.Get()
-	// chain starts on largeModel and, on a 429, moves through
+	// chain starts on largeModel -- or on a sticky fallback still within
+	// its cooldown, see stickyFallback -- and, on a 429, moves through
 	// a.largeModelFallbacks for the rest of this turn. See modelChain.
-	chain := newModelChain(largeModel, a.largeModelFallbacks.Copy())
+	chain := newModelChain(largeModel, a.largeModelFallbacks.Copy(),
+		a.fallbackSticky.Get().activeIndex(time.Now()))
 	systemPrompt := a.systemPrompt.Get()
 	promptPrefix := a.systemPromptPrefix.Get()
 	var instructions strings.Builder
@@ -1000,6 +1017,12 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 		OnRetry: func(err *fantasy.ProviderError, delay time.Duration) {
 			if chain.HandleRetry(err) {
 				next := chain.Current()
+				if a.fallbackCooldown > 0 {
+					a.fallbackSticky.Set(stickyFallback{
+						index: chain.active,
+						until: time.Now().Add(a.fallbackCooldown),
+					})
+				}
 				slog.Warn("Model rate-limited, failing over",
 					"from_provider", largeModel.ModelCfg.Provider, "from_model", largeModel.ModelCfg.Model,
 					"to_provider", next.ModelCfg.Provider, "to_model", next.ModelCfg.Model)

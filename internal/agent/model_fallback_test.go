@@ -3,6 +3,7 @@ package agent
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
@@ -16,7 +17,7 @@ func testModel(provider string) Model {
 func TestModelChainStartsOnThePrimary(t *testing.T) {
 	t.Parallel()
 	primary := testModel("anthropic")
-	chain := newModelChain(primary, []Model{testModel("openai")})
+	chain := newModelChain(primary, []Model{testModel("openai")}, 0)
 
 	require.Equal(t, primary, chain.Current())
 	require.False(t, chain.Fellback())
@@ -25,7 +26,7 @@ func TestModelChainStartsOnThePrimary(t *testing.T) {
 func TestModelChainMovesOnRateLimit(t *testing.T) {
 	t.Parallel()
 	fallback := testModel("openai")
-	chain := newModelChain(testModel("anthropic"), []Model{fallback})
+	chain := newModelChain(testModel("anthropic"), []Model{fallback}, 0)
 
 	moved := chain.HandleRetry(&fantasy.ProviderError{StatusCode: http.StatusTooManyRequests})
 
@@ -36,7 +37,7 @@ func TestModelChainMovesOnRateLimit(t *testing.T) {
 
 func TestModelChainIgnoresOtherErrors(t *testing.T) {
 	t.Parallel()
-	chain := newModelChain(testModel("anthropic"), []Model{testModel("openai")})
+	chain := newModelChain(testModel("anthropic"), []Model{testModel("openai")}, 0)
 
 	for _, err := range []*fantasy.ProviderError{
 		{StatusCode: http.StatusInternalServerError},
@@ -53,7 +54,7 @@ func TestModelChainWalksTheWholeList(t *testing.T) {
 	t.Parallel()
 	second := testModel("openai")
 	third := testModel("groq")
-	chain := newModelChain(testModel("anthropic"), []Model{second, third})
+	chain := newModelChain(testModel("anthropic"), []Model{second, third}, 0)
 
 	rateLimited := &fantasy.ProviderError{StatusCode: http.StatusTooManyRequests}
 
@@ -66,7 +67,7 @@ func TestModelChainWalksTheWholeList(t *testing.T) {
 
 func TestModelChainStopsAtTheEndOfTheList(t *testing.T) {
 	t.Parallel()
-	chain := newModelChain(testModel("anthropic"), nil)
+	chain := newModelChain(testModel("anthropic"), nil, 0)
 
 	moved := chain.HandleRetry(&fantasy.ProviderError{StatusCode: http.StatusTooManyRequests})
 
@@ -77,7 +78,7 @@ func TestModelChainStopsAtTheEndOfTheList(t *testing.T) {
 func TestModelChainNeverMovesBackward(t *testing.T) {
 	t.Parallel()
 	second := testModel("openai")
-	chain := newModelChain(testModel("anthropic"), []Model{second})
+	chain := newModelChain(testModel("anthropic"), []Model{second}, 0)
 	rateLimited := &fantasy.ProviderError{StatusCode: http.StatusTooManyRequests}
 
 	require.True(t, chain.HandleRetry(rateLimited))
@@ -87,4 +88,50 @@ func TestModelChainNeverMovesBackward(t *testing.T) {
 	// to go -- must not wrap back around to the primary.
 	require.False(t, chain.HandleRetry(rateLimited))
 	require.Equal(t, second, chain.Current())
+}
+
+func TestModelChainCanStartOnAFallback(t *testing.T) {
+	t.Parallel()
+	second := testModel("openai")
+	chain := newModelChain(testModel("anthropic"), []Model{second}, 1)
+
+	require.Equal(t, second, chain.Current())
+	require.True(t, chain.Fellback())
+}
+
+// A stale sticky index -- from a fallback list that has since shrunk --
+// must not panic or silently clamp to the last model; it starts over on the
+// primary instead.
+func TestModelChainTreatsAnOutOfRangeStartIndexAsPrimary(t *testing.T) {
+	t.Parallel()
+	primary := testModel("anthropic")
+	chain := newModelChain(primary, []Model{testModel("openai")}, 5)
+
+	require.Equal(t, primary, chain.Current())
+	require.False(t, chain.Fellback())
+}
+
+func TestModelChainRejectsANegativeStartIndex(t *testing.T) {
+	t.Parallel()
+	primary := testModel("anthropic")
+	chain := newModelChain(primary, []Model{testModel("openai")}, -1)
+
+	require.Equal(t, primary, chain.Current())
+}
+
+func TestStickyFallbackActiveIndexBeforeExpiry(t *testing.T) {
+	t.Parallel()
+	s := stickyFallback{index: 2, until: time.Now().Add(time.Minute)}
+	require.Equal(t, 2, s.activeIndex(time.Now()))
+}
+
+func TestStickyFallbackActiveIndexAfterExpiry(t *testing.T) {
+	t.Parallel()
+	s := stickyFallback{index: 2, until: time.Now().Add(-time.Minute)}
+	require.Equal(t, 0, s.activeIndex(time.Now()))
+}
+
+func TestStickyFallbackZeroValueIsAlwaysThePrimary(t *testing.T) {
+	t.Parallel()
+	require.Equal(t, 0, stickyFallback{}.activeIndex(time.Now()))
 }

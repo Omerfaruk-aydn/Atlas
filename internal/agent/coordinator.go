@@ -634,6 +634,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 	result := NewSessionAgent(SessionAgentOptions{
 		LargeModel:           large,
 		LargeModelFallbacks:  largeFallbacks,
+		FallbackCooldown:     time.Duration(c.cfg.Config().Options.FallbackCooldown) * time.Second,
 		SmallModel:           small,
 		SystemPromptPrefix:   largeProviderCfg.SystemPromptPrefix,
 		SystemPrompt:         "",

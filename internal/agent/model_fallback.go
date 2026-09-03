@@ -2,6 +2,7 @@ package agent
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 )
@@ -23,9 +24,35 @@ type modelChain struct {
 	active int     // index into models of the model currently in use.
 }
 
-// newModelChain builds a chain that starts on primary.
-func newModelChain(primary Model, fallbacks []Model) *modelChain {
-	return &modelChain{models: append([]Model{primary}, fallbacks...)}
+// newModelChain builds a chain of primary followed by fallbacks, starting
+// at startIndex -- 0 for the primary, or a sticky fallback's remembered
+// index when its cooldown has not yet expired. An out-of-range startIndex
+// (stale state from a fallback list that has since shrunk) is treated as 0
+// rather than panicking or silently clamping to the last model.
+func newModelChain(primary Model, fallbacks []Model, startIndex int) *modelChain {
+	models := append([]Model{primary}, fallbacks...)
+	if startIndex < 0 || startIndex >= len(models) {
+		startIndex = 0
+	}
+	return &modelChain{models: models, active: startIndex}
+}
+
+// stickyFallback remembers which model a chain last failed over to, and
+// until when that choice should stick, so a rate-limit cooldown can survive
+// across separate Run calls instead of always retrying the primary model on
+// the very next turn.
+type stickyFallback struct {
+	index int
+	until time.Time
+}
+
+// activeIndex is the chain index a new Run should start at: index while the
+// cooldown has not yet expired, otherwise back to the primary (0).
+func (s stickyFallback) activeIndex(now time.Time) int {
+	if s.until.IsZero() || !now.Before(s.until) {
+		return 0
+	}
+	return s.index
 }
 
 // Current is the model presently in use.
