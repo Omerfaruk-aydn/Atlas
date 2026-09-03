@@ -259,6 +259,69 @@ func newViewToolForTest(workingDir string) fantasy.AgentTool {
 	return NewViewTool(nil, permissions, mockFileTracker{}, nil, workingDir, ViewLimits{})
 }
 
+func newViewToolForTestWithHashAnchors(workingDir string) fantasy.AgentTool {
+	permissions := &mockViewPermissionService{Broker: pubsub.NewBroker[permission.PermissionRequest]()}
+	return NewViewTool(nil, permissions, mockFileTracker{}, nil, workingDir, ViewLimits{HashAnchors: true})
+}
+
+// TestViewToolHashAnchorsOffByDefault pins the default: without
+// options.tools.view.hash_anchors set, output stays exactly the existing
+// "line|content" format, so every existing consumer's token cost and
+// parsing is unaffected.
+func TestViewToolHashAnchorsOffByDefault(t *testing.T) {
+	t.Parallel()
+
+	workingDir := t.TempDir()
+	filePath := filepath.Join(workingDir, "plain.txt")
+	require.NoError(t, os.WriteFile(filePath, []byte("alpha\nbeta\n"), 0o644))
+
+	tool := newViewToolForTest(workingDir)
+	ctx := context.WithValue(context.Background(), SessionIDContextKey, "test-session")
+	resp := runViewTool(t, tool, ctx, ViewParams{FilePath: filePath})
+
+	require.False(t, resp.IsError)
+	require.Contains(t, resp.Content, "     1|alpha")
+	require.Contains(t, resp.Content, "     2|beta")
+}
+
+// TestViewToolHashAnchorsShowAMatchingHash pins the format when enabled
+// (line|hash|content) and that the hash shown is exactly what edit's
+// anchor_hash verifies against for that same line content.
+func TestViewToolHashAnchorsShowAMatchingHash(t *testing.T) {
+	t.Parallel()
+
+	workingDir := t.TempDir()
+	filePath := filepath.Join(workingDir, "anchored.txt")
+	require.NoError(t, os.WriteFile(filePath, []byte("alpha\nbeta\n"), 0o644))
+
+	tool := newViewToolForTestWithHashAnchors(workingDir)
+	ctx := context.WithValue(context.Background(), SessionIDContextKey, "test-session")
+	resp := runViewTool(t, tool, ctx, ViewParams{FilePath: filePath})
+
+	require.False(t, resp.IsError)
+	require.Contains(t, resp.Content, fmt.Sprintf("     1|%s|alpha", lineAnchorHash("alpha")))
+	require.Contains(t, resp.Content, fmt.Sprintf("     2|%s|beta", lineAnchorHash("beta")))
+}
+
+// TestViewToolHashAnchorsStripCRBeforeHashing pins that a line's anchor is
+// computed on its content after stripping a trailing \r, matching exactly
+// what edit's loadExistingFile normalizes to -- so a hash taken from a
+// CRLF file's view output still verifies against edit's anchor check.
+func TestViewToolHashAnchorsStripCRBeforeHashing(t *testing.T) {
+	t.Parallel()
+
+	workingDir := t.TempDir()
+	filePath := filepath.Join(workingDir, "crlf.txt")
+	require.NoError(t, os.WriteFile(filePath, []byte("alpha\r\nbeta\r\n"), 0o644))
+
+	tool := newViewToolForTestWithHashAnchors(workingDir)
+	ctx := context.WithValue(context.Background(), SessionIDContextKey, "test-session")
+	resp := runViewTool(t, tool, ctx, ViewParams{FilePath: filePath})
+
+	require.False(t, resp.IsError)
+	require.Contains(t, resp.Content, fmt.Sprintf("|%s|beta", lineAnchorHash("beta")))
+}
+
 func runViewTool(t *testing.T, tool fantasy.AgentTool, ctx context.Context, params ViewParams) fantasy.ToolResponse {
 	t.Helper()
 

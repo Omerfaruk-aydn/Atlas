@@ -35,12 +35,14 @@ var viewDescriptionTpl = template.Must(
 type viewDescriptionData struct {
 	DefaultReadLimit int
 	MaxViewSizeKB    int
+	HashAnchors      bool
 }
 
 func viewDescription(limits ViewLimits) string {
 	return renderTemplate(viewDescriptionTpl, viewDescriptionData{
 		DefaultReadLimit: limits.readLimit(),
 		MaxViewSizeKB:    MaxViewSize / 1024,
+		HashAnchors:      limits.HashAnchors,
 	})
 }
 
@@ -249,7 +251,7 @@ func NewViewTool(
 			openInLSPs(ctx, lspManager, filePath)
 			waitForLSPDiagnostics(ctx, lspManager, filePath, 300*time.Millisecond)
 			output := "<file>\n"
-			output += addLineNumbers(content, params.Offset+1)
+			output += addLineNumbers(content, params.Offset+1, limits.HashAnchors)
 
 			if hasMore {
 				output += fmt.Sprintf("\n\n(File has more lines. Use 'offset' parameter to read beyond line %d)",
@@ -280,7 +282,11 @@ func NewViewTool(
 	)
 }
 
-func addLineNumbers(content string, startLine int) string {
+// addLineNumbers renders content with a line-number prefix on every line.
+// When showHashAnchors is set, each line also gets its lineAnchorHash so
+// edit's anchor_line/anchor_hash mode can target it without reproducing
+// its exact, whitespace-sensitive text.
+func addLineNumbers(content string, startLine int, showHashAnchors bool) string {
 	if content == "" {
 		return ""
 	}
@@ -293,12 +299,14 @@ func addLineNumbers(content string, startLine int) string {
 
 		lineNum := i + startLine
 		numStr := fmt.Sprintf("%d", lineNum)
+		if len(numStr) < 6 {
+			numStr = fmt.Sprintf("%6s", numStr)
+		}
 
-		if len(numStr) >= 6 {
-			result = append(result, fmt.Sprintf("%s|%s", numStr, line))
+		if showHashAnchors {
+			result = append(result, fmt.Sprintf("%s|%s|%s", numStr, lineAnchorHash(line), line))
 		} else {
-			paddedNum := fmt.Sprintf("%6s", numStr)
-			result = append(result, fmt.Sprintf("%s|%s", paddedNum, line))
+			result = append(result, fmt.Sprintf("%s|%s", numStr, line))
 		}
 	}
 
@@ -474,7 +482,7 @@ func readBuiltinFile(params ViewParams, skillTracker *skills.Tracker) (fantasy.T
 	}
 
 	output := "<file>\n"
-	output += addLineNumbers(strings.Join(lines, "\n"), offset+1)
+	output += addLineNumbers(strings.Join(lines, "\n"), offset+1, false)
 	if hasMore {
 		output += fmt.Sprintf("\n\n(File has more lines. Use 'offset' parameter to read beyond line %d)",
 			offset+len(lines))

@@ -11,6 +11,7 @@ import "github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 type ViewLimits struct {
 	DefaultReadLimit int
 	MaxLineLength    int
+	HashAnchors      bool
 }
 
 // NewViewLimits reads the limits out of the config's tools section.
@@ -19,7 +20,11 @@ func NewViewLimits(cfg *config.Config) ViewLimits {
 		return ViewLimits{}
 	}
 	readLimit, lineLength := cfg.Tools.View.Limits()
-	return ViewLimits{DefaultReadLimit: readLimit, MaxLineLength: lineLength}
+	return ViewLimits{
+		DefaultReadLimit: readLimit,
+		MaxLineLength:    lineLength,
+		HashAnchors:      cfg.Tools.View.HashAnchorsEnabled(),
+	}
 }
 
 func (l ViewLimits) readLimit() int {
