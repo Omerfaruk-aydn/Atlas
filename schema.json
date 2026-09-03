@@ -493,6 +493,17 @@
           "type": "array",
           "description": "Paths to directories containing Agent Skills (folders with SKILL.md files)"
         },
+        "subagents_paths": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "~/.config/atlas/agents",
+              "./.atlas/agents"
+            ]
+          },
+          "type": "array",
+          "description": "Paths to directories containing subagent definitions (name.md files with a model role)"
+        },
         "tui": {
           "$ref": "#/$defs/TUIOptions",
           "description": "Terminal user interface options"
@@ -707,6 +718,20 @@
           },
           "type": "object",
           "description": "Alternate provider/model pairs to fail over to, in order, when a model role hits a 429/rate-limit response"
+        },
+        "fallback_cooldown": {
+          "type": "integer",
+          "description": "How many seconds a fallback model stays active after a failover before the next turn returns to the primary model. Zero resets every turn.",
+          "examples": [
+            300
+          ]
+        },
+        "model_roles": {
+          "additionalProperties": {
+            "$ref": "#/$defs/SelectedModel"
+          },
+          "type": "object",
+          "description": "Named model roles a subagent's model field can reference by name, e.g. \"frontend\" or \"research\""
         }
       },
       "additionalProperties": false,
@@ -780,6 +805,16 @@
           "examples": [
             "$OPENAI_API_KEY"
           ]
+        },
+        "api_keys": {
+          "items": {
+            "type": "string",
+            "examples": [
+              "[\"$OPENAI_API_KEY_2\",\"$OPENAI_API_KEY_3\"]"
+            ]
+          },
+          "type": "array",
+          "description": "Additional API keys for this provider (separate accounts/subscriptions), rotated round-robin across sessions"
         },
         "oauth": {
           "$ref": "#/$defs/Token",
