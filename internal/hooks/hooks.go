@@ -37,12 +37,15 @@ const (
 	// no other single, well-defined point at which a session is done, so
 	// explicit deletion is the one this fires on. Matchers do not apply.
 	EventSessionEnd = "SessionEnd"
-	// EventPreCompact fires before auto-summarization runs (a turn that
-	// tripped the context-window threshold; there is no manual /compact
-	// in this fork). Unlike EventSessionEnd, it CAN block: a deny or halt
-	// decision skips summarization for this turn, and the turn continues
-	// over budget rather than losing history the hook did not approve
-	// dropping. Matchers do not apply.
+	// EventPreCompact fires before auto-summarization runs: a turn that
+	// tripped the context-window threshold mid-turn. Unlike EventSessionEnd,
+	// it CAN block: a deny or halt decision skips summarization for this
+	// turn, and the turn continues over budget rather than losing history
+	// the hook did not approve dropping. Matchers do not apply.
+	//
+	// `atlas session compact` (an explicit, out-of-turn user action, not a
+	// silent threshold trip) does not go through this gate -- it calls
+	// Summarize directly.
 	EventPreCompact = "PreCompact"
 )
 
