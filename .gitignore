@@ -64,3 +64,9 @@ completions/atlas.*sh
 
 # Transient credential-helper file written by git during a push
 .git-askpass-temp.cmd
+
+# npm auth token, written by the release workflow next to the wrapper
+# package and removed right after publish. Ignored so a failed or
+# interrupted publish can never leave it stageable.
+npm/cli/.npmrc
+.npmrc
