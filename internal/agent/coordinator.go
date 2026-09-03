@@ -838,7 +838,10 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	// every request, so they are behind their own switch and only earn it
 	// on a Go codebase being audited.
 	if c.cfg.Config().Tools.CodeIntel.IsEnabled() {
-		allTools = append(allTools, tools.NewDeadCodeTool(c.cfg.WorkingDir()))
+		allTools = append(allTools,
+			tools.NewDeadCodeTool(c.cfg.WorkingDir()),
+			tools.NewTypeHierarchyTool(c.cfg.WorkingDir()),
+		)
 	}
 
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
