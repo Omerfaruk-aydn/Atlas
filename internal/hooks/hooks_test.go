@@ -755,3 +755,24 @@ func TestParseStdoutClaudeCodeFormat(t *testing.T) {
 		require.Equal(t, "hello", r.Context)
 	})
 }
+
+func TestRunSessionEventReturnsTheHookContext(t *testing.T) {
+	t.Parallel()
+	hookCfg := config.HookConfig{Command: `echo '{"context":"deploy freeze active"}'`}
+	r := NewRunner([]config.HookConfig{hookCfg}, t.TempDir(), t.TempDir())
+
+	result, err := r.RunSessionEvent(context.Background(), EventSessionStart, "sess")
+	require.NoError(t, err)
+	require.Equal(t, "deploy freeze active", result.Context)
+}
+
+func TestRunSessionEventCanDeny(t *testing.T) {
+	t.Parallel()
+	hookCfg := config.HookConfig{Command: `echo '{"decision":"deny","reason":"context window locked"}'`}
+	r := NewRunner([]config.HookConfig{hookCfg}, t.TempDir(), t.TempDir())
+
+	result, err := r.RunSessionEvent(context.Background(), EventPreCompact, "sess")
+	require.NoError(t, err)
+	require.Equal(t, DecisionDeny, result.Decision)
+	require.Equal(t, "context window locked", result.Reason)
+}

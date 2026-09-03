@@ -111,6 +111,52 @@ func TestHooksRunExecutesUserPromptSubmit(t *testing.T) {
 	require.Contains(t, got, "reason: blocked")
 }
 
+func TestHooksRunExecutesSessionStart(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"hooks":{"SessionStart":[
+		{"name":"greet","command":"echo '{\"context\":\"welcome back\"}'"}
+	]}}`)
+
+	c := newHooksRunTestCmd(t, workingDir)
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{"session_start"}))
+	got := out.String()
+	require.Contains(t, got, "greet")
+	require.Contains(t, got, "context: welcome back")
+}
+
+func TestHooksRunExecutesSessionEnd(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"hooks":{"SessionEnd":[
+		{"name":"archive","command":"echo ok"}
+	]}}`)
+
+	c := newHooksRunTestCmd(t, workingDir)
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{"SessionEnd"}))
+	require.Contains(t, out.String(), "archive")
+}
+
+func TestHooksRunExecutesPreCompact(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"hooks":{"PreCompact":[
+		{"name":"keep-history","command":"echo '{\"decision\":\"deny\",\"reason\":\"keep it all\"}'"}
+	]}}`)
+
+	c := newHooksRunTestCmd(t, workingDir)
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{"PreCompact"}))
+	got := out.String()
+	require.Contains(t, got, "result: deny")
+	require.Contains(t, got, "reason: keep it all")
+}
+
 func TestPrintHookResultWithNoMatches(t *testing.T) {
 	var out bytes.Buffer
 	require.NoError(t, printHookResult(&out, hooks.AggregateResult{}))

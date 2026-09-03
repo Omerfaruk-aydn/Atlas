@@ -23,6 +23,27 @@ const (
 	// add context the model sees alongside it. Matchers do not apply:
 	// there is no tool name to match against.
 	EventUserPromptSubmit = "UserPromptSubmit"
+	// EventSessionStart fires once per session, the first time this
+	// process runs a turn for it -- a genuinely new session and a
+	// resumed one both fire it, once each, the first time this process
+	// touches them. It cannot refuse the turn; its context is appended to
+	// the first prompt the model sees. Matchers do not apply.
+	EventSessionStart = "SessionStart"
+	// EventSessionEnd fires when a session is explicitly deleted (`atlas
+	// session delete`, or a matching prune). It cannot block the
+	// deletion -- by the time it fires the session is already gone -- and
+	// is meant for cleanup or archival, not for approval. This is
+	// narrower than a full session-lifecycle "close": a CLI/TUI turn has
+	// no other single, well-defined point at which a session is done, so
+	// explicit deletion is the one this fires on. Matchers do not apply.
+	EventSessionEnd = "SessionEnd"
+	// EventPreCompact fires before auto-summarization runs (a turn that
+	// tripped the context-window threshold; there is no manual /compact
+	// in this fork). Unlike EventSessionEnd, it CAN block: a deny or halt
+	// decision skips summarization for this turn, and the turn continues
+	// over budget rather than losing history the hook did not approve
+	// dropping. Matchers do not apply.
+	EventPreCompact = "PreCompact"
 )
 
 // HaltExitCode is the exit code that halts the whole turn. 2 blocks the

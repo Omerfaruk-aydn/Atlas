@@ -134,6 +134,7 @@ func runSessionPrune(cmd *cobra.Command, _ []string) error {
 		if err := svc.sessions.Delete(ctx, sess.ID); err != nil {
 			return fmt.Errorf("failed to delete session %s: %w", session.HashID(sess.ID), err)
 		}
+		fireSessionEndHook(ctx, svc.cfg, sess.ID)
 	}
 	fmt.Fprintf(out, "\nDeleted %d session(s).\n", len(doomed))
 	return nil

@@ -1506,6 +1506,12 @@ func normalizeHookEvent(name string) string {
 		return "PostToolUse"
 	case "userpromptsubmit":
 		return "UserPromptSubmit"
+	case "sessionstart":
+		return "SessionStart"
+	case "sessionend":
+		return "SessionEnd"
+	case "precompact":
+		return "PreCompact"
 	default:
 		return name
 	}

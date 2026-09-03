@@ -654,6 +654,8 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
 		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
 		PromptHooks:          c.hookRunner(hooks.EventUserPromptSubmit),
+		SessionStartHooks:    c.hookRunner(hooks.EventSessionStart),
+		PreCompactHooks:      c.hookRunner(hooks.EventPreCompact),
 		OnProviderExhausted:  c.credentials.Advance,
 		IsYolo:               c.permissions.SkipRequests(),
 		Permissions:          c.permissions,

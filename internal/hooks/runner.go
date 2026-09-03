@@ -138,6 +138,17 @@ func (r *Runner) RunPrompt(ctx context.Context, sessionID, prompt string) (Aggre
 	})
 }
 
+// RunSessionEvent executes the matching hooks for a session-lifecycle event
+// (EventSessionStart, EventSessionEnd, EventPreCompact) that has no tool
+// name, input, output, or prompt of its own -- just the session it happened
+// to.
+func (r *Runner) RunSessionEvent(ctx context.Context, eventName, sessionID string) (AggregateResult, error) {
+	return r.run(ctx, runInput{
+		eventName: eventName,
+		sessionID: sessionID,
+	})
+}
+
 func (r *Runner) run(ctx context.Context, in runInput) (AggregateResult, error) {
 	eventName, sessionID := in.eventName, in.sessionID
 	toolName, toolInputJSON := in.toolName, in.toolInputJSON

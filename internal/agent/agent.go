@@ -206,6 +206,18 @@ type sessionAgent struct {
 	// promptHooks fires UserPromptSubmit hooks before a prompt reaches the
 	// model. Nil when none are configured.
 	promptHooks *hooks.Runner
+	// sessionStartHooks fires EventSessionStart the first time this
+	// process runs a turn for a given session. Nil when none are
+	// configured.
+	sessionStartHooks *hooks.Runner
+	// startedSessions tracks which session IDs sessionStartHooks has
+	// already fired for, in this process, so it fires exactly once per
+	// session rather than on every turn.
+	startedSessions *csync.Map[string, bool]
+	// preCompactHooks fires EventPreCompact before auto-summarization
+	// runs; a deny/halt decision skips summarization for that turn. Nil
+	// when none are configured.
+	preCompactHooks *hooks.Runner
 	// onProviderExhausted is called with a provider ID when a 429 hits it
 	// and the model fallback chain has nowhere further to go, so a caller
 	// (the coordinator's credential rotator) can make the next session or
@@ -296,6 +308,12 @@ type SessionAgentOptions struct {
 	// PromptHooks runs UserPromptSubmit hooks. Nil means none are
 	// configured, which is the common case.
 	PromptHooks *hooks.Runner
+	// SessionStartHooks runs EventSessionStart once per session. Nil
+	// means none are configured.
+	SessionStartHooks *hooks.Runner
+	// PreCompactHooks runs EventPreCompact before auto-summarization.
+	// Nil means none are configured.
+	PreCompactHooks *hooks.Runner
 	// OnProviderExhausted is called with a provider ID when a 429 hits it
 	// with no further model fallback to move to. Nil means no credential
 	// rotation is wired up.
@@ -330,6 +348,9 @@ func NewSessionAgent(
 		maxSessionCost:       opts.MaxSessionCost,
 		maxStepsPerTurn:      opts.MaxStepsPerTurn,
 		promptHooks:          opts.PromptHooks,
+		sessionStartHooks:    opts.SessionStartHooks,
+		startedSessions:      csync.NewMap[string, bool](),
+		preCompactHooks:      opts.PreCompactHooks,
 		onProviderExhausted:  opts.OnProviderExhausted,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
@@ -655,7 +676,7 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	if err != nil {
 		return nil, err
 	}
-	call.Prompt = prompt
+	call.Prompt = a.fireSessionStart(ctx, call.SessionID, prompt)
 
 	if a.maxSessionCost > 0 {
 		if sess, err := a.sessions.Get(ctx, call.SessionID); err == nil && sess.Cost >= a.maxSessionCost {
@@ -1302,6 +1323,10 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 			return nil, updateErr
 		}
 		return nil, err
+	}
+
+	if shouldSummarize && a.preCompactDenied(genCtx, call.SessionID) {
+		shouldSummarize = false
 	}
 
 	if shouldSummarize {

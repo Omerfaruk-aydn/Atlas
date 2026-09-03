@@ -318,6 +318,7 @@ func runSessionDelete(cmd *cobra.Command, args []string) error {
 	if err := svc.sessions.Delete(ctx, sess.ID); err != nil {
 		return fmt.Errorf("failed to delete session: %w", err)
 	}
+	fireSessionEndHook(ctx, svc.cfg, sess.ID)
 
 	out := cmd.OutOrStdout()
 	if sessionDeleteJSON {

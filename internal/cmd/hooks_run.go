@@ -22,7 +22,8 @@ var hooksRunCmd = &cobra.Command{
 	Short: "Run the hooks configured for an event",
 	Long: "Actually execute the hooks configured for an event and print what they decided, so a hook can be " +
 		"debugged without waiting for a real turn to trigger it. Events: PreToolUse, PostToolUse, " +
-		"UserPromptSubmit (snake_case accepted). This runs the configured shell commands.",
+		"UserPromptSubmit, SessionStart, SessionEnd, PreCompact (snake_case accepted). " +
+		"This runs the configured shell commands.",
 	Args: cobra.ExactArgs(1),
 	RunE: runHooksRun,
 }
@@ -43,13 +44,18 @@ var hookEvents = map[string]string{
 	"pretooluse":       hooks.EventPreToolUse,
 	"posttooluse":      hooks.EventPostToolUse,
 	"userpromptsubmit": hooks.EventUserPromptSubmit,
+	"sessionstart":     hooks.EventSessionStart,
+	"sessionend":       hooks.EventSessionEnd,
+	"precompact":       hooks.EventPreCompact,
 }
 
 func canonicalHookEvent(name string) (string, error) {
 	key := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(name), "_", ""))
 	event, ok := hookEvents[key]
 	if !ok {
-		return "", fmt.Errorf("unknown hook event %q: use PreToolUse, PostToolUse, or UserPromptSubmit", name)
+		return "", fmt.Errorf(
+			"unknown hook event %q: use PreToolUse, PostToolUse, UserPromptSubmit, SessionStart, SessionEnd, or PreCompact",
+			name)
 	}
 	return event, nil
 }
@@ -91,6 +97,8 @@ func runHooksRun(cmd *cobra.Command, args []string) error {
 		result, err = runner.RunPrompt(cmd.Context(), sessionID, hooksRunPrompt)
 	case hooks.EventPostToolUse:
 		result, err = runner.RunPost(cmd.Context(), sessionID, hooksRunTool, hooksRunInput, hooksRunResponse)
+	case hooks.EventSessionStart, hooks.EventSessionEnd, hooks.EventPreCompact:
+		result, err = runner.RunSessionEvent(cmd.Context(), event, sessionID)
 	default:
 		result, err = runner.Run(cmd.Context(), event, sessionID, hooksRunTool, hooksRunInput)
 	}
