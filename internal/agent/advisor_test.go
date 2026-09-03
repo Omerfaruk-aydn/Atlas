@@ -78,3 +78,57 @@ func TestInjectAdvisorNoteWithNoPromptUsesTheNoteAlone(t *testing.T) {
 	a.advisorNotes.Set("s1", "note")
 	require.Equal(t, "note", a.injectAdvisorNote("s1", ""))
 }
+
+func newTurnCountingAgent(everyN int) *sessionAgent {
+	return &sessionAgent{
+		advisorEveryNTurns: everyN,
+		advisorTurnCounts:  csync.NewMap[string, int](),
+	}
+}
+
+func TestShouldRunAdvisorPassDefaultsToEveryTurn(t *testing.T) {
+	a := newTurnCountingAgent(0)
+	for i := range 3 {
+		require.True(t, a.shouldRunAdvisorPass("s1"), "turn %d", i+1)
+	}
+}
+
+func TestShouldRunAdvisorPassEveryNthTurn(t *testing.T) {
+	a := newTurnCountingAgent(3)
+	got := make([]bool, 6)
+	for i := range got {
+		got[i] = a.shouldRunAdvisorPass("s1")
+	}
+	require.Equal(t, []bool{false, false, true, false, false, true}, got)
+}
+
+func TestShouldRunAdvisorPassCountsPerSession(t *testing.T) {
+	a := newTurnCountingAgent(2)
+	require.False(t, a.shouldRunAdvisorPass("s1"))
+	require.False(t, a.shouldRunAdvisorPass("s2"), "a fresh session must start its own count, not inherit s1's")
+	require.True(t, a.shouldRunAdvisorPass("s1"))
+	require.True(t, a.shouldRunAdvisorPass("s2"))
+}
+
+func TestShouldRunAdvisorPassNegativeIntervalTreatedAsEveryTurn(t *testing.T) {
+	a := newTurnCountingAgent(-1)
+	require.True(t, a.shouldRunAdvisorPass("s1"))
+	require.True(t, a.shouldRunAdvisorPass("s1"))
+}
+
+func TestAdvisorShouldNotifyDefaultsToConcern(t *testing.T) {
+	require.False(t, advisorShouldNotify("NIT", ""), "unset threshold keeps the original NIT-never-notifies behavior")
+	require.True(t, advisorShouldNotify("CONCERN", ""))
+	require.True(t, advisorShouldNotify("BLOCKER", ""))
+}
+
+func TestAdvisorShouldNotifyHonorsConfiguredThreshold(t *testing.T) {
+	require.True(t, advisorShouldNotify("NIT", "NIT"), "a NIT floor surfaces every non-NONE severity")
+	require.False(t, advisorShouldNotify("CONCERN", "BLOCKER"), "a BLOCKER floor silences CONCERN")
+	require.True(t, advisorShouldNotify("BLOCKER", "BLOCKER"))
+}
+
+func TestAdvisorShouldNotifyUnrecognizedThresholdFallsBackToConcern(t *testing.T) {
+	require.False(t, advisorShouldNotify("NIT", "not-a-real-severity"))
+	require.True(t, advisorShouldNotify("CONCERN", "not-a-real-severity"))
+}

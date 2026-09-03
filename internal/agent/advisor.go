@@ -36,6 +36,40 @@ BLOCKER: <note> -- something that should be addressed before the work continues.
 Keep <note> to one or two sentences. Do not use tools unless the response actually claims something ` +
 	`about the code that is worth checking against it.`
 
+// advisorSeverityRank orders severities for the notify-threshold
+// comparison. NONE is deliberately absent: it never reaches this check,
+// since runAdvisorPass returns before queuing or notifying on NONE.
+var advisorSeverityRank = map[string]int{"NIT": 1, "CONCERN": 2, "BLOCKER": 3}
+
+// advisorShouldNotify reports whether severity meets or exceeds threshold
+// (an unrecognized or empty threshold falls back to CONCERN, the
+// advisor's original, pre-configurable behavior).
+func advisorShouldNotify(severity, threshold string) bool {
+	if _, ok := advisorSeverityRank[threshold]; !ok {
+		threshold = "CONCERN"
+	}
+	return advisorSeverityRank[severity] >= advisorSeverityRank[threshold]
+}
+
+// shouldRunAdvisorPass reports whether the turn that just finished for
+// sessionID falls on the configured review cadence (config.Advisor's
+// EveryNTurns), advancing that session's turn counter as a side effect.
+// Every call counts a turn even when it declines to review, so "every 3rd
+// turn" means turns 3, 6, 9, ... rather than resetting whenever a review
+// is skipped.
+func (a *sessionAgent) shouldRunAdvisorPass(sessionID string) bool {
+	interval := a.advisorEveryNTurns
+	if interval <= 0 {
+		interval = 1
+	}
+
+	count, _ := a.advisorTurnCounts.Get(sessionID)
+	count++
+	a.advisorTurnCounts.Set(sessionID, count)
+
+	return count%interval == 0
+}
+
 // injectAdvisorNote pops any note the advisor left for sessionID (from the
 // turn that just finished) and prepends it to prompt. Read-and-clear: a
 // note is delivered to the very next prompt only, not repeated.
@@ -94,8 +128,10 @@ func (a *sessionAgent) runAdvisorPass(ctx context.Context, sessionID, userPrompt
 
 	a.advisorNotes.Set(sessionID, "Advisor ("+strings.ToLower(severity)+"): "+note)
 
-	if severity == "NIT" {
-		slog.Info("Advisor left a note", "session_id", sessionID, "note", note)
+	if !advisorShouldNotify(severity, a.advisorNotifyThreshold) {
+		// Below the configured floor: queued for the next prompt above,
+		// but not worth interrupting the session over.
+		slog.Info("Advisor left a note", "session_id", sessionID, "severity", severity, "note", note)
 		return
 	}
 
