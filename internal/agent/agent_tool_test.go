@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/credentials"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/stretchr/testify/require"
@@ -47,7 +48,7 @@ func hermeticSubagentCoordinator(t *testing.T) *coordinator {
 		permissions: env.permissions,
 		history:     env.history,
 		filetracker: *env.filetracker,
-		credentials: newCredentialRotator(),
+		credentials: credentials.New(),
 	}
 }
 

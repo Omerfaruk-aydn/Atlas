@@ -22,6 +22,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/credentials"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
@@ -135,9 +136,10 @@ type coordinator struct {
 	memory *memory.Store
 
 	// credentials round-robins between a provider's configured API keys
-	// (ProviderConfig.APIKey/APIKeys) across session/model builds. See
-	// credentialRotator.
-	credentials *credentialRotator
+	// (ProviderConfig.APIKey/APIKeys) across session/model builds,
+	// persisted to disk so `atlas provider usage` can show it and so
+	// rotation survives process restarts. See internal/credentials.
+	credentials *credentials.Rotator
 
 	readyWg errgroup.Group
 }
@@ -191,7 +193,7 @@ func NewCoordinator(ctx context.Context, opts CoordinatorOptions) (Coordinator, 
 		skillTracker: skillTracker,
 		memory:       memoryStore(opts.Config),
 		interactive:  opts.Interactive,
-		credentials:  newCredentialRotator(),
+		credentials:  credentials.Load(filepath.Join(opts.Config.Config().Options.DataDirectory, credentials.StateFileName)),
 	}
 
 	agentCfg, ok := opts.Config.Config().Agents[config.AgentCoder]
@@ -1261,7 +1263,7 @@ func (c *coordinator) pickAPIKey(providerCfg config.ProviderConfig) string {
 	if c.credentials == nil || len(providerCfg.APIKeys) == 0 {
 		return providerCfg.APIKey
 	}
-	return c.credentials.Pick(providerCfg.ID, candidateAPIKeys(providerCfg.APIKey, providerCfg.APIKeys))
+	return c.credentials.Pick(providerCfg.ID, credentials.CandidateAPIKeys(providerCfg.APIKey, providerCfg.APIKeys))
 }
 
 func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model config.SelectedModel, isSubAgent bool) (fantasy.Provider, error) {
