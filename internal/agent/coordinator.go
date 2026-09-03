@@ -844,6 +844,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewImportGraphTool(c.cfg.WorkingDir()),
 			tools.NewImpactAnalysisTool(c.cfg.WorkingDir()),
 			tools.NewCodeMetricsTool(c.cfg.WorkingDir()),
+			tools.NewTodoScanTool(c.cfg.WorkingDir()),
 		)
 	}
 
