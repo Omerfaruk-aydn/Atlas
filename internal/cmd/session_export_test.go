@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/export"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
@@ -24,8 +26,12 @@ func newExportTestCmd(t *testing.T, dataDir string) *cobra.Command {
 	c := &cobra.Command{RunE: runSessionExport}
 	c.Flags().String("data-dir", dataDir, "")
 	c.Flags().StringVarP(&sessionExportOutput, "output", "o", "", "")
+	c.Flags().StringVar(&sessionExportFormat, "format", "markdown", "")
 	c.SetContext(t.Context())
-	t.Cleanup(func() { sessionExportOutput = "" })
+	t.Cleanup(func() {
+		sessionExportOutput = ""
+		sessionExportFormat = "markdown"
+	})
 	return c
 }
 
@@ -83,6 +89,36 @@ func TestSessionExportToFile(t *testing.T) {
 	content, err := os.ReadFile(outPath)
 	require.NoError(t, err)
 	require.Contains(t, string(content), "what does this function do")
+}
+
+func TestSessionExportAsJSON(t *testing.T) {
+	dataDir := t.TempDir()
+	sess := seedExportSession(t, dataDir)
+
+	c := newExportTestCmd(t, dataDir)
+	require.NoError(t, c.Flags().Set("format", "json"))
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, []string{sess.ID}))
+
+	var doc export.JSONExport
+	require.NoError(t, json.Unmarshal(out.Bytes(), &doc))
+	require.Equal(t, "exported session", doc.Title)
+	require.Len(t, doc.Messages, 1)
+	require.Equal(t, "what does this function do", doc.Messages[0].Text)
+}
+
+func TestSessionExportRejectsUnknownFormat(t *testing.T) {
+	dataDir := t.TempDir()
+	sess := seedExportSession(t, dataDir)
+
+	c := newExportTestCmd(t, dataDir)
+	require.NoError(t, c.Flags().Set("format", "xml"))
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.Error(t, c.RunE(c, []string{sess.ID}))
 }
 
 func TestSessionExportUnknownID(t *testing.T) {

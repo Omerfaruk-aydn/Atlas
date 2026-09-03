@@ -9,12 +9,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var sessionExportOutput string
+var (
+	sessionExportOutput string
+	sessionExportFormat string
+)
 
 var sessionExportCmd = &cobra.Command{
 	Use:   "export <id>",
-	Short: "Export a session as Markdown",
-	Long: "Export a session's conversation as Markdown, for saving or sharing outside the TUI. " +
+	Short: "Export a session as Markdown or JSON",
+	Long: "Export a session's conversation for saving or sharing outside the TUI. " +
+		"Writes Markdown by default; use --format json for a machine-readable document instead. " +
 		"Writes to stdout by default; use --output to write to a file instead. " +
 		"ID can be a UUID, full hash, or hash prefix.",
 	Args: cobra.ExactArgs(1),
@@ -23,6 +27,7 @@ var sessionExportCmd = &cobra.Command{
 
 func init() {
 	sessionExportCmd.Flags().StringVarP(&sessionExportOutput, "output", "o", "", "file to write to (default: stdout)")
+	sessionExportCmd.Flags().StringVar(&sessionExportFormat, "format", "markdown", "output format: markdown or json")
 	sessionCmd.AddCommand(sessionExportCmd)
 }
 
@@ -45,7 +50,19 @@ func runSessionExport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to list messages: %w", err)
 	}
 
-	doc := export.Markdown(sess, msgs)
+	var doc string
+	switch sessionExportFormat {
+	case "markdown", "":
+		doc = export.Markdown(sess, msgs)
+	case "json":
+		raw, err := export.JSON(sess, msgs)
+		if err != nil {
+			return fmt.Errorf("failed to build JSON export: %w", err)
+		}
+		doc = string(raw)
+	default:
+		return fmt.Errorf("unknown format %q: use markdown or json", sessionExportFormat)
+	}
 
 	if sessionExportOutput == "" {
 		_, err := fmt.Fprint(cmd.OutOrStdout(), doc)

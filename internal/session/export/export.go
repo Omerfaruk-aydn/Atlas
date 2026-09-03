@@ -3,6 +3,7 @@
 package export
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
@@ -41,6 +42,71 @@ func Markdown(sess session.Session, msgs []message.Message) string {
 	}
 
 	return b.String()
+}
+
+// JSONMessage is one message in a JSON export. It flattens the parts a
+// caller is likely to want out of the conversation -- text, tool calls, and
+// tool results -- rather than round-tripping the internal ContentPart
+// union, which is not something an external consumer should have to decode.
+type JSONMessage struct {
+	Role        string           `json:"role"`
+	Model       string           `json:"model,omitempty"`
+	CreatedAt   int64            `json:"created_at,omitempty"`
+	Text        string           `json:"text,omitempty"`
+	ToolCalls   []JSONToolCall   `json:"tool_calls,omitempty"`
+	ToolResults []JSONToolResult `json:"tool_results,omitempty"`
+}
+
+type JSONToolCall struct {
+	Name  string `json:"name"`
+	Input string `json:"input,omitempty"`
+}
+
+type JSONToolResult struct {
+	Name    string `json:"name,omitempty"`
+	Content string `json:"content"`
+	IsError bool   `json:"is_error,omitempty"`
+}
+
+// JSONExport is the top-level document JSON renders.
+type JSONExport struct {
+	Title     string        `json:"title"`
+	CreatedAt int64         `json:"created_at,omitempty"`
+	Messages  []JSONMessage `json:"messages"`
+}
+
+// JSON renders sess's messages as a machine-readable document. Tool input
+// and results are truncated the same way Markdown truncates them: a full
+// dump would make the export about the tool traffic rather than the
+// conversation.
+func JSON(sess session.Session, msgs []message.Message) ([]byte, error) {
+	doc := JSONExport{
+		Title:     nonEmpty(sess.Title, "Untitled session"),
+		CreatedAt: sess.CreatedAt,
+		Messages:  make([]JSONMessage, 0, len(msgs)),
+	}
+
+	for _, msg := range msgs {
+		jm := JSONMessage{
+			Role:      string(msg.Role),
+			Model:     msg.Model,
+			CreatedAt: msg.CreatedAt,
+			Text:      strings.TrimSpace(msg.Content().Text),
+		}
+		for _, tc := range msg.ToolCalls() {
+			jm.ToolCalls = append(jm.ToolCalls, JSONToolCall{Name: tc.Name, Input: truncate(tc.Input)})
+		}
+		for _, tr := range msg.ToolResults() {
+			jm.ToolResults = append(jm.ToolResults, JSONToolResult{
+				Name:    tr.Name,
+				Content: truncate(tr.Content),
+				IsError: tr.IsError,
+			})
+		}
+		doc.Messages = append(doc.Messages, jm)
+	}
+
+	return json.MarshalIndent(doc, "", "  ")
 }
 
 func renderMessage(b *strings.Builder, msg message.Message) {
