@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -8,6 +9,8 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/spf13/cobra"
 )
+
+var providerListJSON bool
 
 var providerCmd = &cobra.Command{
 	Use:   "provider",
@@ -29,12 +32,14 @@ var providerListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List configured providers",
-	Long:    "List configured providers, their type, and whether an API key is set. Does not contact any provider -- see `provider test` for that.",
-	Args:    cobra.NoArgs,
-	RunE:    runProviderList,
+	Long: "List configured providers, their type, and whether an API key is set. Does not contact any " +
+		"provider -- see `provider test` for that. Use --json for machine-readable output.",
+	Args: cobra.NoArgs,
+	RunE: runProviderList,
 }
 
 func init() {
+	providerListCmd.Flags().BoolVar(&providerListJSON, "json", false, "output in JSON format")
 	providerCmd.AddCommand(providerTestCmd)
 	providerCmd.AddCommand(providerListCmd)
 	rootCmd.AddCommand(providerCmd)
@@ -119,6 +124,32 @@ func runProviderList(cmd *cobra.Command, _ []string) error {
 	return listProviders(cmd, cfg)
 }
 
+// jsonProvider is one provider's wire form for --json.
+type jsonProvider struct {
+	Name   string `json:"name"`
+	Type   string `json:"type"`
+	Models int    `json:"models"`
+	Status string `json:"status"`
+}
+
+// providerStatus reports an "API key set" / "no API key" / "disabled"
+// summary, shared between the human and JSON listings so the two never
+// disagree about what a provider's state means.
+func providerStatus(cfg *config.ConfigStore, providerCfg config.ProviderConfig) string {
+	status := "no API key"
+	if providerCfg.APIKey != "" {
+		if resolved, err := cfg.Resolve(providerCfg.APIKey); err == nil && resolved != "" {
+			status = "API key set"
+		} else {
+			status = "API key not resolved"
+		}
+	}
+	if providerCfg.Disable {
+		status = "disabled"
+	}
+	return status
+}
+
 // listProviders is split out from runProviderList for the same reason
 // testAllProviders is split from runProviderTest: a test can build a
 // *config.ConfigStore directly but cannot inject one into a function that
@@ -130,28 +161,33 @@ func listProviders(cmd *cobra.Command, cfg *config.ConfigStore) error {
 	}
 	sort.Strings(names)
 
+	out := cmd.OutOrStdout()
+
+	if providerListJSON {
+		providers := make([]jsonProvider, 0, len(names))
+		for _, name := range names {
+			providerCfg, _ := cfg.Config().Providers.Get(name)
+			providers = append(providers, jsonProvider{
+				Name:   name,
+				Type:   string(providerCfg.Type),
+				Models: len(providerCfg.Models),
+				Status: providerStatus(cfg, providerCfg),
+			})
+		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(providers)
+	}
+
 	if len(names) == 0 {
-		fmt.Fprintln(cmd.OutOrStdout(), "No providers configured.")
+		fmt.Fprintln(out, "No providers configured.")
 		return nil
 	}
 
-	out := cmd.OutOrStdout()
 	for _, name := range names {
 		providerCfg, _ := cfg.Config().Providers.Get(name)
-
-		status := "no API key"
-		if providerCfg.APIKey != "" {
-			if resolved, err := cfg.Resolve(providerCfg.APIKey); err == nil && resolved != "" {
-				status = "API key set"
-			} else {
-				status = "API key not resolved"
-			}
-		}
-		if providerCfg.Disable {
-			status = "disabled"
-		}
-
-		fmt.Fprintf(out, "%s (%s): %d models, %s\n", name, providerCfg.Type, len(providerCfg.Models), status)
+		fmt.Fprintf(out, "%s (%s): %d models, %s\n",
+			name, providerCfg.Type, len(providerCfg.Models), providerStatus(cfg, providerCfg))
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -142,6 +143,34 @@ func TestProviderListShowsKeyStatus(t *testing.T) {
 	require.Contains(t, out.String(), "keyed (openai-compat): 2 models, API key set")
 	require.Contains(t, out.String(), "keyless (openai-compat): 0 models, no API key")
 	require.Contains(t, out.String(), "off (openai-compat): 0 models, disabled")
+}
+
+func TestProviderListJSON(t *testing.T) {
+	providerListJSON = true
+	t.Cleanup(func() { providerListJSON = false })
+
+	dataDir := t.TempDir()
+	cfg, err := config.Init(dataDir, dataDir, false)
+	require.NoError(t, err)
+	for name := range cfg.Config().Providers.Seq2() {
+		cfg.Config().Providers.Del(name)
+	}
+	cfg.Config().Providers.Set("keyed", config.ProviderConfig{
+		ID: "keyed", Type: catwalk.TypeOpenAICompat, APIKey: "sk-abc",
+		Models: []catwalk.Model{{ID: "m1"}, {ID: "m2"}},
+	})
+
+	c := &cobra.Command{}
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, listProviders(c, cfg))
+
+	var got []jsonProvider
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+	require.Equal(t, []jsonProvider{
+		{Name: "keyed", Type: "openai-compat", Models: 2, Status: "API key set"},
+	}, got)
 }
 
 func TestProviderListEmpty(t *testing.T) {
