@@ -27,6 +27,7 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0
 	github.com/go-viper/mapstructure/v2 v2.5.0
 	github.com/google/go-cmp v0.7.0
+	github.com/google/go-dap v0.12.0
 	github.com/google/uuid v1.6.0
 	github.com/invopop/jsonschema v0.14.0
 	github.com/itchyny/gojq v0.12.19

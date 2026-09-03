@@ -790,12 +790,35 @@ type Agent struct {
 }
 
 type Tools struct {
-	Ls      ToolLs      `json:"ls,omitzero"`
-	Grep    ToolGrep    `json:"grep,omitzero"`
-	Glob    ToolGlob    `json:"glob,omitzero"`
-	Bash    ToolBash    `json:"bash,omitzero"`
-	View    ToolView    `json:"view,omitzero"`
-	Browser ToolBrowser `json:"browser,omitzero"`
+	Ls       ToolLs       `json:"ls,omitzero"`
+	Grep     ToolGrep     `json:"grep,omitzero"`
+	Glob     ToolGlob     `json:"glob,omitzero"`
+	Bash     ToolBash     `json:"bash,omitzero"`
+	View     ToolView     `json:"view,omitzero"`
+	Browser  ToolBrowser  `json:"browser,omitzero"`
+	Debugger ToolDebugger `json:"debugger,omitzero"`
+}
+
+// ToolDebugger configures the debugger tool, which drives a Go program
+// under Delve (`dlv dap`) over the Debug Adapter Protocol. Off by default,
+// like the browser tool: it launches an external process and requires
+// Delve to be installed. Scoped to Go/Delve only -- there is no claim of
+// multi-language support.
+type ToolDebugger struct {
+	Enabled       *bool          `json:"enabled,omitempty" jsonschema:"description=Turn on the debugger tool so the agent can launch a Go program under Delve: set breakpoints / step / inspect variables. Requires a Delve (dlv) install on PATH (or dlv_path below).,default=false"`
+	DlvPath       string         `json:"dlv_path,omitempty" jsonschema:"description=Path to the dlv binary. Empty uses dlv on PATH."`
+	ActionTimeout *time.Duration `json:"action_timeout,omitempty" jsonschema:"description=How long a single debugger request (set breakpoints / step / evaluate / etc.) may run before it is aborted. Does not bound continue, which waits for the program to actually stop.,default=30s,example=1m"`
+}
+
+// IsEnabled reports whether the debugger tool should be registered.
+func (t ToolDebugger) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
+}
+
+// GetActionTimeout returns the user-defined per-action timeout, or its
+// default.
+func (t ToolDebugger) GetActionTimeout() time.Duration {
+	return ptrValOr(t.ActionTimeout, 30*time.Second)
 }
 
 // ToolBrowser configures the browser tool, which drives a real
