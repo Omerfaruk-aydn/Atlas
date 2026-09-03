@@ -634,6 +634,14 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
+	// Add the default subagents directories if not already present.
+	for _, dir := range GlobalSubagentsDirs() {
+		if !slices.Contains(c.Options.SubagentsPaths, dir) {
+			c.Options.SubagentsPaths = append(c.Options.SubagentsPaths, dir)
+		}
+	}
+	c.Options.SubagentsPaths = append(c.Options.SubagentsPaths, ProjectSubagentsDir(workingDir)...)
+
 	if str, ok := appenv.Lookup("ENABLE_PROVIDER_AUTO_UPDATE"); ok {
 		// Opt-in flag: set to "1"/"true" to fetch the provider catalog from
 		// CATWALK_URL on startup. The embedded catalog is the default.
@@ -1434,6 +1442,50 @@ func ProjectSkillsDir(workingDir string) []string {
 	// the repository root so monorepo-level .agents/skills are found.
 	if root := worktreeRoot(workingDir); root != "" && root != workingDir {
 		for _, sub := range projectSkillSubdirs {
+			dirs = append(dirs, filepath.Join(root, sub))
+		}
+	}
+
+	return dirs
+}
+
+// GlobalSubagentsDirs returns the default user-level directories subagent
+// definitions (name.md files) are auto-discovered from, mirroring
+// GlobalSkillsDirs' structure at a smaller scope: subagents are new enough
+// to this fork that a single conventional location is enough, rather than
+// the several legacy/spec-compatibility paths skills accumulated.
+func GlobalSubagentsDirs() []string {
+	if dir := appenv.Get("SUBAGENTS_DIR"); dir != "" {
+		return []string{dir}
+	}
+
+	paths := []string{filepath.Join(home.Config(), appName, "agents")}
+
+	if runtime.GOOS == "windows" {
+		appData := cmp.Or(
+			os.Getenv("LOCALAPPDATA"),
+			filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local"),
+		)
+		paths = append(paths, filepath.Join(appData, appName, "agents"))
+	}
+
+	return paths
+}
+
+// projectSubagentSubdirs mirrors projectSkillSubdirs for subagents.
+var projectSubagentSubdirs = []string{".atlas/agents"}
+
+// ProjectSubagentsDir returns the default project directories subagent
+// definitions are discovered from, mirroring ProjectSkillsDir: the working
+// directory first, then the git worktree root for monorepo-level agents.
+func ProjectSubagentsDir(workingDir string) []string {
+	dirs := make([]string, 0, len(projectSubagentSubdirs)*2)
+	for _, sub := range projectSubagentSubdirs {
+		dirs = append(dirs, filepath.Join(workingDir, sub))
+	}
+
+	if root := worktreeRoot(workingDir); root != "" && root != workingDir {
+		for _, sub := range projectSubagentSubdirs {
 			dirs = append(dirs, filepath.Join(root, sub))
 		}
 	}
