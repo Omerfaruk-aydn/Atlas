@@ -482,6 +482,59 @@ type Options struct {
 	// "advisor" ModelRoles entry; with none configured, Advisor has
 	// nothing to run on and is silently inert even if Enabled is true.
 	Advisor *Advisor `json:"advisor,omitempty" jsonschema:"description=A second model that reviews each turn and can leave a note for the next one. Needs a \"advisor\" entry in model_roles to run on."`
+
+	// Sandbox contains every external process the shell interpreter
+	// spawns (bash tool commands, hook commands, scripts they invoke) in
+	// a Windows Job Object. See the Sandbox type doc for exactly what
+	// this does and does not protect against.
+	Sandbox *Sandbox `json:"sandbox,omitempty" jsonschema:"description=Contain shell-spawned processes in an OS-level container. Currently Windows only (Job Objects); a no-op elsewhere."`
+}
+
+// Sandbox configures Job Object containment (internal/sandbox) for every
+// external process the shell interpreter spawns. This is process
+// lifetime and resource containment, not a security boundary: a
+// contained process can still read and write any file it has permission
+// to and reach the network normally. What it guarantees is that the
+// process (and anything it spawns) cannot outlive being cut off, and
+// optionally that it cannot fork past a process-count ceiling or exceed
+// a per-process memory ceiling. Currently implemented for Windows only
+// (Job Objects); enabling it elsewhere is silently inert.
+type Sandbox struct {
+	Enabled bool `json:"enabled,omitempty" jsonschema:"description=Turn on Job Object containment for shell-spawned processes. Windows only for now -- inert elsewhere. This bounds process lifetime and count/memory; it does not restrict filesystem or network access.,default=false"`
+	// MaxProcesses caps how many processes may be active in the
+	// container at once, as a basic fork-bomb mitigation. 0 (the zero
+	// value, via MaxProcessesOrDefault) uses a generous default rather
+	// than no limit at all, since "enabled" should mean something even
+	// when the user hasn't tuned it.
+	MaxProcesses int `json:"max_processes,omitempty" jsonschema:"description=Cap on concurrently active processes inside the container (a fork-bomb ceiling). 0 uses a generous default.,default=256,example=64"`
+	// MaxMemoryMB caps the committed memory of any single contained
+	// process. 0 means unlimited -- ordinary dev tools (go build, npm
+	// install) can legitimately need more memory than a one-size guess
+	// would allow, so unlike MaxProcesses this has no default ceiling.
+	MaxMemoryMB int `json:"max_memory_mb,omitempty" jsonschema:"description=Memory ceiling (MB) for any single contained process. 0 means unlimited.,example=2048"`
+}
+
+// defaultSandboxMaxProcesses is used when Sandbox.Enabled is true but
+// MaxProcesses is left at its zero value -- "enabled" should mean some
+// containment, not none.
+const defaultSandboxMaxProcesses = 256
+
+// MaxProcessesOrDefault returns the configured process-count ceiling, or
+// defaultSandboxMaxProcesses for an unset or non-positive value.
+func (s Sandbox) MaxProcessesOrDefault() int {
+	if s.MaxProcesses > 0 {
+		return s.MaxProcesses
+	}
+	return defaultSandboxMaxProcesses
+}
+
+// MaxMemoryBytes returns the configured per-process memory ceiling in
+// bytes, or 0 (unlimited) when MaxMemoryMB is unset.
+func (s Sandbox) MaxMemoryBytes() uint64 {
+	if s.MaxMemoryMB <= 0 {
+		return 0
+	}
+	return uint64(s.MaxMemoryMB) * 1024 * 1024
 }
 
 // Advisor holds settings for the optional turn-reviewing second model. See
