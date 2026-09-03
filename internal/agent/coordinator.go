@@ -134,6 +134,11 @@ type coordinator struct {
 	// memory is the bounded prose the agent carries between sessions.
 	memory *memory.Store
 
+	// credentials round-robins between a provider's configured API keys
+	// (ProviderConfig.APIKey/APIKeys) across session/model builds. See
+	// credentialRotator.
+	credentials *credentialRotator
+
 	readyWg errgroup.Group
 }
 
@@ -186,6 +191,7 @@ func NewCoordinator(ctx context.Context, opts CoordinatorOptions) (Coordinator, 
 		skillTracker: skillTracker,
 		memory:       memoryStore(opts.Config),
 		interactive:  opts.Interactive,
+		credentials:  newCredentialRotator(),
 	}
 
 	agentCfg, ok := opts.Config.Config().Agents[config.AgentCoder]
@@ -646,6 +652,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
 		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
 		PromptHooks:          c.hookRunner(hooks.EventUserPromptSubmit),
+		OnProviderExhausted:  c.credentials.Advance,
 		IsYolo:               c.permissions.SkipRequests(),
 		Permissions:          c.permissions,
 		Sessions:             c.sessions,
@@ -1204,6 +1211,18 @@ func (c *coordinator) isAnthropicThinking(model config.SelectedModel) bool {
 	return err == nil && opts.Thinking != nil
 }
 
+// pickAPIKey returns the API key template to use for providerCfg: the sole
+// APIKey when no additional APIKeys are configured, or the credential
+// rotator's round-robin pick across APIKey+APIKeys when there are. A nil
+// rotator (a coordinator built without NewCoordinator, as some tests do)
+// falls back to the plain APIKey, matching pre-rotation behavior.
+func (c *coordinator) pickAPIKey(providerCfg config.ProviderConfig) string {
+	if c.credentials == nil || len(providerCfg.APIKeys) == 0 {
+		return providerCfg.APIKey
+	}
+	return c.credentials.Pick(providerCfg.ID, candidateAPIKeys(providerCfg.APIKey, providerCfg.APIKeys))
+}
+
 func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model config.SelectedModel, isSubAgent bool) (fantasy.Provider, error) {
 	headers := maps.Clone(providerCfg.ExtraHeaders)
 	if headers == nil {
@@ -1219,7 +1238,7 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 		}
 	}
 
-	apiKey, _ := c.cfg.Resolve(providerCfg.APIKey)
+	apiKey, _ := c.cfg.Resolve(c.pickAPIKey(providerCfg))
 	baseURL, _ := c.cfg.Resolve(providerCfg.BaseURL)
 
 	switch providerCfg.ID {

@@ -57,9 +57,10 @@ func newTestCoordinator(t *testing.T, env fakeEnv, providerID string, providerCf
 	require.NoError(t, err)
 	cfg.Config().Providers.Set(providerID, providerCfg)
 	return &coordinator{
-		cfg:      cfg,
-		sessions: env.sessions,
-		messages: env.messages,
+		cfg:         cfg,
+		sessions:    env.sessions,
+		messages:    env.messages,
+		credentials: newCredentialRotator(),
 	}
 }
 
@@ -609,6 +610,35 @@ func TestBuildFallbackChainSkipsBrokenEntriesAndKeepsGoodOnes(t *testing.T) {
 	require.Len(t, chain, 1, "the two broken entries must be skipped, not fail the whole chain")
 	assert.Equal(t, goodProvider, chain[0].ModelCfg.Provider)
 	assert.Equal(t, "good-model", chain[0].ModelCfg.Model)
+}
+
+func TestPickAPIKeyReturnsThePlainKeyWithNoExtras(t *testing.T) {
+	const providerID = "primary-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, providerID, config.ProviderConfig{ID: providerID})
+
+	got := coord.pickAPIKey(config.ProviderConfig{ID: providerID, APIKey: "$KEY1"})
+	require.Equal(t, "$KEY1", got)
+}
+
+func TestPickAPIKeyRotatesAcrossCalls(t *testing.T) {
+	const providerID = "primary-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, providerID, config.ProviderConfig{ID: providerID})
+
+	providerCfg := config.ProviderConfig{ID: providerID, APIKey: "$KEY1", APIKeys: []string{"$KEY2"}}
+
+	first := coord.pickAPIKey(providerCfg)
+	second := coord.pickAPIKey(providerCfg)
+	third := coord.pickAPIKey(providerCfg)
+
+	require.Equal(t, []string{"$KEY1", "$KEY2", "$KEY1"}, []string{first, second, third})
+}
+
+func TestPickAPIKeyWithNilRotatorFallsBackToThePlainKey(t *testing.T) {
+	coord := &coordinator{}
+	got := coord.pickAPIKey(config.ProviderConfig{APIKey: "$KEY1", APIKeys: []string{"$KEY2"}})
+	require.Equal(t, "$KEY1", got)
 }
 
 func TestBuildFallbackChainWorksForTheSmallRoleToo(t *testing.T) {

@@ -89,3 +89,10 @@ func (c *modelChain) HandleRetry(err *fantasy.ProviderError) bool {
 func (c *modelChain) Fellback() bool {
 	return c.active > 0
 }
+
+// isRateLimited reports whether err is the 429 (rate limit / quota) status
+// HandleRetry acts on. Exported to agent.go so it does not need its own
+// net/http import just to check a status code.
+func isRateLimited(err *fantasy.ProviderError) bool {
+	return err != nil && err.StatusCode == http.StatusTooManyRequests
+}

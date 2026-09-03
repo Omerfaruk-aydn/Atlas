@@ -114,6 +114,14 @@ type ProviderConfig struct {
 	Type catwalk.Type `json:"type,omitempty" jsonschema:"description=Provider type that determines the API format,default=openai"`
 	// The provider's API key.
 	APIKey string `json:"api_key,omitempty" jsonschema:"description=API key for authentication with the provider,example=$OPENAI_API_KEY"`
+	// APIKeys lists additional API keys for this same provider -- separate
+	// accounts or subscriptions -- rotated in round-robin order across
+	// separate sessions/model builds (session affinity: a running session
+	// keeps whichever key it started with). When one key's quota runs out
+	// mid-turn with no further model fallback configured, the next
+	// session or turn against this provider tries the next key in line
+	// instead of the one that just got rate-limited.
+	APIKeys []string `json:"api_keys,omitempty" jsonschema:"description=Additional API keys for this provider (separate accounts/subscriptions)\\, rotated round-robin across sessions,example=[\"$OPENAI_API_KEY_2\"\\,\"$OPENAI_API_KEY_3\"]"`
 	// The original API key template before resolution (for re-resolution on auth errors).
 	APIKeyTemplate string `json:"-"`
 	// OAuthToken for providers that use OAuth2 authentication.

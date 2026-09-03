@@ -206,10 +206,16 @@ type sessionAgent struct {
 	// promptHooks fires UserPromptSubmit hooks before a prompt reaches the
 	// model. Nil when none are configured.
 	promptHooks *hooks.Runner
-	isYolo      bool
-	permissions permission.Service
-	notify      pubsub.Publisher[notify.Notification]
-	runComplete pubsub.Publisher[notify.RunComplete]
+	// onProviderExhausted is called with a provider ID when a 429 hits it
+	// and the model fallback chain has nowhere further to go, so a caller
+	// (the coordinator's credential rotator) can make the next session or
+	// turn against that provider try a different configured API key. Nil
+	// is a valid no-op.
+	onProviderExhausted func(providerID string)
+	isYolo              bool
+	permissions         permission.Service
+	notify              pubsub.Publisher[notify.Notification]
+	runComplete         pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -290,13 +296,17 @@ type SessionAgentOptions struct {
 	// PromptHooks runs UserPromptSubmit hooks. Nil means none are
 	// configured, which is the common case.
 	PromptHooks *hooks.Runner
-	IsYolo      bool
-	Permissions permission.Service
-	Sessions    session.Service
-	Messages    message.Service
-	Tools       []fantasy.AgentTool
-	Notify      pubsub.Publisher[notify.Notification]
-	RunComplete pubsub.Publisher[notify.RunComplete]
+	// OnProviderExhausted is called with a provider ID when a 429 hits it
+	// with no further model fallback to move to. Nil means no credential
+	// rotation is wired up.
+	OnProviderExhausted func(providerID string)
+	IsYolo              bool
+	Permissions         permission.Service
+	Sessions            session.Service
+	Messages            message.Service
+	Tools               []fantasy.AgentTool
+	Notify              pubsub.Publisher[notify.Notification]
+	RunComplete         pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -320,6 +330,7 @@ func NewSessionAgent(
 		maxSessionCost:       opts.MaxSessionCost,
 		maxStepsPerTurn:      opts.MaxStepsPerTurn,
 		promptHooks:          opts.PromptHooks,
+		onProviderExhausted:  opts.OnProviderExhausted,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
 		permissions:          opts.Permissions,
@@ -1034,6 +1045,11 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 				slog.Warn("Model rate-limited, failing over",
 					"from_provider", largeModel.ModelCfg.Provider, "from_model", largeModel.ModelCfg.Model,
 					"to_provider", next.ModelCfg.Provider, "to_model", next.ModelCfg.Model)
+			} else if isRateLimited(err) && a.onProviderExhausted != nil {
+				// The chain has nowhere further to go: this provider's
+				// current credential is the one being rate-limited. Let
+				// the next session/turn against it try a different one.
+				a.onProviderExhausted(chain.Current().ModelCfg.Provider)
 			}
 			slog.Warn("Provider request failed, retrying", providerRetryLogFields(err, delay)...)
 			// Reset streamed content so the retried response doesn't
