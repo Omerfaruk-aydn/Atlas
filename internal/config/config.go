@@ -853,6 +853,22 @@ type Tools struct {
 	Teams    ToolTeams    `json:"teams,omitzero"`
 
 	CodeIntel ToolCodeIntel `json:"code_intel,omitzero"`
+	Quality   ToolQuality   `json:"quality,omitzero"`
+}
+
+// ToolQuality configures the code-quality and security tools --
+// credential scanning, coverage, linting and the like.
+//
+// Off by default, on the same reasoning as the other groups: every
+// registered tool costs context on every request. Worth turning on for
+// any repository that is going to be pushed anywhere public.
+type ToolQuality struct {
+	Enabled *bool `json:"enabled,omitempty" jsonschema:"description=Turn on the code-quality and security tools (scan_secrets and friends) so the agent can check a tree for leaked credentials and other quality problems.,default=false"`
+}
+
+// IsEnabled reports whether the quality tools should be registered.
+func (t ToolQuality) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
 }
 
 // ToolCodeIntel configures the static-analysis tools (dead_code and

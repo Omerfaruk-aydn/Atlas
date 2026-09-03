@@ -847,6 +847,15 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		)
 	}
 
+	// Quality and security tools, gated the same way and for the same
+	// reason: read-only, but not worth their context cost on every
+	// request unless asked for.
+	if c.cfg.Config().Tools.Quality.IsEnabled() {
+		allTools = append(allTools,
+			tools.NewScanSecretsTool(c.cfg.WorkingDir()),
+		)
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(

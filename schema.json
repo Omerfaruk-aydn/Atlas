@@ -1216,6 +1216,17 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolQuality": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the code-quality and security tools (scan_secrets and friends) so the agent can check a tree for leaked credentials and other quality problems.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolTeams": {
       "properties": {
         "enabled": {
@@ -1282,6 +1293,9 @@
         },
         "code_intel": {
           "$ref": "#/$defs/ToolCodeIntel"
+        },
+        "quality": {
+          "$ref": "#/$defs/ToolQuality"
         }
       },
       "additionalProperties": false,
