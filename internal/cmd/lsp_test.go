@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -50,6 +51,29 @@ func TestLSPListFlagsAnUnresolvableCommand(t *testing.T) {
 
 	require.NoError(t, c.RunE(c, nil))
 	require.Contains(t, out.String(), "missing (enabled, not found on PATH)")
+}
+
+func TestLSPListJSON(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"lsp":{
+		"gopls":{"command":"go","args":["run","golang.org/x/tools/gopls@latest"],"filetypes":["go","mod"]},
+		"off":{"command":"no-such-binary-xyz","disabled":true}
+	}}`)
+
+	c := newSkillTestCmd(t, runLSPList, workingDir, t.TempDir())
+	c.Flags().BoolVar(&lspListJSON, "json", true, "")
+	t.Cleanup(func() { lspListJSON = false })
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, nil))
+
+	var got []jsonLSPServer
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+	require.Equal(t, []jsonLSPServer{
+		{Name: "gopls", Status: "enabled", Command: "go run golang.org/x/tools/gopls@latest", FileTypes: []string{"go", "mod"}},
+		{Name: "off", Status: "disabled", Command: "no-such-binary-xyz"},
+	}, got)
 }
 
 // Env values regularly hold secrets, so listing must never print them.

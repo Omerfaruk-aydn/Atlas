@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"sort"
@@ -9,6 +10,8 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/spf13/cobra"
 )
+
+var lspListJSON bool
 
 var lspCmd = &cobra.Command{
 	Use:   "lsp",
@@ -20,12 +23,13 @@ var lspListCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Short:   "List configured LSP servers",
 	Long: "List the LSP servers this workspace has configured, the file types they handle, and whether " +
-		"each is enabled and resolvable on PATH. Does not start any server.",
+		"each is enabled and resolvable on PATH. Does not start any server. Use --json for machine-readable output.",
 	Args: cobra.NoArgs,
 	RunE: runLSPList,
 }
 
 func init() {
+	lspListCmd.Flags().BoolVar(&lspListJSON, "json", false, "output in JSON format")
 	lspCmd.AddCommand(lspListCmd)
 	rootCmd.AddCommand(lspCmd)
 }
@@ -45,6 +49,14 @@ func runLSPList(cmd *cobra.Command, _ []string) error {
 	return listLSPServers(cmd, cfg)
 }
 
+// jsonLSPServer is one LSP server's wire form for --json.
+type jsonLSPServer struct {
+	Name      string   `json:"name"`
+	Status    string   `json:"status"`
+	Command   string   `json:"command"`
+	FileTypes []string `json:"file_types,omitempty"`
+}
+
 // listLSPServers is split out from runLSPList for the same reason
 // listMCPServers is split from runMCPList: a test can build a
 // *config.ConfigStore directly but cannot inject one into a function that
@@ -58,6 +70,27 @@ func listLSPServers(cmd *cobra.Command, cfg *config.ConfigStore) error {
 	sort.Strings(names)
 
 	out := cmd.OutOrStdout()
+
+	if lspListJSON {
+		servers := make([]jsonLSPServer, 0, len(names))
+		for _, name := range names {
+			l := lsps[name]
+			status := "disabled"
+			if !l.Disabled {
+				status = lspCommandStatus(l, cfg)
+			}
+			servers = append(servers, jsonLSPServer{
+				Name:      name,
+				Status:    status,
+				Command:   lspCommandLine(l),
+				FileTypes: l.FileTypes,
+			})
+		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(servers)
+	}
+
 	if len(names) == 0 {
 		fmt.Fprintln(out, "No LSP servers configured.")
 		return nil
