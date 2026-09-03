@@ -861,6 +861,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	if c.cfg.Config().Tools.Git.IsEnabled() {
 		allTools = append(allTools,
 			tools.NewGitStatusTool(c.cfg.WorkingDir()),
+			tools.NewGitLogTool(c.cfg.WorkingDir()),
 		)
 	}
 
