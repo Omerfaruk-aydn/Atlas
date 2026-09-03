@@ -638,6 +638,12 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		return nil, err
 	}
 
+	var advisorModel *Model
+	var advisorTools []fantasy.AgentTool
+	if !isSubAgent {
+		advisorModel, advisorTools = c.buildAdvisor(ctx)
+	}
+
 	largeProviderCfg, _ := c.cfg.Config().Providers.Get(large.ModelCfg.Provider)
 	result := NewSessionAgent(SessionAgentOptions{
 		LargeModel:           large,
@@ -657,6 +663,8 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		SessionStartHooks:    c.hookRunner(hooks.EventSessionStart),
 		PreCompactHooks:      c.hookRunner(hooks.EventPreCompact),
 		OnProviderExhausted:  c.credentials.Advance,
+		AdvisorModel:         advisorModel,
+		AdvisorTools:         advisorTools,
 		IsYolo:               c.permissions.SkipRequests(),
 		Permissions:          c.permissions,
 		Sessions:             c.sessions,
@@ -1046,6 +1054,46 @@ func (c *coordinator) resolveModel(ctx context.Context, modelCfg config.Selected
 		ModelCfg:   modelCfg,
 		FlatRate:   providerCfg.FlatRate,
 	}, nil
+}
+
+// advisorToolNames are the only tools built for the advisor -- a
+// deliberately small, read-only set (no bash, no edit/write, no MCP) so a
+// second model reviewing a turn can inspect the resulting code but cannot
+// change anything itself. Mirrors the spirit of resolveReadOnlyTools' list
+// without pulling in its network-touching members (lsp_*, sourcegraph):
+// the advisor's job is a quick second look, not a deep investigation.
+var advisorToolNames = []string{"glob", "grep", "ls", "view"}
+
+// buildAdvisor resolves the "advisor" model role and builds its read-only
+// toolset, or returns (nil, nil) when the advisor is disabled or has
+// nothing to run on. Never fails buildAgent: a misconfigured advisor is
+// logged and the session starts without one, the same posture a broken
+// hook script gets.
+func (c *coordinator) buildAdvisor(ctx context.Context) (*Model, []fantasy.AgentTool) {
+	opts := c.cfg.Config().Options
+	if opts == nil || opts.Advisor == nil || !opts.Advisor.Enabled {
+		return nil, nil
+	}
+
+	roleModel, ok := c.cfg.Config().ResolveRole("advisor")
+	if !ok {
+		slog.Warn("Advisor is enabled but no \"advisor\" model role is configured; see `atlas models roles`")
+		return nil, nil
+	}
+
+	model, err := c.resolveModel(ctx, roleModel, true)
+	if err != nil {
+		slog.Warn("Advisor model failed to build; running without it", "error", err)
+		return nil, nil
+	}
+
+	tools, err := c.buildTools(ctx, config.Agent{AllowedTools: advisorToolNames}, true)
+	if err != nil {
+		slog.Warn("Advisor tools failed to build; running without it", "error", err)
+		return nil, nil
+	}
+
+	return &model, tools
 }
 
 func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {

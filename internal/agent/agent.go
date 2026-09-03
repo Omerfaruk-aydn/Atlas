@@ -224,10 +224,17 @@ type sessionAgent struct {
 	// turn against that provider try a different configured API key. Nil
 	// is a valid no-op.
 	onProviderExhausted func(providerID string)
-	isYolo              bool
-	permissions         permission.Service
-	notify              pubsub.Publisher[notify.Notification]
-	runComplete         pubsub.Publisher[notify.RunComplete]
+	// advisorModel and advisorTools are nil when the advisor is disabled
+	// or has nothing to run on (see coordinator.buildAdvisor). advisorNotes
+	// queues each session's pending note (from the turn that just
+	// finished) to inject ahead of its next prompt; read-and-clear.
+	advisorModel *Model
+	advisorTools []fantasy.AgentTool
+	advisorNotes *csync.Map[string, string]
+	isYolo       bool
+	permissions  permission.Service
+	notify       pubsub.Publisher[notify.Notification]
+	runComplete  pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -318,13 +325,19 @@ type SessionAgentOptions struct {
 	// with no further model fallback to move to. Nil means no credential
 	// rotation is wired up.
 	OnProviderExhausted func(providerID string)
-	IsYolo              bool
-	Permissions         permission.Service
-	Sessions            session.Service
-	Messages            message.Service
-	Tools               []fantasy.AgentTool
-	Notify              pubsub.Publisher[notify.Notification]
-	RunComplete         pubsub.Publisher[notify.RunComplete]
+	// AdvisorModel is the model the advisor reviews each turn with. Nil
+	// means the advisor is disabled or has nothing to run on.
+	AdvisorModel *Model
+	// AdvisorTools are the (read-only) tools the advisor may use while
+	// reviewing a turn. Ignored when AdvisorModel is nil.
+	AdvisorTools []fantasy.AgentTool
+	IsYolo       bool
+	Permissions  permission.Service
+	Sessions     session.Service
+	Messages     message.Service
+	Tools        []fantasy.AgentTool
+	Notify       pubsub.Publisher[notify.Notification]
+	RunComplete  pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -351,6 +364,9 @@ func NewSessionAgent(
 		sessionStartHooks:    opts.SessionStartHooks,
 		startedSessions:      csync.NewMap[string, bool](),
 		preCompactHooks:      opts.PreCompactHooks,
+		advisorModel:         opts.AdvisorModel,
+		advisorTools:         opts.AdvisorTools,
+		advisorNotes:         csync.NewMap[string, string](),
 		onProviderExhausted:  opts.OnProviderExhausted,
 		tools:                csync.NewSliceFrom(opts.Tools),
 		isYolo:               opts.IsYolo,
@@ -676,7 +692,8 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	if err != nil {
 		return nil, err
 	}
-	call.Prompt = a.fireSessionStart(ctx, call.SessionID, prompt)
+	prompt = a.fireSessionStart(ctx, call.SessionID, prompt)
+	call.Prompt = a.injectAdvisorNote(call.SessionID, prompt)
 
 	if a.maxSessionCost > 0 {
 		if sess, err := a.sessions.Get(ctx, call.SessionID); err == nil && sess.Cost >= a.maxSessionCost {
@@ -1352,6 +1369,15 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	// subscribers see stale busy state at the moment of receipt.
 	a.activeRequests.Del(call.SessionID)
 	cancel()
+
+	// The advisor reviews the turn that just finished and, if it flags
+	// something, queues a note for the *next* prompt (see
+	// injectAdvisorNote) -- it never delays or changes this turn's own
+	// result. Run in the background: it is a second opinion, not
+	// something the user should wait on.
+	if a.advisorModel != nil && currentAssistant != nil {
+		go a.runAdvisorPass(context.WithoutCancel(ctx), call.SessionID, call.Prompt, currentAssistant.Content().Text)
+	}
 
 	// Send notification that agent has finished its turn (skip for
 	// nested/non-interactive sessions).

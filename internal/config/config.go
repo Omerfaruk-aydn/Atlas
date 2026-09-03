@@ -475,6 +475,19 @@ type Options struct {
 	// of work can run on different models without changing the session's
 	// primary model.
 	ModelRoles map[string]SelectedModel `json:"model_roles,omitempty" jsonschema:"description=Named model roles a subagent's model field can reference by name\\, e.g. \"frontend\" or \"research\",example={\"research\":{\"model\":\"o3\",\"provider\":\"openai\"}}"`
+	// Advisor enables a second model that reviews each finished turn (the
+	// user's prompt and the assistant's final response) with read-only
+	// tools (glob, grep, ls, view) of its own, and can leave a note that
+	// is injected ahead of the session's next prompt. It runs on the
+	// "advisor" ModelRoles entry; with none configured, Advisor has
+	// nothing to run on and is silently inert even if Enabled is true.
+	Advisor *Advisor `json:"advisor,omitempty" jsonschema:"description=A second model that reviews each turn and can leave a note for the next one. Needs a \"advisor\" entry in model_roles to run on."`
+}
+
+// Advisor holds settings for the optional turn-reviewing second model. See
+// Options.Advisor.
+type Advisor struct {
+	Enabled bool `json:"enabled,omitempty" jsonschema:"description=Turn the advisor on. Needs an \"advisor\" model_roles entry to actually run.,default=false"`
 }
 
 // Memory bounds the persistent stores. The bounds matter because their

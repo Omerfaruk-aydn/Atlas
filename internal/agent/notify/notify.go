@@ -25,6 +25,11 @@ const (
 	// finished. Message carries the error text when it failed, empty on
 	// success.
 	TypeAWSSSOAuthResult Type = "aws_sso_auth_result"
+	// TypeAdvisorNote indicates the advisor (see Options.Advisor) flagged
+	// something in the turn that just finished, at concern or blocker
+	// severity -- a nit is queued for the next prompt silently, with no
+	// notification. Message carries the advisor's note.
+	TypeAdvisorNote Type = "advisor_note"
 )
 
 // Notification represents a domain event published by the agent.

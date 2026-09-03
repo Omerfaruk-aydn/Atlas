@@ -52,6 +52,46 @@ func hermeticSubagentCoordinator(t *testing.T) *coordinator {
 	}
 }
 
+func TestBuildAdvisorDisabledByDefault(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	model, tools := coord.buildAdvisor(t.Context())
+	require.Nil(t, model)
+	require.Nil(t, tools)
+}
+
+func TestBuildAdvisorWithNoModelRoleConfigured(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.cfg.Config().Options.Advisor = &config.Advisor{Enabled: true}
+
+	model, tools := coord.buildAdvisor(t.Context())
+	require.Nil(t, model)
+	require.Nil(t, tools)
+}
+
+func TestBuildAdvisorResolvesItsModelRole(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.cfg.Config().Options.Advisor = &config.Advisor{Enabled: true}
+	coord.cfg.Config().Options.ModelRoles = map[string]config.SelectedModel{
+		"advisor": {Provider: "role-provider", Model: "role-model"},
+	}
+
+	model, tools := coord.buildAdvisor(t.Context())
+	require.NotNil(t, model)
+	require.Equal(t, "role-provider", model.ModelCfg.Provider)
+	require.Equal(t, "role-model", model.ModelCfg.Model)
+	require.NotEmpty(t, tools)
+
+	names := make([]string, len(tools))
+	for i, tool := range tools {
+		names[i] = tool.Info().Name
+	}
+	for _, want := range []string{"glob", "grep", "ls", "view"} {
+		require.Contains(t, names, want)
+	}
+	require.NotContains(t, names, "bash", "the advisor must not get write/execute tools")
+	require.NotContains(t, names, "edit", "the advisor must not get write/execute tools")
+}
+
 func TestResolveModelBuildsAReadyModel(t *testing.T) {
 	coord := hermeticSubagentCoordinator(t)
 
