@@ -70,6 +70,7 @@ atlas run --continue "Follow up on your last response"
 			sessionID, _  = cmd.Flags().GetString("session")
 			useLast, _    = cmd.Flags().GetBool("continue")
 			jsonOut, _    = cmd.Flags().GetBool("json")
+			agentName, _  = cmd.Flags().GetString("agent")
 		)
 
 		// Cancel on SIGINT or SIGTERM.
@@ -119,6 +120,13 @@ atlas run --continue "Follow up on your last response"
 				return fmt.Errorf("failed to initialize agent: %w", err)
 			}
 
+			if agentName != "" {
+				prompt, err = wrapPromptForAgent(ws.Config, agentName, prompt)
+				if err != nil {
+					return err
+				}
+			}
+
 			if sessionID != "" {
 				sess, err := resolveSessionByID(ctx, c, ws.ID, sessionID)
 				if err != nil {
@@ -152,6 +160,13 @@ atlas run --continue "Follow up on your last response"
 
 		appWs := ws.(*workspace.AppWorkspace)
 
+		if agentName != "" {
+			prompt, err = wrapPromptForAgent(appWs.App().Config(), agentName, prompt)
+			if err != nil {
+				return err
+			}
+		}
+
 		if sessionID != "" {
 			sess, err := resolveSessionID(ctx, appWs.App().Sessions, sessionID)
 			if err != nil {
@@ -172,6 +187,8 @@ func init() {
 	runCmd.Flags().StringP("session", "s", "", "Continue a previous session by ID")
 	runCmd.Flags().BoolP("continue", "C", false, "Continue the most recent session")
 	runCmd.Flags().Bool("json", false, "Print one JSON object with the response, session ID, tokens, and cost instead of streaming text")
+	runCmd.Flags().StringP("agent", "a", "",
+		"Hand the prompt to a configured subagent (see `atlas agent list`) via the agent tool, instead of running it directly")
 	runCmd.MarkFlagsMutuallyExclusive("session", "continue")
 }
 
