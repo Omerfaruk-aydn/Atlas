@@ -851,6 +851,27 @@ type Tools struct {
 	Browser  ToolBrowser  `json:"browser,omitzero"`
 	Debugger ToolDebugger `json:"debugger,omitzero"`
 	Teams    ToolTeams    `json:"teams,omitzero"`
+
+	CodeIntel ToolCodeIntel `json:"code_intel,omitzero"`
+}
+
+// ToolCodeIntel configures the static-analysis tools (dead_code and
+// friends), which parse Go source with go/ast to answer structural
+// questions the LSP tools cannot: what is unreferenced, what implements
+// what, how packages depend on each other.
+//
+// Off by default. Not because they are dangerous -- every one of them is
+// read-only -- but because each registered tool costs context on every
+// single request, and these only earn that cost on a Go codebase the user
+// is actually auditing.
+type ToolCodeIntel struct {
+	Enabled *bool `json:"enabled,omitempty" jsonschema:"description=Turn on the Go static-analysis tools (dead_code and friends) so the agent can find unreferenced declarations and other structural facts without compiling the tree.,default=false"`
+}
+
+// IsEnabled reports whether the code-intelligence tools should be
+// registered.
+func (t ToolCodeIntel) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
 }
 
 // ToolTeams configures the team_send / team_read tools, which let

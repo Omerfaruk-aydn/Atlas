@@ -1144,6 +1144,17 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolCodeIntel": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the Go static-analysis tools (dead_code and friends) so the agent can find unreferenced declarations and other structural facts without compiling the tree.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolDebugger": {
       "properties": {
         "enabled": {
@@ -1268,6 +1279,9 @@
         },
         "teams": {
           "$ref": "#/$defs/ToolTeams"
+        },
+        "code_intel": {
+          "$ref": "#/$defs/ToolCodeIntel"
         }
       },
       "additionalProperties": false,

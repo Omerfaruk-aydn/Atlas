@@ -834,6 +834,13 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, tools.NewTeamSendTool(c.teams), tools.NewTeamReadTool(c.teams))
 	}
 
+	// Static-analysis tools. Read-only, but each one costs context on
+	// every request, so they are behind their own switch and only earn it
+	// on a Go codebase being audited.
+	if c.cfg.Config().Tools.CodeIntel.IsEnabled() {
+		allTools = append(allTools, tools.NewDeadCodeTool(c.cfg.WorkingDir()))
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(
