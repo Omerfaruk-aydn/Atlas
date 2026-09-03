@@ -24,9 +24,12 @@ import (
 
 type EditParams struct {
 	FilePath   string `json:"file_path" description:"The absolute path to the file to modify"`
-	OldString  string `json:"old_string" description:"The text to replace"`
-	NewString  string `json:"new_string" description:"The text to replace it with"`
+	OldString  string `json:"old_string,omitempty" description:"The exact text to replace. Omit this and use anchor_line + anchor_hash instead for a single-line change, when view is showing hash anchors."`
+	NewString  string `json:"new_string" description:"The text to replace it with. May be empty to delete, or span multiple lines to expand one line into several."`
 	ReplaceAll bool   `json:"replace_all,omitempty" description:"Replace all occurrences of old_string (default false)"`
+
+	AnchorLine int    `json:"anchor_line,omitempty" description:"1-indexed line number to replace, using the hash view showed next to it. An alternative to old_string for a single line: no need to reproduce its exact whitespace. Requires anchor_hash; cannot be combined with old_string."`
+	AnchorHash string `json:"anchor_hash,omitempty" description:"The hash view displayed for anchor_line. Verified against the file's current content before the edit is applied; a mismatch means the file changed since it was last viewed, and the edit is rejected instead of landing on the wrong line."`
 }
 
 type EditPermissionsParams struct {
@@ -82,11 +85,20 @@ func NewEditTool(
 
 			editCtx := editContext{ctx, permissions, files, filetracker, workingDir}
 
-			if params.OldString == "" {
+			switch {
+			case params.AnchorLine > 0:
+				if params.OldString != "" {
+					return fantasy.NewTextErrorResponse("use either old_string or anchor_line, not both"), nil
+				}
+				if params.AnchorHash == "" {
+					return fantasy.NewTextErrorResponse("anchor_hash is required together with anchor_line"), nil
+				}
+				response, err = replaceByAnchor(editCtx, params.FilePath, params.AnchorLine, params.AnchorHash, params.NewString, call)
+			case params.OldString == "":
 				response, err = createNewFile(editCtx, params.FilePath, params.NewString, call)
-			} else if params.NewString == "" {
+			case params.NewString == "":
 				response, err = deleteContent(editCtx, params.FilePath, params.OldString, params.ReplaceAll, call)
-			} else {
+			default:
 				response, err = replaceContent(editCtx, params.FilePath, params.OldString, params.NewString, params.ReplaceAll, call)
 			}
 
@@ -457,6 +469,107 @@ func replaceContent(edit editContext, filePath, oldString, newString string, rep
 
 	return fantasy.WithResponseMetadata(
 		fantasy.NewTextResponse(withWhitespaceNote("Content replaced in file: "+filePath, whitespaceCorrected)),
+		EditResponseMetadata{
+			OldContent: oldContent,
+			NewContent: writeContent,
+			Additions:  additions,
+			Removals:   removals,
+		},
+	), nil
+}
+
+// replaceByAnchor replaces a single line, addressed by its 1-indexed line
+// number and verified against the content hash view showed for it, instead
+// of by reproducing its exact text. It is the anchor-mode counterpart to
+// replaceContent: same diff/permission/write/history path, different way
+// of locating what to change. newString may be empty (delete the line) or
+// span multiple lines (expand it into several); either way the anchored
+// line itself is always fully replaced, never partially matched within it.
+func replaceByAnchor(edit editContext, filePath string, anchorLine int, anchorHash, newString string, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+	sessionID, oldContent, isCrlf, resp, err := loadExistingFile(edit, filePath, "session ID is required for editing a file")
+	if err != nil {
+		return fantasy.ToolResponse{}, err
+	}
+	if resp.Content != "" || resp.IsError {
+		return resp, nil
+	}
+
+	lines := strings.Split(oldContent, "\n")
+	if anchorLine < 1 || anchorLine > len(lines) {
+		return fantasy.NewTextErrorResponse(fmt.Sprintf(
+			"anchor_line %d is out of range: the file has %d lines. Use View to re-read it and get a current anchor.",
+			anchorLine, len(lines),
+		)), nil
+	}
+
+	target := lines[anchorLine-1]
+	gotHash := lineAnchorHash(target)
+	if gotHash != anchorHash {
+		return fantasy.NewTextErrorResponse(fmt.Sprintf(
+			"anchor_hash does not match line %d (expected %s, got %s). The file has changed since it was last viewed -- use View to re-read it and get the current anchor.",
+			anchorLine, anchorHash, gotHash,
+		)), nil
+	}
+
+	newLines := make([]string, 0, len(lines)+1)
+	newLines = append(newLines, lines[:anchorLine-1]...)
+	if newString != "" {
+		newLines = append(newLines, strings.Split(newString, "\n")...)
+	}
+	newLines = append(newLines, lines[anchorLine:]...)
+	result := strings.Join(newLines, "\n")
+
+	if result == oldContent {
+		return fantasy.NewTextErrorResponse("new content is the same as old content. No changes made."), nil
+	}
+
+	_, additions, removals := diff.GenerateDiff(
+		oldContent,
+		result,
+		strings.TrimPrefix(filePath, edit.workingDir),
+	)
+
+	p, err := edit.permissions.Request(
+		edit.ctx,
+		permission.CreatePermissionRequest{
+			SessionID:   sessionID,
+			Path:        fsext.PathOrPrefix(filePath, edit.workingDir),
+			ToolCallID:  call.ID,
+			ToolName:    EditToolName,
+			Action:      "write",
+			Description: fmt.Sprintf("Replace line %d in file %s", anchorLine, filePath),
+			Params: EditPermissionsParams{
+				FilePath:   filePath,
+				OldContent: oldContent,
+				NewContent: result,
+			},
+		},
+	)
+	if err != nil {
+		return fantasy.ToolResponse{}, err
+	}
+	if !p {
+		resp := NewPermissionDeniedResponse(edit.permissions)
+		resp = fantasy.WithResponseMetadata(resp, EditResponseMetadata{
+			OldContent: oldContent,
+			NewContent: result,
+			Additions:  additions,
+			Removals:   removals,
+		})
+		return resp, nil
+	}
+
+	writeContent := result
+	if isCrlf {
+		writeContent, _ = fsext.ToWindowsLineEndings(writeContent)
+	}
+
+	if err := commitFileChange(edit, sessionID, filePath, oldContent, writeContent); err != nil {
+		return fantasy.ToolResponse{}, err
+	}
+
+	return fantasy.WithResponseMetadata(
+		fantasy.NewTextResponse(fmt.Sprintf("Content replaced in file: %s", filePath)),
 		EditResponseMetadata{
 			OldContent: oldContent,
 			NewContent: writeContent,
