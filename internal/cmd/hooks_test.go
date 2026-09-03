@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/spf13/cobra"
@@ -79,6 +80,29 @@ func TestHooksListReportsWhenNothingMatchesTheTool(t *testing.T) {
 
 	require.NoError(t, c.RunE(c, nil))
 	require.Contains(t, out.String(), "No hooks would fire for view.")
+}
+
+func TestHooksListJSON(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"hooks":{
+		"PreToolUse":[{"name":"guard","matcher":"^bash$","command":"./guard.sh"}],
+		"post_tool_use":[{"command":"./format.sh"}]
+	}}`)
+
+	c := newHooksTestCmd(t, workingDir)
+	c.Flags().BoolVar(&hooksListJSON, "json", true, "")
+	t.Cleanup(func() { hooksListJSON = false })
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, nil))
+
+	var got []jsonHook
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+	require.Equal(t, []jsonHook{
+		{Event: "PostToolUse", Name: "./format.sh", Command: "./format.sh"},
+		{Event: "PreToolUse", Name: "guard", Matcher: "^bash$", Command: "./guard.sh"},
+	}, got)
 }
 
 // A hook with no name is listed by its command, the same fallback the TUI

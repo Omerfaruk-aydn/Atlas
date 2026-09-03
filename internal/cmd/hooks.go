@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 
@@ -9,7 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var hooksListTool string
+var (
+	hooksListTool string
+	hooksListJSON bool
+)
 
 var hooksCmd = &cobra.Command{
 	Use:   "hooks",
@@ -21,13 +25,15 @@ var hooksListCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Short:   "List configured hooks",
 	Long: "List the hooks this workspace has configured, by event, with the matcher and command of each. " +
-		"Pass --tool to see only the hooks that would fire for that tool. Nothing is executed.",
+		"Pass --tool to see only the hooks that would fire for that tool. Nothing is executed. " +
+		"Use --json for machine-readable output.",
 	Args: cobra.NoArgs,
 	RunE: runHooksList,
 }
 
 func init() {
 	hooksListCmd.Flags().StringVar(&hooksListTool, "tool", "", "show only hooks that would fire for this tool")
+	hooksListCmd.Flags().BoolVar(&hooksListJSON, "json", false, "output in JSON format")
 	hooksCmd.AddCommand(hooksListCmd)
 	rootCmd.AddCommand(hooksCmd)
 }
@@ -57,6 +63,14 @@ func runHooksList(cmd *cobra.Command, _ []string) error {
 // code that decides it at run time. A hook whose matcher does not compile
 // is dropped by the runner and so is absent here too -- which is the honest
 // answer, since it will never fire either.
+// jsonHook is one hook's wire form for --json.
+type jsonHook struct {
+	Event   string `json:"event"`
+	Name    string `json:"name"`
+	Matcher string `json:"matcher,omitempty"`
+	Command string `json:"command"`
+}
+
 func listHooks(cmd *cobra.Command, cfg *config.ConfigStore, toolName string) error {
 	configured := cfg.Config().Hooks
 
@@ -67,6 +81,29 @@ func listHooks(cmd *cobra.Command, cfg *config.ConfigStore, toolName string) err
 	sort.Strings(events)
 
 	out := cmd.OutOrStdout()
+
+	if hooksListJSON {
+		var jsonHooks []jsonHook
+		for _, event := range events {
+			runner := hooks.NewRunner(configured[event], cfg.WorkingDir(), cfg.WorkingDir())
+			list := runner.Hooks()
+			if toolName != "" {
+				list = runner.MatchingHooks(toolName)
+			}
+			for _, h := range list {
+				jsonHooks = append(jsonHooks, jsonHook{
+					Event:   event,
+					Name:    h.DisplayName(),
+					Matcher: h.Matcher,
+					Command: h.Command,
+				})
+			}
+		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(jsonHooks)
+	}
+
 	var shown int
 	for _, event := range events {
 		runner := hooks.NewRunner(configured[event], cfg.WorkingDir(), cfg.WorkingDir())
