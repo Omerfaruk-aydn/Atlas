@@ -1086,6 +1086,34 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolBrowser": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the browser tool so the agent can navigate / click / type / screenshot / run JavaScript in a real Chrome or Chromium instance. Requires a Chrome or Chromium install on PATH (or executable_path below).",
+          "default": false
+        },
+        "executable_path": {
+          "type": "string",
+          "description": "Path to a Chrome or Chromium binary. Empty auto-detects an installed browser."
+        },
+        "headless": {
+          "type": "boolean",
+          "description": "Run the browser without a visible window",
+          "default": true
+        },
+        "action_timeout": {
+          "type": "integer",
+          "description": "How long a single browser action (navigate / click / eval / etc.) may run before it is aborted"
+        },
+        "idle_timeout": {
+          "type": "integer",
+          "description": "How long an unused browser session is kept open before it is closed automatically"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolGlob": {
       "properties": {
         "timeout": {
@@ -1171,6 +1199,9 @@
         },
         "view": {
           "$ref": "#/$defs/ToolView"
+        },
+        "browser": {
+          "$ref": "#/$defs/ToolBrowser"
         }
       },
       "additionalProperties": false,

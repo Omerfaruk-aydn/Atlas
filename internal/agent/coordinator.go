@@ -800,6 +800,12 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, tools.NewQuestionTool(c.questions))
 	}
 
+	// Browser tool is opt-in: it launches an external Chrome/Chromium
+	// process and can reach any URL the permission prompt allows.
+	if c.cfg.Config().Tools.Browser.IsEnabled() {
+		allTools = append(allTools, tools.NewBrowserTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Browser))
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(

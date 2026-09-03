@@ -807,7 +807,7 @@ type ToolBrowser struct {
 	Enabled        *bool          `json:"enabled,omitempty" jsonschema:"description=Turn on the browser tool so the agent can navigate / click / type / screenshot / run JavaScript in a real Chrome or Chromium instance. Requires a Chrome or Chromium install on PATH (or executable_path below).,default=false"`
 	ExecutablePath string         `json:"executable_path,omitempty" jsonschema:"description=Path to a Chrome or Chromium binary. Empty auto-detects an installed browser."`
 	Headless       *bool          `json:"headless,omitempty" jsonschema:"description=Run the browser without a visible window,default=true"`
-	ActionTimeout  *time.Duration `json:"action_timeout,omitempty" jsonschema:"description=How long a single browser action (navigate, click, eval...) may run before it is aborted,default=30s,example=1m"`
+	ActionTimeout  *time.Duration `json:"action_timeout,omitempty" jsonschema:"description=How long a single browser action (navigate / click / eval / etc.) may run before it is aborted,default=30s,example=1m"`
 	IdleTimeout    *time.Duration `json:"idle_timeout,omitempty" jsonschema:"description=How long an unused browser session is kept open before it is closed automatically,default=10m,example=5m"`
 }
 

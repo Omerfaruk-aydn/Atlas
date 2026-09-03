@@ -18,6 +18,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/notify"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools/mcp"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/browser"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
@@ -834,6 +835,12 @@ func (app *App) Shutdown() {
 	// Kill all background shells.
 	wg.Go(func() {
 		shell.GetBackgroundShellManager().KillAll(shutdownCtx)
+	})
+
+	// Close any open browser sessions so a headless Chrome instance never
+	// outlives the agent that launched it.
+	wg.Go(func() {
+		browser.GetManager(browser.Options{}).CloseAll()
 	})
 
 	// Close herdr client to stop its background writer.
