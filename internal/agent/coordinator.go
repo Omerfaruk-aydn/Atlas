@@ -856,6 +856,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewTestRunTool(c.cfg.WorkingDir()),
 			tools.NewCoverageReportTool(c.cfg.WorkingDir()),
 			tools.NewLintRunTool(c.cfg.WorkingDir()),
+			tools.NewDepAuditTool(c.cfg.WorkingDir()),
 		)
 	}
 
