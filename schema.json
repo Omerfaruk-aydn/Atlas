@@ -1174,6 +1174,17 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolGit": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the read-only git tools (git_status and friends) so the agent can inspect the working tree and history without shelling out.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolGlob": {
       "properties": {
         "timeout": {
@@ -1296,6 +1307,9 @@
         },
         "quality": {
           "$ref": "#/$defs/ToolQuality"
+        },
+        "git": {
+          "$ref": "#/$defs/ToolGit"
         }
       },
       "additionalProperties": false,

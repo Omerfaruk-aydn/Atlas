@@ -856,6 +856,14 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		)
 	}
 
+	// Read-only git tools. They cannot modify the repository, so they
+	// need no approval -- but they still cost context, hence the switch.
+	if c.cfg.Config().Tools.Git.IsEnabled() {
+		allTools = append(allTools,
+			tools.NewGitStatusTool(c.cfg.WorkingDir()),
+		)
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(

@@ -854,6 +854,23 @@ type Tools struct {
 
 	CodeIntel ToolCodeIntel `json:"code_intel,omitzero"`
 	Quality   ToolQuality   `json:"quality,omitzero"`
+	Git       ToolGit       `json:"git,omitzero"`
+}
+
+// ToolGit configures the read-only git tools -- status, log, blame and
+// the like.
+//
+// Off by default like the other groups. The agent can already reach git
+// through the shell; these tools exist because they parse git's
+// machine-readable formats into compact answers, cannot modify anything,
+// and so need no approval for what is a read.
+type ToolGit struct {
+	Enabled *bool `json:"enabled,omitempty" jsonschema:"description=Turn on the read-only git tools (git_status and friends) so the agent can inspect the working tree and history without shelling out.,default=false"`
+}
+
+// IsEnabled reports whether the git tools should be registered.
+func (t ToolGit) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
 }
 
 // ToolQuality configures the code-quality and security tools --
