@@ -870,6 +870,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewGitLogTool(c.cfg.WorkingDir()),
 			tools.NewGitBlameTool(c.cfg.WorkingDir()),
 			tools.NewGitDiffTool(c.cfg.WorkingDir()),
+			tools.NewGitBranchesTool(c.cfg.WorkingDir()),
 		)
 	}
 
