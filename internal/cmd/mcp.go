@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -14,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var mcpListJSON bool
+
 var mcpCmd = &cobra.Command{
 	Use:   "mcp",
 	Short: "Inspect configured MCP servers",
@@ -24,7 +27,7 @@ var mcpListCmd = &cobra.Command{
 	Aliases: []string{"ls"},
 	Short:   "List configured MCP servers",
 	Long: "List the MCP servers this workspace has configured, their transport, and whether each is enabled. " +
-		"Does not start or contact any server.",
+		"Does not start or contact any server. Use --json for machine-readable output.",
 	Args: cobra.NoArgs,
 	RunE: runMCPList,
 }
@@ -42,6 +45,7 @@ var mcpTestCmd = &cobra.Command{
 }
 
 func init() {
+	mcpListCmd.Flags().BoolVar(&mcpListJSON, "json", false, "output in JSON format")
 	mcpCmd.AddCommand(mcpListCmd)
 	mcpCmd.AddCommand(mcpTestCmd)
 	rootCmd.AddCommand(mcpCmd)
@@ -62,6 +66,16 @@ func runMCPList(cmd *cobra.Command, _ []string) error {
 	return listMCPServers(cmd, cfg)
 }
 
+// jsonMCPServer is one MCP server's wire form for --json.
+type jsonMCPServer struct {
+	Name          string   `json:"name"`
+	Type          string   `json:"type"`
+	Enabled       bool     `json:"enabled"`
+	Endpoint      string   `json:"endpoint"`
+	EnabledTools  []string `json:"enabled_tools,omitempty"`
+	DisabledTools []string `json:"disabled_tools,omitempty"`
+}
+
 // listMCPServers is split out from runMCPList for the same reason
 // listProviders is split from runProviderList: a test can build a
 // *config.ConfigStore directly but cannot inject one into a function that
@@ -75,6 +89,25 @@ func listMCPServers(cmd *cobra.Command, cfg *config.ConfigStore) error {
 	sort.Strings(names)
 
 	out := cmd.OutOrStdout()
+
+	if mcpListJSON {
+		servers := make([]jsonMCPServer, 0, len(names))
+		for _, name := range names {
+			m := mcps[name]
+			servers = append(servers, jsonMCPServer{
+				Name:          name,
+				Type:          string(m.Type),
+				Enabled:       !m.Disabled,
+				Endpoint:      mcpEndpoint(m),
+				EnabledTools:  m.EnabledTools,
+				DisabledTools: m.DisabledTools,
+			})
+		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(servers)
+	}
+
 	if len(names) == 0 {
 		fmt.Fprintln(out, "No MCP servers configured.")
 		return nil

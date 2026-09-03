@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -156,6 +157,29 @@ func TestMCPTestHTTPUnreachable(t *testing.T) {
 
 // Disabled servers are skipped by a bare `mcp test`, same as `mcp list`
 // marks them without contacting them.
+func TestMCPListJSON(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"mcp":{
+		"files":{"type":"stdio","command":"npx","args":["-y","server-filesystem"]},
+		"docs":{"type":"http","url":"https://mcp.example.com/mcp","disabled":true}
+	}}`)
+
+	c := newSkillTestCmd(t, runMCPList, workingDir, t.TempDir())
+	c.Flags().BoolVar(&mcpListJSON, "json", true, "")
+	t.Cleanup(func() { mcpListJSON = false })
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, nil))
+
+	var got []jsonMCPServer
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+	require.Equal(t, []jsonMCPServer{
+		{Name: "docs", Type: "http", Enabled: false, Endpoint: "https://mcp.example.com/mcp"},
+		{Name: "files", Type: "stdio", Enabled: true, Endpoint: "npx -y server-filesystem"},
+	}, got)
+}
+
 func TestMCPTestSkipsDisabledServers(t *testing.T) {
 	workingDir := t.TempDir()
 	writeAtlasConfig(t, workingDir, `{"mcp":{
