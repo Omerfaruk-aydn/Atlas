@@ -790,11 +790,48 @@ type Agent struct {
 }
 
 type Tools struct {
-	Ls   ToolLs   `json:"ls,omitzero"`
-	Grep ToolGrep `json:"grep,omitzero"`
-	Glob ToolGlob `json:"glob,omitzero"`
-	Bash ToolBash `json:"bash,omitzero"`
-	View ToolView `json:"view,omitzero"`
+	Ls      ToolLs      `json:"ls,omitzero"`
+	Grep    ToolGrep    `json:"grep,omitzero"`
+	Glob    ToolGlob    `json:"glob,omitzero"`
+	Bash    ToolBash    `json:"bash,omitzero"`
+	View    ToolView    `json:"view,omitzero"`
+	Browser ToolBrowser `json:"browser,omitzero"`
+}
+
+// ToolBrowser configures the browser tool, which drives a real
+// Chrome/Chromium instance over the Chrome DevTools Protocol. Off by
+// default: unlike the other tools, it launches an external browser process
+// and reaches whatever URL the permission prompt allows, so turning it on
+// is an explicit opt-in.
+type ToolBrowser struct {
+	Enabled        *bool          `json:"enabled,omitempty" jsonschema:"description=Turn on the browser tool so the agent can navigate / click / type / screenshot / run JavaScript in a real Chrome or Chromium instance. Requires a Chrome or Chromium install on PATH (or executable_path below).,default=false"`
+	ExecutablePath string         `json:"executable_path,omitempty" jsonschema:"description=Path to a Chrome or Chromium binary. Empty auto-detects an installed browser."`
+	Headless       *bool          `json:"headless,omitempty" jsonschema:"description=Run the browser without a visible window,default=true"`
+	ActionTimeout  *time.Duration `json:"action_timeout,omitempty" jsonschema:"description=How long a single browser action (navigate, click, eval...) may run before it is aborted,default=30s,example=1m"`
+	IdleTimeout    *time.Duration `json:"idle_timeout,omitempty" jsonschema:"description=How long an unused browser session is kept open before it is closed automatically,default=10m,example=5m"`
+}
+
+// IsEnabled reports whether the browser tool should be registered.
+func (t ToolBrowser) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
+}
+
+// IsHeadless reports whether new sessions should run without a visible
+// window.
+func (t ToolBrowser) IsHeadless() bool {
+	return ptrValOr(t.Headless, true)
+}
+
+// GetActionTimeout returns the user-defined per-action timeout, or its
+// default.
+func (t ToolBrowser) GetActionTimeout() time.Duration {
+	return ptrValOr(t.ActionTimeout, 30*time.Second)
+}
+
+// GetIdleTimeout returns the user-defined session idle timeout, or its
+// default.
+func (t ToolBrowser) GetIdleTimeout() time.Duration {
+	return ptrValOr(t.IdleTimeout, 10*time.Minute)
 }
 
 type ToolView struct {
