@@ -141,6 +141,35 @@ func TestDoctorAcceptsAnExistingBrowserExecutablePath(t *testing.T) {
 	require.Contains(t, got, "[ok] browser: "+goPath)
 }
 
+// The debugger tool is opt-in, so doctor says nothing about it unless
+// it's turned on.
+func TestDoctorSaysNothingAboutDebuggerWhenItIsOff(t *testing.T) {
+	got, _ := doctorOutput(t, t.TempDir(), t.TempDir())
+	require.NotContains(t, got, "debugger:")
+}
+
+func TestDoctorFailsWhenDlvPathDoesNotExist(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"tools":{"debugger":{"enabled":true,"dlv_path":"/definitely/not/a/real/binary"}}}`)
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	require.Contains(t, got, "[fail] debugger:")
+	require.Contains(t, got, "/definitely/not/a/real/binary")
+}
+
+func TestDoctorAcceptsAnExistingDlvPath(t *testing.T) {
+	// go is what runs this test, so it is guaranteed to exist -- the check
+	// only stats the path, it does not care whether it is really dlv.
+	goPath, err := exec.LookPath("go")
+	require.NoError(t, err)
+
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, fmt.Sprintf(`{"tools":{"debugger":{"enabled":true,"dlv_path":%q}}}`, goPath))
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	require.Contains(t, got, "[ok] debugger: "+goPath)
+}
+
 func TestPrintChecksJSON(t *testing.T) {
 	doctorJSON = true
 	t.Cleanup(func() { doctorJSON = false })

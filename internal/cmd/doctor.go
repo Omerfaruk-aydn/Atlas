@@ -142,6 +142,9 @@ func diagnose(ctx context.Context, cfg *config.ConfigStore) []checkResult {
 	if r := checkBrowser(cfg); r != nil {
 		results = append(results, *r)
 	}
+	if r := checkDebugger(cfg); r != nil {
+		results = append(results, *r)
+	}
 	return results
 }
 
@@ -177,6 +180,29 @@ func checkBrowser(cfg *config.ConfigStore) *checkResult {
 		}
 	}
 	return &checkResult{"browser", statusWarn, "no Chrome/Chromium/Edge found on PATH; set tools.browser.executable_path if one is installed elsewhere"}
+}
+
+// checkDebugger reports whether the debugger tool, if turned on, has a
+// `dlv` (Delve) binary to launch. Reports nothing when the tool is off,
+// same reasoning as checkBrowser: it's opt-in, so a missing debugger is
+// irrelevant until then.
+func checkDebugger(cfg *config.ConfigStore) *checkResult {
+	d := cfg.Config().Tools.Debugger
+	if !d.IsEnabled() {
+		return nil
+	}
+
+	if d.DlvPath != "" {
+		if _, err := os.Stat(d.DlvPath); err != nil {
+			return &checkResult{"debugger", statusFail, fmt.Sprintf("dlv_path %s: %s", d.DlvPath, err)}
+		}
+		return &checkResult{"debugger", statusOK, d.DlvPath}
+	}
+
+	if path, err := exec.LookPath("dlv"); err == nil {
+		return &checkResult{"debugger", statusOK, path}
+	}
+	return &checkResult{"debugger", statusWarn, "dlv (Delve) not found on PATH; install it with `go install github.com/go-delve/delve/cmd/dlv@latest` or set tools.debugger.dlv_path"}
 }
 
 func checkDataDirectory(cfg *config.ConfigStore) checkResult {
