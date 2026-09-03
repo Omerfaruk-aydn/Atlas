@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -9,6 +10,8 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"github.com/spf13/cobra"
 )
+
+var skillListJSON bool
 
 var skillCmd = &cobra.Command{
 	Use:   "skill",
@@ -19,9 +22,10 @@ var skillListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
 	Short:   "List discovered skills",
-	Long:    "List every skill this workspace discovers -- builtin, project, and user -- and whether each is enabled.",
-	Args:    cobra.NoArgs,
-	RunE:    runSkillList,
+	Long: "List every skill this workspace discovers -- builtin, project, and user -- and whether each is " +
+		"enabled. Use --json for machine-readable output.",
+	Args: cobra.NoArgs,
+	RunE: runSkillList,
 }
 
 var skillShowCmd = &cobra.Command{
@@ -32,6 +36,7 @@ var skillShowCmd = &cobra.Command{
 }
 
 func init() {
+	skillListCmd.Flags().BoolVar(&skillListJSON, "json", false, "output in JSON format")
 	skillCmd.AddCommand(skillListCmd)
 	skillCmd.AddCommand(skillShowCmd)
 	rootCmd.AddCommand(skillCmd)
@@ -74,10 +79,6 @@ func runSkillList(cmd *cobra.Command, _ []string) error {
 	}
 
 	allSkills, activeSkills := discoverConfiguredSkills(cfg)
-	if len(allSkills) == 0 {
-		fmt.Fprintln(cmd.OutOrStdout(), "No skills found.")
-		return nil
-	}
 
 	active := make(map[string]bool, len(activeSkills))
 	for _, s := range activeSkills {
@@ -88,21 +89,56 @@ func runSkillList(cmd *cobra.Command, _ []string) error {
 	sort.Slice(sorted, func(i, j int) bool { return sorted[i].Name < sorted[j].Name })
 
 	out := cmd.OutOrStdout()
-	for _, s := range sorted {
-		origin := "user"
-		switch {
-		case s.Builtin:
-			origin = "builtin"
-		case strings.HasPrefix(s.Path, cwd):
-			origin = "project"
+
+	if skillListJSON {
+		listed := make([]jsonSkill, 0, len(sorted))
+		for _, s := range sorted {
+			listed = append(listed, jsonSkill{
+				Name:        s.Name,
+				Origin:      skillOrigin(s, cwd),
+				Enabled:     active[s.Name],
+				Description: s.Description,
+			})
 		}
+		enc := json.NewEncoder(out)
+		enc.SetIndent("", "  ")
+		return enc.Encode(listed)
+	}
+
+	if len(allSkills) == 0 {
+		fmt.Fprintln(out, "No skills found.")
+		return nil
+	}
+
+	for _, s := range sorted {
 		status := "enabled"
 		if !active[s.Name] {
 			status = "disabled"
 		}
-		fmt.Fprintf(out, "%s (%s, %s)\n  %s\n", s.Name, origin, status, s.Description)
+		fmt.Fprintf(out, "%s (%s, %s)\n  %s\n", s.Name, skillOrigin(s, cwd), status, s.Description)
 	}
 	return nil
+}
+
+// jsonSkill is one skill's wire form for --json.
+type jsonSkill struct {
+	Name        string `json:"name"`
+	Origin      string `json:"origin"`
+	Enabled     bool   `json:"enabled"`
+	Description string `json:"description"`
+}
+
+// skillOrigin reports where a skill came from: built into the binary, this
+// project's .atlas/skills, or the user's own skills directory.
+func skillOrigin(s *skills.Skill, cwd string) string {
+	switch {
+	case s.Builtin:
+		return "builtin"
+	case strings.HasPrefix(s.Path, cwd):
+		return "project"
+	default:
+		return "user"
+	}
 }
 
 func runSkillShow(cmd *cobra.Command, args []string) error {

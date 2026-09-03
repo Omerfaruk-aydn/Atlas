@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -71,6 +72,33 @@ func TestSkillListMarksDisabledSkills(t *testing.T) {
 
 	require.NoError(t, c.RunE(c, nil))
 	require.Contains(t, out.String(), "turned-off (project, disabled)")
+}
+
+func TestSkillListJSON(t *testing.T) {
+	workingDir := t.TempDir()
+	writeProjectSkill(t, workingDir, "deploy-steps", "Use when deploying.", "1. Build.\n2. Ship.")
+
+	c := newSkillTestCmd(t, runSkillList, workingDir, t.TempDir())
+	c.Flags().BoolVar(&skillListJSON, "json", true, "")
+	t.Cleanup(func() { skillListJSON = false })
+	var out bytes.Buffer
+	c.SetOut(&out)
+
+	require.NoError(t, c.RunE(c, nil))
+
+	var got []jsonSkill
+	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
+
+	var found bool
+	for _, s := range got {
+		if s.Name == "deploy-steps" {
+			found = true
+			require.Equal(t, "project", s.Origin)
+			require.True(t, s.Enabled)
+			require.Equal(t, "Use when deploying.", s.Description)
+		}
+	}
+	require.True(t, found, "deploy-steps should be in the JSON listing")
 }
 
 // TestSkillListWithNoProjectSkillsStillShowsBuiltins covers the
