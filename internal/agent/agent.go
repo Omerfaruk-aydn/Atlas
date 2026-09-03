@@ -231,10 +231,17 @@ type sessionAgent struct {
 	advisorModel *Model
 	advisorTools []fantasy.AgentTool
 	advisorNotes *csync.Map[string, string]
-	isYolo       bool
-	permissions  permission.Service
-	notify       pubsub.Publisher[notify.Notification]
-	runComplete  pubsub.Publisher[notify.RunComplete]
+	// advisorEveryNTurns and advisorNotifyThreshold mirror
+	// config.Advisor's TurnInterval/NotifyThreshold; advisorTurnCounts
+	// tracks each session's count of turns seen (not necessarily
+	// reviewed) so "review every Nth turn" has somewhere to keep score.
+	advisorEveryNTurns     int
+	advisorNotifyThreshold string
+	advisorTurnCounts      *csync.Map[string, int]
+	isYolo                 bool
+	permissions            permission.Service
+	notify                 pubsub.Publisher[notify.Notification]
+	runComplete            pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -331,53 +338,63 @@ type SessionAgentOptions struct {
 	// AdvisorTools are the (read-only) tools the advisor may use while
 	// reviewing a turn. Ignored when AdvisorModel is nil.
 	AdvisorTools []fantasy.AgentTool
-	IsYolo       bool
-	Permissions  permission.Service
-	Sessions     session.Service
-	Messages     message.Service
-	Tools        []fantasy.AgentTool
-	Notify       pubsub.Publisher[notify.Notification]
-	RunComplete  pubsub.Publisher[notify.RunComplete]
+	// AdvisorEveryNTurns reviews only every Nth finished turn. Zero or
+	// negative means every turn.
+	AdvisorEveryNTurns int
+	// AdvisorNotifyThreshold is the lowest severity (NIT, CONCERN, or
+	// BLOCKER) that raises a notify.TypeAdvisorNote notification. Every
+	// severity still queues a next-prompt note regardless.
+	AdvisorNotifyThreshold string
+	IsYolo                 bool
+	Permissions            permission.Service
+	Sessions               session.Service
+	Messages               message.Service
+	Tools                  []fantasy.AgentTool
+	Notify                 pubsub.Publisher[notify.Notification]
+	RunComplete            pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
 	opts SessionAgentOptions,
 ) SessionAgent {
 	return &sessionAgent{
-		largeModel:           csync.NewValue(opts.LargeModel),
-		largeModelFallbacks:  csync.NewSliceFrom(opts.LargeModelFallbacks),
-		fallbackCooldown:     opts.FallbackCooldown,
-		smallModelFallbacks:  csync.NewSliceFrom(opts.SmallModelFallbacks),
-		fallbackSticky:       csync.NewValue(stickyFallback{}),
-		smallModel:           csync.NewValue(opts.SmallModel),
-		systemPromptPrefix:   csync.NewValue(opts.SystemPromptPrefix),
-		systemPrompt:         csync.NewValue(opts.SystemPrompt),
-		isSubAgent:           opts.IsSubAgent,
-		sessions:             opts.Sessions,
-		messages:             opts.Messages,
-		disableAutoSummarize: opts.DisableAutoSummarize,
-		autoSummarizeAt:      opts.AutoSummarizeAt,
-		maxProviderRetries:   opts.MaxProviderRetries,
-		maxSessionCost:       opts.MaxSessionCost,
-		maxStepsPerTurn:      opts.MaxStepsPerTurn,
-		promptHooks:          opts.PromptHooks,
-		sessionStartHooks:    opts.SessionStartHooks,
-		startedSessions:      csync.NewMap[string, bool](),
-		preCompactHooks:      opts.PreCompactHooks,
-		advisorModel:         opts.AdvisorModel,
-		advisorTools:         opts.AdvisorTools,
-		advisorNotes:         csync.NewMap[string, string](),
-		onProviderExhausted:  opts.OnProviderExhausted,
-		tools:                csync.NewSliceFrom(opts.Tools),
-		isYolo:               opts.IsYolo,
-		permissions:          opts.Permissions,
-		notify:               opts.Notify,
-		runComplete:          opts.RunComplete,
-		messageQueue:         csync.NewMap[string, []SessionAgentCall](),
-		activeRequests:       csync.NewMap[string, *activeCancel](),
-		dispatchMu:           csync.NewMap[string, *sync.Mutex](),
-		acceptedRuns:         csync.NewMap[string, int](),
-		cancelMark:           csync.NewMap[string, uint64](),
+		largeModel:             csync.NewValue(opts.LargeModel),
+		largeModelFallbacks:    csync.NewSliceFrom(opts.LargeModelFallbacks),
+		fallbackCooldown:       opts.FallbackCooldown,
+		smallModelFallbacks:    csync.NewSliceFrom(opts.SmallModelFallbacks),
+		fallbackSticky:         csync.NewValue(stickyFallback{}),
+		smallModel:             csync.NewValue(opts.SmallModel),
+		systemPromptPrefix:     csync.NewValue(opts.SystemPromptPrefix),
+		systemPrompt:           csync.NewValue(opts.SystemPrompt),
+		isSubAgent:             opts.IsSubAgent,
+		sessions:               opts.Sessions,
+		messages:               opts.Messages,
+		disableAutoSummarize:   opts.DisableAutoSummarize,
+		autoSummarizeAt:        opts.AutoSummarizeAt,
+		maxProviderRetries:     opts.MaxProviderRetries,
+		maxSessionCost:         opts.MaxSessionCost,
+		maxStepsPerTurn:        opts.MaxStepsPerTurn,
+		promptHooks:            opts.PromptHooks,
+		sessionStartHooks:      opts.SessionStartHooks,
+		startedSessions:        csync.NewMap[string, bool](),
+		preCompactHooks:        opts.PreCompactHooks,
+		advisorModel:           opts.AdvisorModel,
+		advisorTools:           opts.AdvisorTools,
+		advisorNotes:           csync.NewMap[string, string](),
+		advisorEveryNTurns:     opts.AdvisorEveryNTurns,
+		advisorNotifyThreshold: opts.AdvisorNotifyThreshold,
+		advisorTurnCounts:      csync.NewMap[string, int](),
+		onProviderExhausted:    opts.OnProviderExhausted,
+		tools:                  csync.NewSliceFrom(opts.Tools),
+		isYolo:                 opts.IsYolo,
+		permissions:            opts.Permissions,
+		notify:                 opts.Notify,
+		runComplete:            opts.RunComplete,
+		messageQueue:           csync.NewMap[string, []SessionAgentCall](),
+		activeRequests:         csync.NewMap[string, *activeCancel](),
+		dispatchMu:             csync.NewMap[string, *sync.Mutex](),
+		acceptedRuns:           csync.NewMap[string, int](),
+		cancelMark:             csync.NewMap[string, uint64](),
 	}
 }
 
@@ -1375,7 +1392,7 @@ func (a *sessionAgent) Run(ctx context.Context, call SessionAgentCall) (result *
 	// injectAdvisorNote) -- it never delays or changes this turn's own
 	// result. Run in the background: it is a second opinion, not
 	// something the user should wait on.
-	if a.advisorModel != nil && currentAssistant != nil {
+	if a.advisorModel != nil && currentAssistant != nil && a.shouldRunAdvisorPass(call.SessionID) {
 		go a.runAdvisorPass(context.WithoutCancel(ctx), call.SessionID, call.Prompt, currentAssistant.Content().Text)
 	}
 

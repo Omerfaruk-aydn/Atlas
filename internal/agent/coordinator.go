@@ -640,38 +640,46 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 
 	var advisorModel *Model
 	var advisorTools []fantasy.AgentTool
+	var advisorEveryNTurns int
+	var advisorNotifyThreshold string
 	if !isSubAgent {
 		advisorModel, advisorTools = c.buildAdvisor(ctx)
+		if adv := c.cfg.Config().Options.Advisor; adv != nil {
+			advisorEveryNTurns = adv.TurnInterval()
+			advisorNotifyThreshold = adv.NotifyThreshold()
+		}
 	}
 
 	largeProviderCfg, _ := c.cfg.Config().Providers.Get(large.ModelCfg.Provider)
 	result := NewSessionAgent(SessionAgentOptions{
-		LargeModel:           large,
-		LargeModelFallbacks:  largeFallbacks,
-		FallbackCooldown:     time.Duration(c.cfg.Config().Options.FallbackCooldown) * time.Second,
-		SmallModel:           small,
-		SmallModelFallbacks:  smallFallbacks,
-		SystemPromptPrefix:   largeProviderCfg.SystemPromptPrefix,
-		SystemPrompt:         "",
-		IsSubAgent:           isSubAgent,
-		DisableAutoSummarize: c.cfg.Config().Options.DisableAutoSummarize,
-		AutoSummarizeAt:      c.cfg.Config().Options.AutoSummarizeAt,
-		MaxProviderRetries:   c.cfg.Config().Options.MaxProviderRetries,
-		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
-		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
-		PromptHooks:          c.hookRunner(hooks.EventUserPromptSubmit),
-		SessionStartHooks:    c.hookRunner(hooks.EventSessionStart),
-		PreCompactHooks:      c.hookRunner(hooks.EventPreCompact),
-		OnProviderExhausted:  c.credentials.Advance,
-		AdvisorModel:         advisorModel,
-		AdvisorTools:         advisorTools,
-		IsYolo:               c.permissions.SkipRequests(),
-		Permissions:          c.permissions,
-		Sessions:             c.sessions,
-		Messages:             c.messages,
-		Tools:                nil,
-		Notify:               c.notify,
-		RunComplete:          c.runComplete,
+		LargeModel:             large,
+		LargeModelFallbacks:    largeFallbacks,
+		FallbackCooldown:       time.Duration(c.cfg.Config().Options.FallbackCooldown) * time.Second,
+		SmallModel:             small,
+		SmallModelFallbacks:    smallFallbacks,
+		SystemPromptPrefix:     largeProviderCfg.SystemPromptPrefix,
+		SystemPrompt:           "",
+		IsSubAgent:             isSubAgent,
+		DisableAutoSummarize:   c.cfg.Config().Options.DisableAutoSummarize,
+		AutoSummarizeAt:        c.cfg.Config().Options.AutoSummarizeAt,
+		MaxProviderRetries:     c.cfg.Config().Options.MaxProviderRetries,
+		MaxSessionCost:         c.cfg.Config().Options.MaxSessionCost,
+		MaxStepsPerTurn:        c.cfg.Config().Options.MaxStepsPerTurn,
+		PromptHooks:            c.hookRunner(hooks.EventUserPromptSubmit),
+		SessionStartHooks:      c.hookRunner(hooks.EventSessionStart),
+		PreCompactHooks:        c.hookRunner(hooks.EventPreCompact),
+		OnProviderExhausted:    c.credentials.Advance,
+		AdvisorModel:           advisorModel,
+		AdvisorTools:           advisorTools,
+		AdvisorEveryNTurns:     advisorEveryNTurns,
+		AdvisorNotifyThreshold: advisorNotifyThreshold,
+		IsYolo:                 c.permissions.SkipRequests(),
+		Permissions:            c.permissions,
+		Sessions:               c.sessions,
+		Messages:               c.messages,
+		Tools:                  nil,
+		Notify:                 c.notify,
+		RunComplete:            c.runComplete,
 	})
 
 	// The readiness goroutines below perform one-time setup — building the
