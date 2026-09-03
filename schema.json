@@ -3,6 +3,17 @@
   "$id": "https://github.com/Omerfaruk-aydn/Atlas-Agent/internal/config/config",
   "$ref": "#/$defs/Config",
   "$defs": {
+    "Advisor": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn the advisor on. Needs an \"advisor\" model_roles entry to actually run.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "Attribution": {
       "properties": {
         "trailer_style": {
@@ -732,6 +743,10 @@
           },
           "type": "object",
           "description": "Named model roles a subagent's model field can reference by name, e.g. \"frontend\" or \"research\""
+        },
+        "advisor": {
+          "$ref": "#/$defs/Advisor",
+          "description": "A second model that reviews each turn and can leave a note for the next one. Needs a \"advisor\" entry in model_roles to run on."
         }
       },
       "additionalProperties": false,
