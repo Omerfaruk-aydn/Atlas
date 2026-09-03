@@ -841,6 +841,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools,
 			tools.NewDeadCodeTool(c.cfg.WorkingDir()),
 			tools.NewTypeHierarchyTool(c.cfg.WorkingDir()),
+			tools.NewImportGraphTool(c.cfg.WorkingDir()),
 		)
 	}
 
