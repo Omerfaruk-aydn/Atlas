@@ -4,12 +4,17 @@ import (
 	"context"
 	_ "embed"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/prompt"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 )
 
 //go:embed templates/agent_tool.md
@@ -17,6 +22,10 @@ var agentToolDescription string
 
 type AgentParams struct {
 	Prompt string `json:"prompt" description:"The task for the agent to perform"`
+	// AgentName optionally names a configured subagent (see
+	// internal/subagents and `atlas agent list`) to run the task with,
+	// instead of the default agent.
+	AgentName string `json:"agent_name,omitempty" description:"Name of a configured subagent to hand this task to, instead of the default agent"`
 }
 
 const (
@@ -28,15 +37,28 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 	if !ok {
 		return nil, errors.New("task agent not configured")
 	}
-	prompt, err := taskPrompt(prompt.WithWorkingDir(c.cfg.WorkingDir()))
+	taskPromptTemplate, err := taskPrompt(prompt.WithWorkingDir(c.cfg.WorkingDir()))
 	if err != nil {
 		return nil, err
 	}
 
-	agent, err := c.buildAgent(ctx, prompt, agentCfg, true)
+	agent, err := c.buildAgent(ctx, taskPromptTemplate, agentCfg, true)
 	if err != nil {
 		return nil, err
 	}
+
+	// Subagents are discovered once per tool build (session start), not
+	// per call: discovery reads disk, and a subagent's definition is not
+	// expected to change mid-session. Each named subagent's SessionAgent
+	// is built lazily on first use and cached for the rest of the
+	// session, since building one resolves a provider/model and a system
+	// prompt -- worth doing once, not on every call.
+	var opts *config.Options
+	if opts = c.cfg.Config().Options; opts == nil {
+		opts = &config.Options{}
+	}
+	discovered := subagents.Discover(opts.SubagentsPaths)
+	subagentInstances := csync.NewMap[string, SessionAgent]()
 
 	// One limiter for the tool, not per call: the point is to bound the
 	// sub-agents running across all of this tool's concurrent calls.
@@ -60,19 +82,130 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 				return fantasy.ToolResponse{}, errors.New("agent message id missing from context")
 			}
 
+			runAgent := agent
+			sessionTitle := "New Agent Session"
+			if params.AgentName != "" {
+				resolved, err := c.resolveSubagent(ctx, agentCfg, discovered, subagentInstances, params.AgentName)
+				if err != nil {
+					return fantasy.NewTextErrorResponse(err.Error()), nil
+				}
+				runAgent = resolved
+				sessionTitle = params.AgentName + " agent session"
+			}
+
 			if err := limiter.acquire(ctx); err != nil {
 				return fantasy.ToolResponse{}, err
 			}
 			defer limiter.release()
 
 			return c.runSubAgent(ctx, subAgentParams{
-				Agent:          agent,
+				Agent:          runAgent,
 				SessionID:      sessionID,
 				AgentMessageID: agentMessageID,
 				ToolCallID:     call.ID,
 				Prompt:         params.Prompt,
-				SessionTitle:   "New Agent Session",
+				SessionTitle:   sessionTitle,
 			})
 		},
 	), nil
+}
+
+// resolveSubagent returns the cached SessionAgent for a named subagent,
+// building and caching it on first use. Unlike buildAgent (used for the
+// generic task agent at session startup, where hiding latency behind
+// readyWg goroutines is worth the complexity), this builds synchronously:
+// it only runs the first time a given subagent is actually invoked in a
+// session, not on every session's startup.
+func (c *coordinator) resolveSubagent(
+	ctx context.Context,
+	taskCfg config.Agent,
+	discovered []*subagents.Subagent,
+	cache *csync.Map[string, SessionAgent],
+	name string,
+) (SessionAgent, error) {
+	if cached, ok := cache.Get(name); ok {
+		return cached, nil
+	}
+
+	sub, ok := subagents.Find(discovered, name)
+	if !ok {
+		return nil, fmt.Errorf("no subagent named %q is configured; see `atlas agent list`", name)
+	}
+
+	built, err := c.buildSubagentSessionAgent(ctx, taskCfg, sub)
+	if err != nil {
+		return nil, err
+	}
+	cache.Set(name, built)
+	return built, nil
+}
+
+// buildSubagentSessionAgent builds a dedicated SessionAgent for a named
+// subagent: the same tools and defaults as the generic task agent, but with
+// the subagent's instructions appended to the system prompt and, if the
+// subagent names a model role, running on that model instead of the
+// session's primary one.
+func (c *coordinator) buildSubagentSessionAgent(ctx context.Context, taskCfg config.Agent, sub *subagents.Subagent) (SessionAgent, error) {
+	large, small, largeFallbacks, smallFallbacks, err := c.buildAgentModels(ctx, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if sub.Model != "" {
+		modelCfg, ok := c.cfg.Config().ResolveRole(sub.Model)
+		if !ok {
+			return nil, fmt.Errorf("subagent %q references unknown model role %q; see `atlas models roles`", sub.Name, sub.Model)
+		}
+		large, err = c.resolveModel(ctx, modelCfg, true)
+		if err != nil {
+			return nil, fmt.Errorf("subagent %q: resolving model role %q: %w", sub.Name, sub.Model, err)
+		}
+		// The role override's own fallback chain, if any, is not modeled
+		// here: Options.ModelFallbacks is keyed by "large"/"small", not by
+		// custom role name, so there is nothing to look up for it yet.
+		largeFallbacks = nil
+	}
+
+	taskSystemPrompt, err := taskPrompt(prompt.WithWorkingDir(c.cfg.WorkingDir()))
+	if err != nil {
+		return nil, err
+	}
+	systemPrompt, err := taskSystemPrompt.Build(ctx, large.Model.Provider(), large.Model.Model(), c.cfg)
+	if err != nil {
+		return nil, err
+	}
+	if sub.Instructions != "" {
+		systemPrompt += "\n\n<subagent name=\"" + sub.Name + "\">\n" + sub.Instructions + "\n</subagent>"
+	}
+
+	agentTools, err := c.buildTools(ctx, taskCfg, true)
+	if err != nil {
+		return nil, err
+	}
+
+	largeProviderCfg, _ := c.cfg.Config().Providers.Get(large.ModelCfg.Provider)
+	return NewSessionAgent(SessionAgentOptions{
+		LargeModel:           large,
+		LargeModelFallbacks:  largeFallbacks,
+		FallbackCooldown:     time.Duration(c.cfg.Config().Options.FallbackCooldown) * time.Second,
+		SmallModel:           small,
+		SmallModelFallbacks:  smallFallbacks,
+		SystemPromptPrefix:   largeProviderCfg.SystemPromptPrefix,
+		SystemPrompt:         systemPrompt,
+		IsSubAgent:           true,
+		DisableAutoSummarize: c.cfg.Config().Options.DisableAutoSummarize,
+		AutoSummarizeAt:      c.cfg.Config().Options.AutoSummarizeAt,
+		MaxProviderRetries:   c.cfg.Config().Options.MaxProviderRetries,
+		MaxSessionCost:       c.cfg.Config().Options.MaxSessionCost,
+		MaxStepsPerTurn:      c.cfg.Config().Options.MaxStepsPerTurn,
+		PromptHooks:          c.hookRunner(hooks.EventUserPromptSubmit),
+		OnProviderExhausted:  c.credentials.Advance,
+		IsYolo:               c.permissions.SkipRequests(),
+		Permissions:          c.permissions,
+		Sessions:             c.sessions,
+		Messages:             c.messages,
+		Tools:                agentTools,
+		Notify:               c.notify,
+		RunComplete:          c.runComplete,
+	}), nil
 }

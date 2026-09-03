@@ -1,1 +1,3 @@
 Launch a new agent that has access to the following tools: glob, grep, ls, view. When you are searching for a keyword or file and are not confident that you will find the right match on the first try, use the agent tool to perform the search for you.
+
+Optionally set agent_name to the name of a configured subagent (see `atlas agent list`) to hand the task to it instead of the default agent. A subagent runs with its own instructions appended to the system prompt and, if it names a model role, on that model instead of the session's primary one -- useful for routing a kind of work (e.g. "frontend", "research") to a model suited for it.

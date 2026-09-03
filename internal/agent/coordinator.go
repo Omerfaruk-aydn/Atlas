@@ -1003,6 +1003,47 @@ func (c *coordinator) buildFallbackChain(ctx context.Context, role config.Select
 	return chain
 }
 
+// resolveModel builds a ready-to-use Model for an arbitrary provider/model
+// pair, the same way buildAgentModels resolves the large/small models and
+// buildFallbackChain resolves a fallback entry. Used by named subagents
+// (see agent_tool.go) to run on a model role distinct from the session's
+// primary model. Unlike buildFallbackChain, a failure here is returned
+// rather than logged and skipped: this is the one model a caller
+// explicitly asked for, not an optional chain entry.
+func (c *coordinator) resolveModel(ctx context.Context, modelCfg config.SelectedModel, isSubAgent bool) (Model, error) {
+	providerCfg, ok := c.cfg.Config().Providers.Get(modelCfg.Provider)
+	if !ok {
+		return Model{}, fmt.Errorf("provider %q is not configured", modelCfg.Provider)
+	}
+
+	var catwalkModel *catwalk.Model
+	for _, m := range providerCfg.Models {
+		if m.ID == modelCfg.Model {
+			catwalkModel = &m
+			break
+		}
+	}
+	if catwalkModel == nil {
+		return Model{}, fmt.Errorf("model %q is not in provider %q's catalog", modelCfg.Model, modelCfg.Provider)
+	}
+
+	provider, err := c.buildProvider(providerCfg, modelCfg, isSubAgent)
+	if err != nil {
+		return Model{}, fmt.Errorf("building provider %q: %w", modelCfg.Provider, err)
+	}
+	languageModel, err := provider.LanguageModel(ctx, modelCfg.Model)
+	if err != nil {
+		return Model{}, fmt.Errorf("building model %q: %w", modelCfg.Model, err)
+	}
+
+	return Model{
+		Model:      languageModel,
+		CatwalkCfg: *catwalkModel,
+		ModelCfg:   modelCfg,
+		FlatRate:   providerCfg.FlatRate,
+	}, nil
+}
+
 func (c *coordinator) buildAnthropicProvider(baseURL, apiKey string, headers map[string]string, providerID string) (fantasy.Provider, error) {
 	var opts []anthropic.Option
 
