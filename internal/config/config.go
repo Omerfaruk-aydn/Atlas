@@ -451,6 +451,19 @@ type Options struct {
 	// which is what the main conversation runs on; the small model has no
 	// fallback chain yet.
 	ModelFallbacks map[SelectedModelType][]SelectedModel `json:"model_fallbacks,omitempty" jsonschema:"description=Alternate provider/model pairs to fail over to\\, in order\\, when a model role hits a 429/rate-limit response,example={\"large\":[{\"model\":\"gpt-4o-mini\",\"provider\":\"openai\"}]}"`
+	// FallbackCooldown is how many seconds a model fallback chain stays on
+	// the model it failed over to before the next turn resets the chain
+	// back to the primary. Zero (the default) resets on every turn, which
+	// is the existing behavior; a nonzero value avoids retrying a model
+	// that is likely still rate-limited from the previous turn.
+	FallbackCooldown int `json:"fallback_cooldown,omitempty" jsonschema:"description=How many seconds a fallback model stays active after a failover before the next turn returns to the primary model. Zero resets every turn.,example=300"`
+	// ModelRoles maps a free-form role name (e.g. "frontend", "research",
+	// "review") to a concrete provider/model pair, distinct from the
+	// large/small model types. A subagent's Model field can reference one
+	// of these by name (with or without a leading "@") so different kinds
+	// of work can run on different models without changing the session's
+	// primary model.
+	ModelRoles map[string]SelectedModel `json:"model_roles,omitempty" jsonschema:"description=Named model roles a subagent's model field can reference by name\\, e.g. \"frontend\" or \"research\",example={\"research\":{\"model\":\"o3\",\"provider\":\"openai\"}}"`
 }
 
 // Memory bounds the persistent stores. The bounds matter because their
@@ -942,6 +955,35 @@ func (c *Config) GetModelByType(modelType SelectedModelType) *catwalk.Model {
 		return nil
 	}
 	return c.GetModel(model.Provider, model.Model)
+}
+
+// StripRoleReference strips a leading "@" from a role reference, so a
+// subagent's `model: "@research"` and a bare `model: "research"` resolve to
+// the same role name.
+func StripRoleReference(ref string) string {
+	return strings.TrimPrefix(strings.TrimSpace(ref), "@")
+}
+
+// ResolveRole resolves a role reference to a concrete provider/model pair.
+// name may be "large" or "small" (the built-in model types) or any key in
+// Options.ModelRoles; a leading "@" is stripped so "@research" and
+// "research" mean the same thing. Reports false if name is empty or names
+// nothing configured.
+func (c *Config) ResolveRole(name string) (SelectedModel, bool) {
+	name = StripRoleReference(name)
+	if name == "" {
+		return SelectedModel{}, false
+	}
+	switch SelectedModelType(name) {
+	case SelectedModelTypeLarge, SelectedModelTypeSmall:
+		model, ok := c.Models[SelectedModelType(name)]
+		return model, ok
+	}
+	if c.Options == nil {
+		return SelectedModel{}, false
+	}
+	model, ok := c.Options.ModelRoles[name]
+	return model, ok
 }
 
 func (c *Config) LargeModel() *catwalk.Model {
