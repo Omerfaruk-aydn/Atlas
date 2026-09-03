@@ -853,6 +853,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	if c.cfg.Config().Tools.Quality.IsEnabled() {
 		allTools = append(allTools,
 			tools.NewScanSecretsTool(c.cfg.WorkingDir()),
+			tools.NewTestRunTool(c.cfg.WorkingDir()),
 		)
 	}
 
