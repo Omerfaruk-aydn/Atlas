@@ -9,10 +9,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/sandbox"
 	"github.com/spf13/cobra"
 )
 
@@ -145,6 +147,9 @@ func diagnose(ctx context.Context, cfg *config.ConfigStore) []checkResult {
 	if r := checkDebugger(cfg); r != nil {
 		results = append(results, *r)
 	}
+	if r := checkSandbox(cfg); r != nil {
+		results = append(results, *r)
+	}
 	return results
 }
 
@@ -203,6 +208,23 @@ func checkDebugger(cfg *config.ConfigStore) *checkResult {
 		return &checkResult{"debugger", statusOK, path}
 	}
 	return &checkResult{"debugger", statusWarn, "dlv (Delve) not found on PATH; install it with `go install github.com/go-delve/delve/cmd/dlv@latest` or set tools.debugger.dlv_path"}
+}
+
+// checkSandbox reports whether sandbox.enabled will actually take effect
+// on this OS. Reports nothing when it's off -- opt-in, same reasoning as
+// the browser and debugger checks. Unlike those, an unsupported OS here
+// is a warning even though the feature is "on": bash commands still run
+// fine without containment, they're just not contained, which is worth
+// surfacing rather than silently accepting.
+func checkSandbox(cfg *config.ConfigStore) *checkResult {
+	sb := cfg.Config().Options.Sandbox
+	if sb == nil || !sb.Enabled {
+		return nil
+	}
+	if !sandbox.Supported() {
+		return &checkResult{"sandbox", statusWarn, fmt.Sprintf("not supported on %s; shell commands run without containment", runtime.GOOS)}
+	}
+	return &checkResult{"sandbox", statusOK, fmt.Sprintf("Job Object containment active (max_processes=%d)", sb.MaxProcessesOrDefault())}
 }
 
 func checkDataDirectory(cfg *config.ConfigStore) checkResult {

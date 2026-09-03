@@ -763,6 +763,10 @@
         "advisor": {
           "$ref": "#/$defs/Advisor",
           "description": "A second model that reviews each turn and can leave a note for the next one. Needs a \"advisor\" entry in model_roles to run on."
+        },
+        "sandbox": {
+          "$ref": "#/$defs/Sandbox",
+          "description": "Contain shell-spawned processes in an OS-level container. Currently Windows only (Job Objects); a no-op elsewhere."
         }
       },
       "additionalProperties": false,
@@ -894,6 +898,32 @@
           },
           "type": "array",
           "description": "List of models available from this provider"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "Sandbox": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on Job Object containment for shell-spawned processes. Windows only for now -- inert elsewhere. This bounds process lifetime and count/memory; it does not restrict filesystem or network access.",
+          "default": false
+        },
+        "max_processes": {
+          "type": "integer",
+          "description": "Cap on concurrently active processes inside the container (a fork-bomb ceiling). 0 uses a generous default.",
+          "default": 256,
+          "examples": [
+            64
+          ]
+        },
+        "max_memory_mb": {
+          "type": "integer",
+          "description": "Memory ceiling (MB) for any single contained process. 0 means unlimited.",
+          "examples": [
+            2048
+          ]
         }
       },
       "additionalProperties": false,

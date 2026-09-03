@@ -38,7 +38,9 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/permission"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/question"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/sandbox"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
 	"golang.org/x/sync/errgroup"
 
@@ -769,6 +771,13 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 	}
 
 	logFile := filepath.Join(c.cfg.Config().Options.DataDirectory, "logs", "atlas.log")
+
+	if sb := c.cfg.Config().Options.Sandbox; sb != nil {
+		shell.SetSandboxLimits(sb.Enabled, sandbox.Limits{
+			MaxProcesses:   uint32(sb.MaxProcessesOrDefault()),
+			MaxMemoryBytes: sb.MaxMemoryBytes(),
+		})
+	}
 
 	allTools = append(
 		allTools,

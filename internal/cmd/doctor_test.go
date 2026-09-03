@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -168,6 +169,25 @@ func TestDoctorAcceptsAnExistingDlvPath(t *testing.T) {
 
 	got, _ := doctorOutput(t, workingDir, t.TempDir())
 	require.Contains(t, got, "[ok] debugger: "+goPath)
+}
+
+// Sandboxing is opt-in, so doctor says nothing about it unless it's
+// turned on.
+func TestDoctorSaysNothingAboutSandboxWhenItIsOff(t *testing.T) {
+	got, _ := doctorOutput(t, t.TempDir(), t.TempDir())
+	require.NotContains(t, got, "sandbox:")
+}
+
+func TestDoctorReportsSandboxStatusWhenEnabled(t *testing.T) {
+	workingDir := t.TempDir()
+	writeAtlasConfig(t, workingDir, `{"options":{"sandbox":{"enabled":true}}}`)
+
+	got, _ := doctorOutput(t, workingDir, t.TempDir())
+	if runtime.GOOS == "windows" {
+		require.Contains(t, got, "[ok] sandbox: Job Object containment active")
+	} else {
+		require.Contains(t, got, "[warn] sandbox: not supported on "+runtime.GOOS)
+	}
 }
 
 func TestPrintChecksJSON(t *testing.T) {
