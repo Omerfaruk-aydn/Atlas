@@ -23,6 +23,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-term"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/event"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/message"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/chat"
@@ -104,6 +105,7 @@ func init() {
 type sessionServices struct {
 	sessions session.Service
 	messages message.Service
+	history  history.Service
 	cfg      *config.ConfigStore
 }
 
@@ -131,6 +133,7 @@ func sessionSetup(cmd *cobra.Command) (context.Context, *sessionServices, func()
 	svc := &sessionServices{
 		sessions: session.NewService(queries, conn),
 		messages: message.NewService(queries),
+		history:  history.NewService(queries, conn),
 		cfg:      cfg,
 	}
 	// Release, not conn.Close: db.Connect hands out a pooled handle per
