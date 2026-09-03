@@ -767,8 +767,9 @@ type Tools struct {
 }
 
 type ToolView struct {
-	DefaultReadLimit *int `json:"default_read_limit,omitempty" jsonschema:"description=Lines the view tool returns when the model does not say,default=200,example=500"`
-	MaxLineLength    *int `json:"max_line_length,omitempty" jsonschema:"description=How much of a single long line survives before it is cut,default=2000,example=500"`
+	DefaultReadLimit *int  `json:"default_read_limit,omitempty" jsonschema:"description=Lines the view tool returns when the model does not say,default=200,example=500"`
+	MaxLineLength    *int  `json:"max_line_length,omitempty" jsonschema:"description=How much of a single long line survives before it is cut,default=2000,example=500"`
+	HashAnchors      *bool `json:"hash_anchors,omitempty" jsonschema:"description=Show a short content hash next to every line so edit can target a line by number instead of reproducing its exact text. Off by default: it adds a few characters to every line view returns in exchange for cheaper and more reliable single-line edits.,default=false"`
 }
 
 // Limits returns the user-defined read limit and line length. Zero means
@@ -776,6 +777,12 @@ type ToolView struct {
 // nothing.
 func (t ToolView) Limits() (defaultReadLimit, maxLineLength int) {
 	return ptrValOr(t.DefaultReadLimit, 0), ptrValOr(t.MaxLineLength, 0)
+}
+
+// HashAnchorsEnabled reports whether view should annotate each line with a
+// content hash that edit's anchor_line/anchor_hash mode can target.
+func (t ToolView) HashAnchorsEnabled() bool {
+	return ptrValOr(t.HashAnchors, false)
 }
 
 type ToolBash struct {

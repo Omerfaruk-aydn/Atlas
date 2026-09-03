@@ -1129,6 +1129,11 @@
           "examples": [
             500
           ]
+        },
+        "hash_anchors": {
+          "type": "boolean",
+          "description": "Show a short content hash next to every line so edit can target a line by number instead of reproducing its exact text. Off by default: it adds a few characters to every line view returns in exchange for cheaper and more reliable single-line edits.",
+          "default": false
         }
       },
       "additionalProperties": false,
