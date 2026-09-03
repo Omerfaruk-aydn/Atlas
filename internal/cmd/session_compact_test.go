@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"testing"
 
@@ -37,7 +38,7 @@ func TestCompactSessionReportsSuccess(t *testing.T) {
 	ws := &fakeCompactWorkspace{}
 	var out bytes.Buffer
 
-	err := compactSession(t.Context(), ws, "session-1", &out)
+	err := compactSession(t.Context(), ws, "session-1", &out, false)
 	require.NoError(t, err)
 	require.Equal(t, []string{"session-1"}, ws.summarizeCalls)
 	require.Equal(t, "Session "+session.HashID("session-1")+" compacted.\n", out.String())
@@ -49,11 +50,47 @@ func TestCompactSessionWrapsTheUnderlyingError(t *testing.T) {
 	ws := &fakeCompactWorkspace{summarizeErr: errors.New("provider unreachable")}
 	var out bytes.Buffer
 
-	err := compactSession(t.Context(), ws, "session-1", &out)
+	err := compactSession(t.Context(), ws, "session-1", &out, false)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "failed to compact session")
 	require.Contains(t, err.Error(), "provider unreachable")
 	require.Empty(t, out.String(), "no success line when summarization fails")
+}
+
+func TestCompactSessionJSONReportsSuccess(t *testing.T) {
+	t.Parallel()
+
+	ws := &fakeCompactWorkspace{}
+	var out bytes.Buffer
+
+	err := compactSession(t.Context(), ws, "session-1", &out, true)
+	require.NoError(t, err)
+
+	var result jsonCompactResult
+	require.NoError(t, json.Unmarshal(out.Bytes(), &result))
+	require.Equal(t, "session-1", result.SessionID)
+	require.Equal(t, session.HashID("session-1"), result.SessionIDHash)
+	require.True(t, result.Compacted)
+	require.Empty(t, result.Error)
+}
+
+// TestCompactSessionJSONStillReportsAFailure pins that --json emits a
+// well-formed record even when summarization fails, instead of only the
+// bare error a script would have to scrape from stderr; the error is still
+// returned so the exit status reflects the failure either way.
+func TestCompactSessionJSONStillReportsAFailure(t *testing.T) {
+	t.Parallel()
+
+	ws := &fakeCompactWorkspace{summarizeErr: errors.New("provider unreachable")}
+	var out bytes.Buffer
+
+	err := compactSession(t.Context(), ws, "session-1", &out, true)
+	require.Error(t, err)
+
+	var result jsonCompactResult
+	require.NoError(t, json.Unmarshal(out.Bytes(), &result))
+	require.False(t, result.Compacted)
+	require.Contains(t, result.Error, "provider unreachable")
 }
 
 func TestSessionCompactCommandRequiresExactlyOneArg(t *testing.T) {
