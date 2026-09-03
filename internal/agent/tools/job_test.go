@@ -2,10 +2,12 @@ package tools
 
 import (
 	"context"
+	"encoding/json"
 	"runtime"
 	"testing"
 	"time"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/stretchr/testify/require"
 )
@@ -331,4 +333,114 @@ func TestBackgroundShell_AutoBackground(t *testing.T) {
 		require.True(t, ok, "Should be able to retrieve background shell")
 		require.Equal(t, bgShell.ID, retrieved.ID)
 	})
+}
+
+func TestJobWaitSecondsClampsIntoRange(t *testing.T) {
+	t.Parallel()
+
+	require.Equal(t, DefaultJobWaitSeconds, jobWaitSeconds(0), "unset means the default")
+	require.Equal(t, DefaultJobWaitSeconds, jobWaitSeconds(-5), "a negative ask means the default")
+	require.Equal(t, 7, jobWaitSeconds(7), "a sane ask is honoured")
+	require.Equal(t, MaxJobWaitSeconds, jobWaitSeconds(MaxJobWaitSeconds+1), "an oversized ask is capped")
+	require.Equal(t, MaxJobWaitSeconds, jobWaitSeconds(999999), "so is an absurd one")
+}
+
+func runJobOutputTool(t *testing.T, ctx context.Context, params JobOutputParams) fantasy.ToolResponse {
+	t.Helper()
+
+	input, err := json.Marshal(params)
+	require.NoError(t, err)
+
+	resp, err := NewJobOutputTool().Run(ctx, fantasy.ToolCall{
+		ID:    "test-call",
+		Name:  JobOutputToolName,
+		Input: string(input),
+	})
+	require.NoError(t, err)
+	return resp
+}
+
+// A server, a watcher, a log tail: a background job that never exits on
+// its own. wait=true on one of these used to block until the user
+// cancelled the turn by hand. It must now come back on its own.
+func TestJobOutputWaitDoesNotHangOnAJobThatNeverExits(t *testing.T) {
+	t.Parallel()
+
+	bgManager := shell.GetBackgroundShellManager()
+	bgShell, err := bgManager.Start(context.Background(), t.TempDir(), nil, "echo started && sleep 120", "")
+	require.NoError(t, err)
+	defer bgManager.Kill(bgShell.ID)
+
+	start := time.Now()
+	resp := runJobOutputTool(t, t.Context(), JobOutputParams{
+		ShellID:     bgShell.ID,
+		Wait:        true,
+		WaitTimeout: 2,
+	})
+	elapsed := time.Since(start)
+
+	require.Less(t, elapsed, 30*time.Second, "the wait must be bounded by wait_timeout, not by the job")
+	require.GreaterOrEqual(t, elapsed, 2*time.Second, "it should actually have waited the requested window")
+	require.Contains(t, resp.Content, "still running after waiting 2s")
+	require.Contains(t, resp.Content, "job_kill", "the response should say how to stop a job that never exits")
+
+	var meta JobOutputResponseMetadata
+	require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
+	require.True(t, meta.WaitTimedOut)
+	require.False(t, meta.Done)
+	require.Equal(t, 2, meta.WaitedSeconds)
+}
+
+func TestJobOutputWaitReturnsAsSoonAsTheJobFinishes(t *testing.T) {
+	t.Parallel()
+
+	bgManager := shell.GetBackgroundShellManager()
+	bgShell, err := bgManager.Start(context.Background(), t.TempDir(), nil, "echo finished-quickly", "")
+	require.NoError(t, err)
+	defer bgManager.Kill(bgShell.ID)
+
+	start := time.Now()
+	resp := runJobOutputTool(t, t.Context(), JobOutputParams{
+		ShellID:     bgShell.ID,
+		Wait:        true,
+		WaitTimeout: 60,
+	})
+
+	require.Less(t, time.Since(start), 30*time.Second, "a finished job must not sit out the whole window")
+	require.Contains(t, resp.Content, "Status: completed")
+	require.Contains(t, resp.Content, "finished-quickly")
+
+	var meta JobOutputResponseMetadata
+	require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
+	require.True(t, meta.Done)
+	require.False(t, meta.WaitTimedOut)
+}
+
+func TestJobOutputWithoutWaitReturnsImmediately(t *testing.T) {
+	t.Parallel()
+
+	bgManager := shell.GetBackgroundShellManager()
+	bgShell, err := bgManager.Start(context.Background(), t.TempDir(), nil, "sleep 120", "")
+	require.NoError(t, err)
+	defer bgManager.Kill(bgShell.ID)
+
+	start := time.Now()
+	resp := runJobOutputTool(t, t.Context(), JobOutputParams{ShellID: bgShell.ID})
+
+	require.Less(t, time.Since(start), 5*time.Second, "wait=false must not block on the job at all")
+	require.Contains(t, resp.Content, "Status: running")
+	require.NotContains(t, resp.Content, "still running after waiting")
+
+	var meta JobOutputResponseMetadata
+	require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
+	require.False(t, meta.WaitTimedOut)
+	require.Zero(t, meta.WaitedSeconds, "no wait was requested, so none is reported")
+}
+
+func TestJobOutputUnknownShellID(t *testing.T) {
+	t.Parallel()
+
+	resp := runJobOutputTool(t, t.Context(), JobOutputParams{ShellID: "no-such-shell", Wait: true})
+	require.True(t, resp.IsError)
+	require.Contains(t, resp.Content, "background shell not found")
 }
