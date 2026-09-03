@@ -9,6 +9,22 @@
           "type": "boolean",
           "description": "Turn the advisor on. Needs an \"advisor\" model_roles entry to actually run.",
           "default": false
+        },
+        "every_n_turns": {
+          "type": "integer",
+          "description": "Review only every Nth finished turn instead of every one. 1 (default) reviews every turn.",
+          "default": 1,
+          "examples": [
+            3
+          ]
+        },
+        "min_severity": {
+          "type": "string",
+          "description": "Lowest severity (NIT / CONCERN / BLOCKER) that raises a notification. Every severity is still queued for the next prompt either way.",
+          "default": "CONCERN",
+          "examples": [
+            "BLOCKER"
+          ]
         }
       },
       "additionalProperties": false,

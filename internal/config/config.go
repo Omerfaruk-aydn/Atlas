@@ -488,6 +488,37 @@ type Options struct {
 // Options.Advisor.
 type Advisor struct {
 	Enabled bool `json:"enabled,omitempty" jsonschema:"description=Turn the advisor on. Needs an \"advisor\" model_roles entry to actually run.,default=false"`
+	// EveryNTurns reviews only every Nth finished turn instead of all of
+	// them, so a chatty session does not double its model spend. 1 (the
+	// zero value, via EveryNTurns()) reviews every turn.
+	EveryNTurns int `json:"every_n_turns,omitempty" jsonschema:"description=Review only every Nth finished turn instead of every one. 1 (default) reviews every turn.,default=1,example=3"`
+	// MinSeverity is the lowest severity that raises a
+	// notify.TypeAdvisorNote notification. Every severity above NONE is
+	// still queued for the session's next prompt regardless -- this only
+	// controls what interrupts the user mid-session versus waiting
+	// quietly for the next turn.
+	MinSeverity string `json:"min_severity,omitempty" jsonschema:"description=Lowest severity (NIT / CONCERN / BLOCKER) that raises a notification. Every severity is still queued for the next prompt either way.,default=CONCERN,example=BLOCKER"`
+}
+
+// TurnInterval returns the configured review cadence, defaulting to 1
+// (every turn) for zero or negative values.
+func (a Advisor) TurnInterval() int {
+	if a.EveryNTurns > 0 {
+		return a.EveryNTurns
+	}
+	return 1
+}
+
+// NotifyThreshold returns the configured minimum notify severity,
+// defaulting to CONCERN (the advisor's original, pre-configurable
+// behavior) for an unset or unrecognized value.
+func (a Advisor) NotifyThreshold() string {
+	switch strings.ToUpper(a.MinSeverity) {
+	case "NIT", "CONCERN", "BLOCKER":
+		return strings.ToUpper(a.MinSeverity)
+	default:
+		return "CONCERN"
+	}
 }
 
 // Memory bounds the persistent stores. The bounds matter because their
