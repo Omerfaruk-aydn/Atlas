@@ -22,6 +22,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/db"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/debugger"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
@@ -841,6 +842,12 @@ func (app *App) Shutdown() {
 	// outlives the agent that launched it.
 	wg.Go(func() {
 		browser.GetManager(browser.Options{}).CloseAll()
+	})
+
+	// Same, for any open debug sessions: a `dlv dap` process must not
+	// outlive the agent that launched it either.
+	wg.Go(func() {
+		debugger.GetManager(debugger.Options{}).CloseAll()
 	})
 
 	// Close herdr client to stop its background writer.

@@ -1114,6 +1114,25 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolDebugger": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the debugger tool so the agent can launch a Go program under Delve: set breakpoints / step / inspect variables. Requires a Delve (dlv) install on PATH (or dlv_path below).",
+          "default": false
+        },
+        "dlv_path": {
+          "type": "string",
+          "description": "Path to the dlv binary. Empty uses dlv on PATH."
+        },
+        "action_timeout": {
+          "type": "integer",
+          "description": "How long a single debugger request (set breakpoints / step / evaluate / etc.) may run before it is aborted. Does not bound continue -- that waits for the program to actually stop."
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolGlob": {
       "properties": {
         "timeout": {
@@ -1202,6 +1221,9 @@
         },
         "browser": {
           "$ref": "#/$defs/ToolBrowser"
+        },
+        "debugger": {
+          "$ref": "#/$defs/ToolDebugger"
         }
       },
       "additionalProperties": false,

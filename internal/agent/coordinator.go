@@ -806,6 +806,12 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, tools.NewBrowserTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Browser))
 	}
 
+	// Debugger tool is opt-in: it launches an external `dlv dap` process
+	// and requires Delve installed.
+	if c.cfg.Config().Tools.Debugger.IsEnabled() {
+		allTools = append(allTools, tools.NewDebuggerTool(c.permissions, c.cfg.Config().Tools.Debugger))
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(
