@@ -32,10 +32,11 @@ func (m *mockSessionAgent) BeginAccepted(sessionID string) *AcceptedRun {
 	return &AcceptedRun{sessionID: sessionID}
 }
 
-func (m *mockSessionAgent) Model() Model                                         { return m.model }
-func (m *mockSessionAgent) SetModels(large, small Model, largeFallbacks []Model) {}
-func (m *mockSessionAgent) SetTools(tools []fantasy.AgentTool)                   {}
-func (m *mockSessionAgent) SetSystemPrompt(systemPrompt string)                  {}
+func (m *mockSessionAgent) Model() Model { return m.model }
+func (m *mockSessionAgent) SetModels(large, small Model, largeFallbacks []Model, smallFallbacks []Model) {
+}
+func (m *mockSessionAgent) SetTools(tools []fantasy.AgentTool)  {}
+func (m *mockSessionAgent) SetSystemPrompt(systemPrompt string) {}
 func (m *mockSessionAgent) Cancel(sessionID string) {
 	m.cancelled = append(m.cancelled, sessionID)
 }
@@ -608,6 +609,33 @@ func TestBuildFallbackChainSkipsBrokenEntriesAndKeepsGoodOnes(t *testing.T) {
 	require.Len(t, chain, 1, "the two broken entries must be skipped, not fail the whole chain")
 	assert.Equal(t, goodProvider, chain[0].ModelCfg.Provider)
 	assert.Equal(t, "good-model", chain[0].ModelCfg.Model)
+}
+
+func TestBuildFallbackChainWorksForTheSmallRoleToo(t *testing.T) {
+	const primaryProvider = "primary-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, primaryProvider, config.ProviderConfig{ID: primaryProvider})
+
+	const fallbackProvider = "fallback-provider"
+	coord.cfg.Config().Providers.Set(fallbackProvider, config.ProviderConfig{
+		ID:   fallbackProvider,
+		Type: openaicompat.Name,
+		Models: []catwalk.Model{
+			{ID: "small-fallback-model"},
+		},
+	})
+
+	coord.cfg.Config().Options.ModelFallbacks = map[config.SelectedModelType][]config.SelectedModel{
+		config.SelectedModelTypeSmall: {
+			{Provider: fallbackProvider, Model: "small-fallback-model"},
+		},
+	}
+
+	chain := coord.buildFallbackChain(t.Context(), config.SelectedModelTypeSmall, false)
+
+	require.Len(t, chain, 1)
+	assert.Equal(t, fallbackProvider, chain[0].ModelCfg.Provider)
+	assert.Equal(t, "small-fallback-model", chain[0].ModelCfg.Model)
 }
 
 func TestBuildFallbackChainIsEmptyWhenNoneConfigured(t *testing.T) {

@@ -135,7 +135,7 @@ type SessionAgentCall struct {
 type SessionAgent interface {
 	Run(context.Context, SessionAgentCall) (*fantasy.AgentResult, error)
 	BeginAccepted(sessionID string) *AcceptedRun
-	SetModels(large Model, small Model, largeFallbacks []Model)
+	SetModels(large Model, small Model, largeFallbacks []Model, smallFallbacks []Model)
 	SetTools(tools []fantasy.AgentTool)
 	SetSystemPrompt(systemPrompt string)
 	Cancel(sessionID string)
@@ -176,11 +176,12 @@ type sessionAgent struct {
 	// to, and until when, so a cooldown can survive across Run calls
 	// instead of always resetting to the primary on the next turn. See
 	// modelChain and stickyFallback.
-	fallbackSticky     *csync.Value[stickyFallback]
-	smallModel         *csync.Value[Model]
-	systemPromptPrefix *csync.Value[string]
-	systemPrompt       *csync.Value[string]
-	tools              *csync.Slice[fantasy.AgentTool]
+	fallbackSticky      *csync.Value[stickyFallback]
+	smallModel          *csync.Value[Model]
+	smallModelFallbacks *csync.Slice[Model]
+	systemPromptPrefix  *csync.Value[string]
+	systemPrompt        *csync.Value[string]
+	tools               *csync.Slice[fantasy.AgentTool]
 
 	isSubAgent           bool
 	sessions             session.Service
@@ -260,8 +261,14 @@ type SessionAgentOptions struct {
 	// stays in use before a later turn is willing to try the primary model
 	// again. Zero means every turn starts over on the primary, which is
 	// the historical behavior.
-	FallbackCooldown     time.Duration
-	SmallModel           Model
+	FallbackCooldown time.Duration
+	SmallModel       Model
+	// SmallModelFallbacks are tried, in order, between the small model and
+	// the large model when the small model keeps answering with a
+	// rate-limit/quota error. Consumed by call sites that already fall
+	// back to the large model on small-model failure (e.g. GenerateTitle),
+	// inserted ahead of that existing large-model fallback.
+	SmallModelFallbacks  []Model
 	SystemPromptPrefix   string
 	SystemPrompt         string
 	IsSubAgent           bool
@@ -299,6 +306,7 @@ func NewSessionAgent(
 		largeModel:           csync.NewValue(opts.LargeModel),
 		largeModelFallbacks:  csync.NewSliceFrom(opts.LargeModelFallbacks),
 		fallbackCooldown:     opts.FallbackCooldown,
+		smallModelFallbacks:  csync.NewSliceFrom(opts.SmallModelFallbacks),
 		fallbackSticky:       csync.NewValue(stickyFallback{}),
 		smallModel:           csync.NewValue(opts.SmallModel),
 		systemPromptPrefix:   csync.NewValue(opts.SystemPromptPrefix),
@@ -1874,10 +1882,11 @@ func (a *sessionAgent) GenerateTitle(ctx context.Context, sessionID string, user
 		name  string
 		model Model
 	}
-	attempts := []modelAttempt{
-		{"small", smallModel},
-		{"large", largeModel},
+	attempts := []modelAttempt{{"small", smallModel}}
+	for i, m := range a.smallModelFallbacks.Copy() {
+		attempts = append(attempts, modelAttempt{fmt.Sprintf("small-fallback-%d", i+1), m})
 	}
+	attempts = append(attempts, modelAttempt{"large", largeModel})
 
 	var resp *fantasy.AgentResult
 	var err error
@@ -2152,10 +2161,11 @@ func (a *sessionAgent) QueuedPromptsList(sessionID string) []string {
 	return prompts
 }
 
-func (a *sessionAgent) SetModels(large Model, small Model, largeFallbacks []Model) {
+func (a *sessionAgent) SetModels(large Model, small Model, largeFallbacks []Model, smallFallbacks []Model) {
 	a.largeModel.Set(large)
 	a.largeModelFallbacks.SetSlice(largeFallbacks)
 	a.smallModel.Set(small)
+	a.smallModelFallbacks.SetSlice(smallFallbacks)
 }
 
 func (a *sessionAgent) SetTools(tools []fantasy.AgentTool) {

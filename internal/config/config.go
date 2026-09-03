@@ -447,9 +447,11 @@ type Options struct {
 	AgentModels map[string]SelectedModelType `json:"agent_models,omitempty" jsonschema:"description=Override which model type (large or small) an agent uses\\, keyed by agent id,example={\"task\":\"small\"}"`
 	// ModelFallbacks lists, per model role, alternate provider/model pairs
 	// tried in order when the role's primary model answers with a
-	// rate-limit or quota error (HTTP 429). Applies to the large model,
-	// which is what the main conversation runs on; the small model has no
-	// fallback chain yet.
+	// rate-limit or quota error (HTTP 429). The large-model chain applies
+	// mid-turn, to the main conversation; the small-model chain applies to
+	// background small-model calls that already retry against the large
+	// model on failure (e.g. session title generation), inserted ahead of
+	// that existing large-model fallback.
 	ModelFallbacks map[SelectedModelType][]SelectedModel `json:"model_fallbacks,omitempty" jsonschema:"description=Alternate provider/model pairs to fail over to\\, in order\\, when a model role hits a 429/rate-limit response,example={\"large\":[{\"model\":\"gpt-4o-mini\",\"provider\":\"openai\"}]}"`
 	// FallbackCooldown is how many seconds a model fallback chain stays on
 	// the model it failed over to before the next turn resets the chain
