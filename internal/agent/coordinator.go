@@ -842,6 +842,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewDeadCodeTool(c.cfg.WorkingDir()),
 			tools.NewTypeHierarchyTool(c.cfg.WorkingDir()),
 			tools.NewImportGraphTool(c.cfg.WorkingDir()),
+			tools.NewImpactAnalysisTool(c.cfg.WorkingDir()),
 		)
 	}
 
