@@ -2794,6 +2794,18 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 	}
 
 	if key.Matches(msg, m.keyMap.Quit) && !m.dialog.ContainsDialog(dialog.QuitID) {
+		// ctrl+c is the universal "stop" gesture. While a turn is running,
+		// honor that meaning directly -- interrupt the turn -- instead of
+		// asking whether to quit the whole app over it. A user who wants
+		// out entirely still gets there: the turn stops, the agent goes
+		// idle, and the next ctrl+c opens the quit dialog as usual.
+		if m.isAgentBusy() {
+			if cmd := m.interruptAgent(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			return tea.Batch(cmds...)
+		}
+
 		// Always handle quit keys first
 		if cmd := m.openQuitDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -3498,10 +3510,13 @@ func (m *UI) ShortHelp() []key.Binding {
 		// Show cancel binding if agent is busy.
 		if m.isAgentBusy() {
 			cancelBinding := k.Chat.Cancel
-			if m.isCanceling {
+			switch {
+			case m.isCanceling:
 				cancelBinding.SetHelp("esc", "press again to cancel")
-			} else if m.promptQueue > 0 {
+			case m.promptQueue > 0:
 				cancelBinding.SetHelp("esc", "clear queue")
+			default:
+				cancelBinding.SetHelp("esc esc/ctrl+c", "stop")
 			}
 			binds = append(binds, cancelBinding)
 		}
@@ -3594,10 +3609,13 @@ func (m *UI) FullHelp() [][]key.Binding {
 		// Show cancel binding if agent is busy.
 		if m.isAgentBusy() {
 			cancelBinding := k.Chat.Cancel
-			if m.isCanceling {
+			switch {
+			case m.isCanceling:
 				cancelBinding.SetHelp("esc", "press again to cancel")
-			} else if m.promptQueue > 0 {
+			case m.promptQueue > 0:
 				cancelBinding.SetHelp("esc", "clear queue")
+			default:
+				cancelBinding.SetHelp("esc esc/ctrl+c", "stop")
 			}
 			binds = append(binds, []key.Binding{cancelBinding})
 		}
@@ -4796,22 +4814,7 @@ func (m *UI) cancelAgent() tea.Cmd {
 	if m.isCanceling {
 		// Second escape press — actually cancel.
 		m.isCanceling = false
-
-		// Cancel a running bang command if one is in progress.
-		if m.bangCancel != nil {
-			m.bangCancel()
-			m.bangCancel = nil
-		}
-
-		m.com.Workspace.AgentCancel(m.session.ID)
-		// Stop the spinning todo indicator and drop the memoized busy
-		// state the cancel just changed; the pill re-renders now from
-		// last-known state and again when the off-thread refresh (and
-		// the agent's own events) land.
-		m.todoIsSpinning = false
-		m.invalidateBusyCaches()
-		m.renderPills()
-		return m.dispatchBusyRefresh()
+		return m.doCancelAgent()
 	}
 
 	// Queued prompts pending: esc clears the queue. Decide from the cached
@@ -4831,6 +4834,41 @@ func (m *UI) cancelAgent() tea.Cmd {
 	// First escape press - set canceling state and start timer.
 	m.isCanceling = true
 	return cancelTimerCmd()
+}
+
+// interruptAgent stops a running turn on a single key press, no confirmation
+// step. It exists for ctrl+c: unlike esc (also bound to closing dialogs,
+// clearing selections, and other low-stakes UI dismissals, so it needs the
+// press-twice guard against an accidental cancel), ctrl+c has one universal
+// meaning to a terminal user -- stop what's running right now -- and making
+// it ask "are you sure?" the one time it matters most just teaches people to
+// stop trusting it.
+func (m *UI) interruptAgent() tea.Cmd {
+	if !m.hasSession() || !m.agentReady {
+		return nil
+	}
+	m.isCanceling = false
+	return m.doCancelAgent()
+}
+
+// doCancelAgent performs the actual cancellation shared by cancelAgent's
+// second escape press and interruptAgent's single ctrl+c press.
+func (m *UI) doCancelAgent() tea.Cmd {
+	// Cancel a running bang command if one is in progress.
+	if m.bangCancel != nil {
+		m.bangCancel()
+		m.bangCancel = nil
+	}
+
+	m.com.Workspace.AgentCancel(m.session.ID)
+	// Stop the spinning todo indicator and drop the memoized busy
+	// state the cancel just changed; the pill re-renders now from
+	// last-known state and again when the off-thread refresh (and
+	// the agent's own events) land.
+	m.todoIsSpinning = false
+	m.invalidateBusyCaches()
+	m.renderPills()
+	return m.dispatchBusyRefresh()
 }
 
 // openDialog opens a dialog by its ID.

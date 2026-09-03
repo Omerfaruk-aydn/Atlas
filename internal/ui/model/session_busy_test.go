@@ -857,3 +857,77 @@ func TestRemoteYoloToggleUpdatesEditorPrompt(t *testing.T) {
 	require.Equal(t, normalPrompt, ansi.Strip(m.textarea.View()),
 		"toggling yolo off must restore the normal editor prompt")
 }
+
+// TestInterruptAgentCancelsOnASinglePress pins ctrl+c's contract: unlike esc
+// (which arms a two-step confirmation via isCanceling, guarding against an
+// accidental cancel from a key also used to dismiss dialogs and clear
+// selections), a single ctrl+c must cancel the running turn immediately.
+// ctrl+c has one meaning to a terminal user -- stop what's running now --
+// and asking "are you sure?" the one time that matters defeats the point.
+func TestInterruptAgentCancelsOnASinglePress(t *testing.T) {
+	pinTTLs(t)
+
+	ws := &countingWorkspace{ready: true}
+	m := newBusyUI(ws)
+	warmCaches(m, true)
+	ws.resetCounters()
+
+	cmd := m.interruptAgent()
+	runCmds(m, cmd)
+
+	require.Equal(t, 1, ws.cancelCalls, "a single ctrl+c must cancel the turn")
+	require.False(t, m.isCanceling, "ctrl+c must not leave the two-step esc guard armed")
+}
+
+// TestInterruptAgentNoopWithoutASession mirrors cancelAgent's guard: with no
+// session there is nothing to cancel, so it must not touch the workspace.
+func TestInterruptAgentNoopWithoutASession(t *testing.T) {
+	pinTTLs(t)
+
+	ws := &countingWorkspace{ready: true}
+	m := newBusyUI(ws)
+	warmCaches(m, true)
+	m.session = nil
+	ws.resetCounters()
+
+	cmd := m.interruptAgent()
+	require.Nil(t, cmd)
+	require.Zero(t, ws.cancelCalls)
+}
+
+// TestCtrlCInterruptsBusyTurnInsteadOfOpeningQuitDialog: ctrl+c used to be
+// bound to Quit unconditionally, so pressing it while a turn was running --
+// the exact moment a user reaches for the universal "stop" gesture -- opened
+// a quit confirmation dialog instead of stopping anything. It must now
+// cancel the turn and leave the app running, no dialog involved.
+func TestCtrlCInterruptsBusyTurnInsteadOfOpeningQuitDialog(t *testing.T) {
+	pinTTLs(t)
+
+	ws := &countingWorkspace{ready: true}
+	m := newBusyUI(ws)
+	warmCaches(m, true)
+	ws.resetCounters()
+
+	cmd := m.handleKeyPressMsg(tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl})
+	runCmds(m, cmd)
+
+	require.Equal(t, 1, ws.cancelCalls, "ctrl+c while busy must cancel the turn")
+	require.False(t, m.dialog.HasDialogs(), "ctrl+c while busy must not open the quit dialog")
+}
+
+// TestCtrlCOpensQuitDialogWhenIdle: the moment nothing is running, ctrl+c's
+// old behavior is exactly right and must be unchanged.
+func TestCtrlCOpensQuitDialogWhenIdle(t *testing.T) {
+	pinTTLs(t)
+
+	ws := &countingWorkspace{ready: true}
+	m := newBusyUI(ws)
+	warmCaches(m, false)
+	ws.resetCounters()
+
+	cmd := m.handleKeyPressMsg(tea.KeyPressMsg{Code: 'c', Mod: tea.ModCtrl})
+	runCmds(m, cmd)
+
+	require.Zero(t, ws.cancelCalls, "there is no turn to cancel when idle")
+	require.True(t, m.dialog.HasDialogs(), "ctrl+c while idle must still offer to quit")
+}
