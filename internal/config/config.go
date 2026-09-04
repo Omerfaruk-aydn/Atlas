@@ -509,8 +509,11 @@ type Options struct {
 	// large/small model types. A subagent's Model field can reference one
 	// of these by name (with or without a leading "@") so different kinds
 	// of work can run on different models without changing the session's
-	// primary model.
-	ModelRoles map[string]SelectedModel `json:"model_roles,omitempty" jsonschema:"description=Named model roles a subagent's model field can reference by name\\, e.g. \"frontend\" or \"research\",example={\"research\":{\"model\":\"o3\",\"provider\":\"openai\"}}"`
+	// primary model. A handful of names are also recognized by built-in
+	// features when present: "advisor" and "escalate" (see Advisor below),
+	// and "compact", which -- when set -- summarization (auto or
+	// /summarize) runs on instead of the session's own model.
+	ModelRoles map[string]SelectedModel `json:"model_roles,omitempty" jsonschema:"description=Named model roles a subagent's model field can reference by name\\, e.g. \"frontend\" or \"research\". A few names are recognized by built-in features when present: advisor\\, escalate\\, and compact (used to summarize with a different model than the session's own).,example={\"research\":{\"model\":\"o3\",\"provider\":\"openai\"}}"`
 	// Advisor enables a second model that reviews each finished turn (the
 	// user's prompt and the assistant's final response) with read-only
 	// tools (glob, grep, ls, view) of its own, and can leave a note that

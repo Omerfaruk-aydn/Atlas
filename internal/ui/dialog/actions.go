@@ -81,6 +81,7 @@ type (
 		Style string
 	}
 	ActionToggleTransparentBackground struct{}
+	ActionToggleAutoCompact           struct{}
 	ActionInitializeProject           struct{}
 	ActionSummarize                   struct {
 		SessionID string

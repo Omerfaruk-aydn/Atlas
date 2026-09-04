@@ -187,6 +187,11 @@ type sessionAgent struct {
 	sessions             session.Service
 	messages             message.Service
 	disableAutoSummarize bool
+	// compactModel is the model summarization (auto or manual /summarize)
+	// runs on instead of the session's own large model, when a "compact"
+	// model role is configured (see coordinator.buildCompactModel). Nil
+	// means summarization uses whatever model the session is currently on.
+	compactModel *Model
 	// autoSummarizeAt is the fraction of the context window that may be
 	// used before the turn stops to summarize. Out of (0,1) means "use
 	// the built-in thresholds" -- see shouldAutoSummarize.
@@ -316,6 +321,11 @@ type SessionAgentOptions struct {
 	// used before summarizing. Zero (or any value outside (0,1)) keeps
 	// the built-in thresholds.
 	AutoSummarizeAt float64
+	// CompactModel is the model summarization runs on when a "compact"
+	// model role is configured, instead of the session's own large model.
+	// Nil means summarization uses whatever model the session is
+	// currently on (the historical behavior).
+	CompactModel *Model
 	// MaxProviderRetries caps how many times a failed provider request is
 	// retried. Nil leaves the provider library's default in place; 0
 	// disables retries.
@@ -387,6 +397,7 @@ func NewSessionAgent(
 		sessions:               opts.Sessions,
 		messages:               opts.Messages,
 		disableAutoSummarize:   opts.DisableAutoSummarize,
+		compactModel:           opts.CompactModel,
 		autoSummarizeAt:        opts.AutoSummarizeAt,
 		maxProviderRetries:     opts.MaxProviderRetries,
 		maxSessionCost:         opts.MaxSessionCost,
@@ -1534,8 +1545,14 @@ func (a *sessionAgent) Summarize(ctx context.Context, sessionID string, opts fan
 		return ErrSessionBusy
 	}
 
-	// Copy mutable fields under lock to avoid races with SetModels.
-	largeModel := a.largeModel.Get()
+	// Copy mutable fields under lock to avoid races with SetModels. A
+	// configured "compact" model role overrides the session's own large
+	// model for this call only; see coordinator.buildCompactModel.
+	summaryModel := a.largeModel.Get()
+	usingCompactModel := a.compactModel != nil
+	if usingCompactModel {
+		summaryModel = *a.compactModel
+	}
 	systemPromptPrefix := a.systemPromptPrefix.Get()
 
 	currentSession, err := a.sessions.Get(ctx, sessionID)
@@ -1551,7 +1568,7 @@ func (a *sessionAgent) Summarize(ctx context.Context, sessionID string, opts fan
 		return nil
 	}
 
-	aiMsgs, _ := a.preparePrompt(msgs, largeModel.CatwalkCfg.SupportsImages)
+	aiMsgs, _ := a.preparePrompt(msgs, summaryModel.CatwalkCfg.SupportsImages)
 
 	genCtx, cancel := context.WithCancel(ctx)
 	ac := &activeCancel{cancel: cancel}
@@ -1565,14 +1582,14 @@ func (a *sessionAgent) Summarize(ctx context.Context, sessionID string, opts fan
 	}()
 
 	agent := fantasy.NewAgent(
-		largeModel.Model,
+		summaryModel.Model,
 		fantasy.WithSystemPrompt(string(summaryPrompt)),
 		fantasy.WithUserAgent(userAgent),
 	)
 	summaryMessage, err := a.messages.Create(ctx, sessionID, message.CreateMessageParams{
 		Role:             message.Assistant,
-		Model:            largeModel.ModelCfg.Model,
-		Provider:         largeModel.ModelCfg.Provider,
+		Model:            summaryModel.ModelCfg.Model,
+		Provider:         summaryModel.ModelCfg.Provider,
 		IsSummaryMessage: true,
 	})
 	if err != nil {
@@ -1588,6 +1605,13 @@ func (a *sessionAgent) Summarize(ctx context.Context, sessionID string, opts fan
 		ProviderOptions: opts,
 		OnAuthRefresh:   onAuthRefresh,
 		ModelProvider: func() fantasy.LanguageModel {
+			// A compact-role model has no fallback/rotation chain of its
+			// own, so it stays fixed for the whole call; the session's own
+			// large model is re-fetched live the same way it always was,
+			// in case a fallback swap landed mid-retry.
+			if usingCompactModel {
+				return summaryModel.Model
+			}
 			return a.largeModel.Get().Model
 		},
 		PrepareStep: func(callContext context.Context, options fantasy.PrepareStepFunctionOptions) (_ context.Context, prepared fantasy.PrepareStepResult, err error) {
@@ -1650,7 +1674,7 @@ func (a *sessionAgent) Summarize(ctx context.Context, sessionID string, opts fan
 		}
 	}
 
-	a.updateSessionUsage(largeModel, &currentSession, resp.TotalUsage, openrouterCost, false)
+	a.updateSessionUsage(summaryModel, &currentSession, resp.TotalUsage, openrouterCost, false)
 
 	// Just in case, get just the last usage info.
 	usage := resp.Response.Usage

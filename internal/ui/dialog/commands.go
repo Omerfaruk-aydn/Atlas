@@ -455,9 +455,17 @@ func (c *Commands) defaultCommands() []*CommandItem {
 
 	// Only show compact command if there's an active session
 	if c.hasSession {
-		commands = append(commands, NewCommandItem(c.com.Styles, "summarize", "Summarize Session", "", ActionSummarize{SessionID: c.sessionID}))
+		commands = append(commands, NewCommandItem(c.com.Styles, "summarize", "Summarize Session", "", ActionSummarize{SessionID: c.sessionID}).WithAliases("compact"))
 		commands = append(commands, NewCommandItem(c.com.Styles, "fresh", "Refresh Session (recover from a stuck run)", "", ActionFreshSession{SessionID: c.sessionID}))
 		commands = append(commands, NewCommandItem(c.com.Styles, "interrupt_correct", "Interrupt + Correct", "f10", ActionInterruptWithCorrection{}))
+	}
+
+	{
+		autoCompactLabel := "Disable Auto-Compact"
+		if cfg := c.com.Config(); cfg != nil && cfg.Options != nil && cfg.Options.DisableAutoSummarize {
+			autoCompactLabel = "Enable Auto-Compact"
+		}
+		commands = append(commands, NewCommandItem(c.com.Styles, "toggle_auto_compact", autoCompactLabel, "", ActionToggleAutoCompact{}))
 	}
 
 	// Add reasoning toggle for models that support it

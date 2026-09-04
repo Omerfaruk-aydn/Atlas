@@ -682,6 +682,11 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		}
 	}
 
+	var compactModel *Model
+	if !isSubAgent {
+		compactModel = c.buildCompactModel(ctx)
+	}
+
 	largeProviderCfg, _ := c.cfg.Config().Providers.Get(large.ModelCfg.Provider)
 	result := NewSessionAgent(SessionAgentOptions{
 		LargeModel:             large,
@@ -693,6 +698,7 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		SystemPrompt:           "",
 		IsSubAgent:             isSubAgent,
 		DisableAutoSummarize:   c.cfg.Config().Options.DisableAutoSummarize,
+		CompactModel:           compactModel,
 		AutoSummarizeAt:        c.cfg.Config().Options.AutoSummarizeAt,
 		MaxProviderRetries:     c.cfg.Config().Options.MaxProviderRetries,
 		MaxSessionCost:         c.cfg.Config().Options.MaxSessionCost,
@@ -1262,6 +1268,25 @@ func (c *coordinator) buildAdvisor(ctx context.Context) (*Model, []fantasy.Agent
 	return &model, tools
 }
 
+// buildCompactModel resolves the "compact" model role, if configured, so
+// summarization (auto or the /summarize command) can run on a different
+// -- typically cheaper or faster -- provider/model than the session's own
+// large model. Returns nil (summarize falls back to the large model) when
+// no "compact" role is configured, or when it fails to build.
+func (c *coordinator) buildCompactModel(ctx context.Context) *Model {
+	roleModel, ok := c.cfg.Config().ResolveRole("compact")
+	if !ok {
+		return nil
+	}
+
+	model, err := c.resolveModel(ctx, roleModel, true)
+	if err != nil {
+		slog.Warn("Compact model role is configured but failed to build; summarizing with the session's own model instead", "error", err)
+		return nil
+	}
+	return &model
+}
+
 // buildEscalator resolves the "escalate" model role for
 // Advisor.AutoEscalate, falling back to the already-built advisor model
 // and tools when no dedicated "escalate" role is configured -- so
@@ -1671,7 +1696,20 @@ func (c *coordinator) QueuedPromptsList(sessionID string) []string {
 }
 
 func (c *coordinator) Summarize(ctx context.Context, sessionID string) error {
-	providerCfg, ok := c.cfg.Config().Providers.Get(c.currentAgent.Model().ModelCfg.Provider)
+	// A configured "compact" model role runs summarization against a
+	// different provider/model than the session's own (see
+	// buildCompactModel); refresh that provider's token and build its
+	// provider options instead when set.
+	summarizeModel := c.currentAgent.Model()
+	if roleModel, ok := c.cfg.Config().ResolveRole("compact"); ok {
+		if model, err := c.resolveModel(ctx, roleModel, true); err == nil {
+			summarizeModel = model
+		} else {
+			slog.Warn("Compact model role is configured but failed to build; summarizing with the session's own model instead", "error", err)
+		}
+	}
+
+	providerCfg, ok := c.cfg.Config().Providers.Get(summarizeModel.ModelCfg.Provider)
 	if !ok {
 		return errModelProviderNotConfigured
 	}
@@ -1682,7 +1720,7 @@ func (c *coordinator) Summarize(ctx context.Context, sessionID string) error {
 
 	// Auth failures during summarize flow through fantasy's OnAuthRefresh,
 	// the same path used by regular turns.
-	return c.currentAgent.Summarize(ctx, sessionID, getProviderOptions(c.currentAgent.Model(), providerCfg), c.makeAuthRefreshCallback(providerCfg))
+	return c.currentAgent.Summarize(ctx, sessionID, getProviderOptions(summarizeModel, providerCfg), c.makeAuthRefreshCallback(providerCfg))
 }
 
 // GenerateTitle generates a session title using the current agent.

@@ -2421,6 +2421,26 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			return util.NewInfoMsg("Transparent background " + status)
 		})
 		m.dialog.CloseDialog(dialog.CommandsID)
+	case dialog.ActionToggleAutoCompact:
+		cmds = append(cmds, func() tea.Msg {
+			cfg := m.com.Config()
+			if cfg == nil {
+				return util.ReportError(errors.New("configuration not found"))()
+			}
+
+			isDisabled := cfg.Options != nil && cfg.Options.DisableAutoSummarize
+			newValue := !isDisabled
+			if err := m.com.Workspace.SetConfigField(config.ScopeGlobal, "options.disable_auto_summarize", newValue); err != nil {
+				return util.ReportError(err)()
+			}
+
+			status := "Auto-compact enabled"
+			if newValue {
+				status = "Auto-compact disabled -- summarize manually with /summarize"
+			}
+			return util.NewInfoMsg(status)
+		})
+		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionQuit:
 		cmds = append(cmds, tea.Quit)
 	case dialog.ActionEnableDockerMCP:
