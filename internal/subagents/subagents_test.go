@@ -126,3 +126,61 @@ func TestFindIsCaseInsensitive(t *testing.T) {
 	_, ok = Find(all, "nope")
 	require.False(t, ok)
 }
+
+func TestMatchPicksTheHighestOverlap(t *testing.T) {
+	all := []*Subagent{
+		{Name: "frontend", Description: "React and CSS component work."},
+		{Name: "research", Description: "Deep research into unfamiliar libraries and APIs."},
+	}
+
+	got, ok := Match(all, "Research the best library for parsing CSV files")
+	require.True(t, ok)
+	require.Equal(t, "research", got.Name)
+}
+
+func TestMatchReturnsFalseWithNoOverlap(t *testing.T) {
+	all := []*Subagent{{Name: "frontend", Description: "React and CSS component work."}}
+
+	_, ok := Match(all, "Investigate a database migration failure")
+	require.False(t, ok)
+}
+
+func TestMatchReturnsFalseForEmptyPromptOrEmptyList(t *testing.T) {
+	_, ok := Match([]*Subagent{{Name: "research", Description: "Deep research."}}, "")
+	require.False(t, ok, "an empty prompt has nothing to match against")
+
+	_, ok = Match(nil, "research the library")
+	require.False(t, ok, "no subagents means nothing to match")
+}
+
+func TestMatchIgnoresShortConnectiveWords(t *testing.T) {
+	// "the", "for", "and" are all short filler that would otherwise
+	// match almost any description; only "database" is a real signal.
+	all := []*Subagent{
+		{Name: "docs", Description: "Write docs for the project and the wiki."},
+		{Name: "database", Description: "Schema design and database migrations."},
+	}
+
+	got, ok := Match(all, "Look at the database for the migration issue")
+	require.True(t, ok)
+	require.Equal(t, "database", got.Name)
+}
+
+func TestMatchTiesGoToTheFirstCandidate(t *testing.T) {
+	all := []*Subagent{
+		{Name: "first", Description: "Handles research tasks."},
+		{Name: "second", Description: "Also handles research tasks."},
+	}
+
+	got, ok := Match(all, "research tasks")
+	require.True(t, ok)
+	require.Equal(t, "first", got.Name)
+}
+
+func TestMatchIsCaseInsensitive(t *testing.T) {
+	all := []*Subagent{{Name: "research", Description: "DEEP RESEARCH into APIs."}}
+
+	got, ok := Match(all, "research apis")
+	require.True(t, ok)
+	require.Equal(t, "research", got.Name)
+}

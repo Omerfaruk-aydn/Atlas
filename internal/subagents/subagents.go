@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"unicode"
 
 	"gopkg.in/yaml.v3"
 )
@@ -200,4 +201,62 @@ func Find(all []*Subagent, name string) (*Subagent, bool) {
 		}
 	}
 	return nil, false
+}
+
+// Match picks the subagent whose name and description share the most
+// words with prompt, for callers that want to route a task
+// automatically instead of naming an agent. Like facts' recall and
+// semantic_code_search's non-embedding fallback, this is an honest
+// keyword overlap, not a real classifier: it will not catch a
+// paraphrase that shares no words with a subagent's description. Ties
+// go to whichever subagent sorts first in all. Returns (nil, false)
+// when all is empty or nothing shares a single word with prompt --
+// callers should fall back to a default agent in that case, not treat
+// it as an error.
+func Match(all []*Subagent, prompt string) (*Subagent, bool) {
+	promptWords := matchWords(prompt)
+	if len(promptWords) == 0 {
+		return nil, false
+	}
+
+	var best *Subagent
+	bestScore := 0
+	for _, s := range all {
+		score := overlapCount(promptWords, matchWords(s.Name+" "+s.Description))
+		if score > bestScore {
+			bestScore = score
+			best = s
+		}
+	}
+	if best == nil {
+		return nil, false
+	}
+	return best, true
+}
+
+// matchWords lowercases s and splits it into words of at least 4
+// letters/digits, dropping short connective words ("the", "for", "and",
+// ...) that would otherwise inflate every score roughly equally and
+// drown out the words that actually distinguish one subagent from
+// another.
+func matchWords(s string) map[string]bool {
+	words := make(map[string]bool)
+	for _, w := range strings.FieldsFunc(strings.ToLower(s), func(r rune) bool {
+		return !unicode.IsLetter(r) && !unicode.IsDigit(r)
+	}) {
+		if len(w) >= 4 {
+			words[w] = true
+		}
+	}
+	return words
+}
+
+func overlapCount(a, b map[string]bool) int {
+	count := 0
+	for w := range a {
+		if b[w] {
+			count++
+		}
+	}
+	return count
 }

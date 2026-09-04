@@ -551,6 +551,21 @@ type Advisor struct {
 	// controls what interrupts the user mid-session versus waiting
 	// quietly for the next turn.
 	MinSeverity string `json:"min_severity,omitempty" jsonschema:"description=Lowest severity (NIT / CONCERN / BLOCKER) that raises a notification. Every severity is still queued for the next prompt either way.,default=CONCERN,example=BLOCKER"`
+	// AutoEscalate runs a second, deeper pass with the "escalate" model
+	// role (falling back to the advisor's own model when no "escalate"
+	// role is configured) whenever the advisor's severity meets
+	// EscalateThreshold, replacing the advisor's one-line note with
+	// whatever that second pass produces -- a fuller diagnosis, or a
+	// concrete fix description, from a pass explicitly asked to try
+	// harder than a quick review. It never changes the turn that was
+	// reviewed or delays the user; only the note queued for the next
+	// prompt differs.
+	AutoEscalate bool `json:"auto_escalate,omitempty" jsonschema:"description=Run a deeper second pass (the \"escalate\" model role, or the advisor's own model if none is set) whenever the advisor's severity meets escalate_threshold, and use its output as the queued note instead of the advisor's one-liner.,default=false"`
+	// EscalateThreshold is the minimum severity that triggers
+	// AutoEscalate. Defaults to BLOCKER: escalation costs a second model
+	// call, so it is reserved for the severity that already means
+	// "should be addressed before the work continues."
+	EscalateThreshold string `json:"escalate_threshold,omitempty" jsonschema:"description=Lowest severity (NIT / CONCERN / BLOCKER) that triggers auto_escalate.,default=BLOCKER,example=CONCERN"`
 }
 
 // TurnInterval returns the configured review cadence, defaulting to 1
@@ -571,6 +586,18 @@ func (a Advisor) NotifyThreshold() string {
 		return strings.ToUpper(a.MinSeverity)
 	default:
 		return "CONCERN"
+	}
+}
+
+// EscalateSeverityThreshold returns the configured minimum severity for
+// AutoEscalate, defaulting to BLOCKER for an unset or unrecognized
+// value.
+func (a Advisor) EscalateSeverityThreshold() string {
+	switch strings.ToUpper(a.EscalateThreshold) {
+	case "NIT", "CONCERN", "BLOCKER":
+		return strings.ToUpper(a.EscalateThreshold)
+	default:
+		return "BLOCKER"
 	}
 }
 
@@ -1298,6 +1325,7 @@ func allToolNames() []string {
 		"fetch",
 		"agentic_fetch",
 		"orchestrate",
+		"delegate",
 		"facts",
 		"inspect_file",
 		"glob",

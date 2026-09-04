@@ -26,6 +26,21 @@ type AgentParams struct {
 	// internal/subagents and `atlas agent list`) to run the task with,
 	// instead of the default agent.
 	AgentName string `json:"agent_name,omitempty" description:"Name of a configured subagent to hand this task to, instead of the default agent"`
+	// Auto, when true and agent_name is empty, picks the best-matching
+	// configured subagent automatically instead of naming one -- see
+	// subagents.Match for how "best-matching" is decided.
+	Auto bool `json:"auto,omitempty" description:"When true and agent_name is empty, automatically route to whichever configured subagent's description best matches this prompt by keyword overlap, instead of running the default agent. Falls back to the default agent if no subagent matches. Ignored when agent_name is set."`
+}
+
+// AgentResponseMetadata reports which agent actually ran, useful only
+// for the auto-routing path: agent_name is an explicit choice the
+// caller already knows, but an auto-routed call only becomes
+// transparent if the response says which subagent it landed on.
+type AgentResponseMetadata struct {
+	// RoutedTo is the auto-selected subagent's name, or empty when auto
+	// routing was not requested, found no match, or agent_name was set
+	// explicitly instead.
+	RoutedTo string `json:"routed_to,omitempty"`
 }
 
 const (
@@ -82,32 +97,88 @@ func (c *coordinator) agentTool(ctx context.Context) (fantasy.AgentTool, error) 
 				return fantasy.ToolResponse{}, errors.New("agent message id missing from context")
 			}
 
-			runAgent := agent
-			sessionTitle := "New Agent Session"
-			if params.AgentName != "" {
-				resolved, err := c.resolveSubagent(ctx, agentCfg, discovered, subagentInstances, params.AgentName)
-				if err != nil {
-					return fantasy.NewTextErrorResponse(err.Error()), nil
-				}
-				runAgent = resolved
-				sessionTitle = params.AgentName + " agent session"
-			}
-
-			if err := limiter.acquire(ctx); err != nil {
-				return fantasy.ToolResponse{}, err
-			}
-			defer limiter.release()
-
-			return c.runSubAgent(ctx, subAgentParams{
-				Agent:          runAgent,
-				SessionID:      sessionID,
-				AgentMessageID: agentMessageID,
-				ToolCallID:     call.ID,
-				Prompt:         params.Prompt,
-				SessionTitle:   sessionTitle,
+			return c.runAgentToolCall(ctx, agentToolCallParams{
+				agentCfg:          agentCfg,
+				discovered:        discovered,
+				subagentInstances: subagentInstances,
+				defaultAgent:      agent,
+				limiter:           limiter,
+				sessionID:         sessionID,
+				agentMessageID:    agentMessageID,
+				toolCallID:        call.ID,
+				agentName:         params.AgentName,
+				auto:              params.Auto,
+				prompt:            params.Prompt,
 			})
 		},
 	), nil
+}
+
+// agentToolCallParams holds everything runAgentToolCall needs to resolve
+// which agent a call should run on and run it. Splitting this out of the
+// tool closure lets a test drive routing decisions (agent_name, auto)
+// against an in-memory discovered list and a pre-populated
+// subagentInstances cache, without ever resolving a real model or
+// making a network call -- the same trick TestRunOrchestratedAgentHappyPath
+// uses for orchestrate.
+type agentToolCallParams struct {
+	agentCfg          config.Agent
+	discovered        []*subagents.Subagent
+	subagentInstances *csync.Map[string, SessionAgent]
+	defaultAgent      SessionAgent
+	limiter           *concurrencyLimiter
+	sessionID         string
+	agentMessageID    string
+	toolCallID        string
+	agentName         string
+	auto              bool
+	prompt            string
+}
+
+func (c *coordinator) runAgentToolCall(ctx context.Context, p agentToolCallParams) (fantasy.ToolResponse, error) {
+	runAgent := p.defaultAgent
+	sessionTitle := "New Agent Session"
+	routedTo := ""
+
+	switch {
+	case p.agentName != "":
+		resolved, err := c.resolveSubagent(ctx, p.agentCfg, p.discovered, p.subagentInstances, p.agentName)
+		if err != nil {
+			return fantasy.NewTextErrorResponse(err.Error()), nil
+		}
+		runAgent = resolved
+		sessionTitle = p.agentName + " agent session"
+	case p.auto:
+		if matched, ok := subagents.Match(p.discovered, p.prompt); ok {
+			resolved, err := c.resolveSubagent(ctx, p.agentCfg, p.discovered, p.subagentInstances, matched.Name)
+			if err != nil {
+				return fantasy.NewTextErrorResponse(err.Error()), nil
+			}
+			runAgent = resolved
+			sessionTitle = matched.Name + " agent session (auto-routed)"
+			routedTo = matched.Name
+		}
+		// No match: silently falls back to the default agent, same as
+		// an empty agent_name would.
+	}
+
+	if err := p.limiter.acquire(ctx); err != nil {
+		return fantasy.ToolResponse{}, err
+	}
+	defer p.limiter.release()
+
+	resp, err := c.runSubAgent(ctx, subAgentParams{
+		Agent:          runAgent,
+		SessionID:      p.sessionID,
+		AgentMessageID: p.agentMessageID,
+		ToolCallID:     p.toolCallID,
+		Prompt:         p.prompt,
+		SessionTitle:   sessionTitle,
+	})
+	if err != nil || routedTo == "" {
+		return resp, err
+	}
+	return fantasy.WithResponseMetadata(resp, AgentResponseMetadata{RoutedTo: routedTo}), nil
 }
 
 // resolveSubagent returns the cached SessionAgent for a named subagent,

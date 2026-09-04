@@ -35,12 +35,49 @@ func TestFormatOrchestrateResults(t *testing.T) {
 	out := formatOrchestrateResults([]orchestrateResult{
 		{name: "alpha", content: "alpha's answer"},
 		{name: "beta", err: context.DeadlineExceeded},
-	})
+	}, nil)
 	require.Contains(t, out, "2 agent(s) ran independently")
 	require.Contains(t, out, "=== alpha ===")
 	require.Contains(t, out, "alpha's answer")
 	require.Contains(t, out, "=== beta ===")
 	require.Contains(t, out, "failed: context deadline exceeded")
+	require.NotContains(t, out, "Synthesis", "no judge means no synthesis section")
+}
+
+func TestFormatOrchestrateResultsWithJudge(t *testing.T) {
+	judge := &orchestrateResult{name: "gamma", content: "the merged answer"}
+	out := formatOrchestrateResults([]orchestrateResult{
+		{name: "alpha", content: "alpha's answer"},
+		{name: "beta", content: "beta's answer"},
+	}, judge)
+
+	require.Contains(t, out, "=== Synthesis (judged by gamma) ===")
+	require.Contains(t, out, "the merged answer")
+	require.Contains(t, out, "Raw answers")
+	require.Contains(t, out, "alpha's answer")
+	require.Contains(t, out, "beta's answer")
+}
+
+func TestFormatOrchestrateResultsJudgeFailed(t *testing.T) {
+	judge := &orchestrateResult{name: "gamma", err: context.DeadlineExceeded}
+	out := formatOrchestrateResults([]orchestrateResult{
+		{name: "alpha", content: "alpha's answer"},
+	}, judge)
+
+	require.Contains(t, out, `Synthesis unavailable -- judge "gamma" failed`)
+	require.Contains(t, out, "alpha's answer", "raw answers must still be returned when the judge fails")
+}
+
+func TestBuildJudgePrompt(t *testing.T) {
+	prompt := buildJudgePrompt("do the thing", []orchestrateResult{
+		{name: "alpha", content: "alpha's answer"},
+		{name: "beta", err: context.DeadlineExceeded},
+	})
+	require.Contains(t, prompt, "do the thing")
+	require.Contains(t, prompt, "=== alpha ===")
+	require.Contains(t, prompt, "alpha's answer")
+	require.Contains(t, prompt, "=== beta ===")
+	require.Contains(t, prompt, "(failed: context deadline exceeded)")
 }
 
 func TestRunOrchestratedAgentHappyPath(t *testing.T) {
@@ -162,4 +199,52 @@ func TestOrchestrateToolRunsNamedAgentsInParallel(t *testing.T) {
 	require.Contains(t, out, "2 agent(s) ran independently")
 	require.Contains(t, out, "=== alpha ===")
 	require.Contains(t, out, "=== beta ===")
+}
+
+func TestOrchestrateToolJudgeAgentMustDifferFromAgentNames(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.credentials = credentials.New()
+
+	out := runOrchestrateTool(t, coord, t.Context(), OrchestrateParams{
+		Prompt:     "do something",
+		AgentNames: []string{"alpha", "beta"},
+		JudgeAgent: "alpha",
+	})
+	require.Contains(t, out, "judge_agent must be a different agent from agent_names")
+}
+
+func TestOrchestrateToolWithJudgeRunsTheJudgeToo(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.credentials = credentials.New()
+
+	ctx := context.WithValue(t.Context(), tools.SessionIDContextKey, "session-1")
+	ctx = context.WithValue(ctx, tools.MessageIDContextKey, "message-1")
+	parentSession, err := coord.sessions.Create(ctx, "Parent")
+	require.NoError(t, err)
+	ctx = context.WithValue(ctx, tools.SessionIDContextKey, parentSession.ID)
+
+	// As in TestOrchestrateToolRunsNamedAgentsInParallel, none of these
+	// names resolve to a reachable provider, so every run (including the
+	// judge's) fails fast -- this still exercises that the judge is
+	// invoked at all, and that its outcome is reflected in the response
+	// and metadata.
+	tool, err := coord.orchestrateTool(ctx)
+	require.NoError(t, err)
+	input, err := json.Marshal(OrchestrateParams{
+		Prompt:     "do something",
+		AgentNames: []string{"alpha", "beta"},
+		JudgeAgent: "gamma",
+	})
+	require.NoError(t, err)
+
+	resp, err := tool.Run(ctx, fantasy.ToolCall{ID: "call-1", Name: OrchestrateToolName, Input: string(input)})
+	require.NoError(t, err)
+	require.Contains(t, resp.Content, "Synthesis unavailable")
+	require.Contains(t, resp.Content, `judge "gamma" failed`)
+	require.Contains(t, resp.Content, "Raw answers")
+
+	var meta OrchestrateResponseMetadata
+	require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
+	require.Equal(t, "gamma", meta.Judge)
+	require.Equal(t, []string{"alpha", "beta"}, meta.Agents)
 }

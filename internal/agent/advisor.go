@@ -23,6 +23,21 @@ const advisorTimeout = 45 * time.Second
 // advisor's own cost comparable to the turn it is reviewing.
 const advisorMaxReviewChars = 4000
 
+// escalateTimeout bounds one escalation pass. Longer than
+// advisorTimeout: unlike a quick flag-or-not review, an escalation pass
+// is explicitly asked to dig in (and, with tools, may inspect the code),
+// so it reasonably needs more room -- but it must still not accumulate
+// goroutines forever across a long session.
+const escalateTimeout = 90 * time.Second
+
+const escalateSystemPrompt = `You are a second reviewer, escalated in because a first pass already flagged this turn as ` +
+	`worth a closer look. You are given the user's request, the agent's final response, and the first reviewer's note, ` +
+	`and you have read-only tools (glob, grep, ls, view) to inspect the resulting code yourself.
+
+Reply with a short diagnosis: confirm or correct the first reviewer's concern against the actual code, and if you can, ` +
+	`describe a concrete fix -- specific enough that another agent could act on it next turn. A few sentences is enough; ` +
+	`this is a note for the next turn to read, not a report.`
+
 const advisorSystemPrompt = `You are a second reviewer watching another AI agent's coding work. You are given the ` +
 	`user's request and the agent's final response for one completed turn, and you have read-only tools ` +
 	`(glob, grep, ls, view) to inspect the resulting code yourself.
@@ -126,7 +141,15 @@ func (a *sessionAgent) runAdvisorPass(ctx context.Context, sessionID, userPrompt
 		return
 	}
 
-	a.advisorNotes.Set(sessionID, "Advisor ("+strings.ToLower(severity)+"): "+note)
+	label := "Advisor"
+	if a.escalateModel != nil && shouldEscalate(severity, a.escalateThreshold) {
+		if escalated, ok := a.runEscalationPass(ctx, sessionID, userPrompt, assistantText, severity, note); ok {
+			note = escalated
+			label = "Escalated review"
+		}
+	}
+
+	a.advisorNotes.Set(sessionID, label+" ("+strings.ToLower(severity)+"): "+note)
 
 	if !advisorShouldNotify(severity, a.advisorNotifyThreshold) {
 		// Below the configured floor: queued for the next prompt above,
@@ -143,6 +166,65 @@ func (a *sessionAgent) runAdvisorPass(ctx context.Context, sessionID, userPrompt
 			Message:   note,
 		})
 	}
+}
+
+// shouldEscalate reports whether severity meets threshold for
+// Advisor.AutoEscalate (an unrecognized or empty threshold defaults to
+// BLOCKER, escalation's own original, most conservative floor -- unlike
+// advisorShouldNotify's CONCERN default, since escalation costs a
+// second model call).
+func shouldEscalate(severity, threshold string) bool {
+	if _, ok := advisorSeverityRank[threshold]; !ok {
+		threshold = "BLOCKER"
+	}
+	return advisorSeverityRank[severity] >= advisorSeverityRank[threshold]
+}
+
+// runEscalationPass asks a's escalate model to take a closer look at a
+// turn the advisor already flagged, and returns its diagnosis (ok=true)
+// in place of the advisor's own one-liner. A failure or empty reply
+// returns ok=false, leaving the caller to keep the advisor's original
+// note rather than lose it -- an escalation is meant to add depth, not
+// risk replacing a real note with nothing.
+//
+// Like runAdvisorPass, this runs after the reviewed turn has already
+// finished and errors are logged and swallowed: there is no live request
+// for a failed escalation to fail.
+func (a *sessionAgent) runEscalationPass(ctx context.Context, sessionID, userPrompt, assistantText, severity, advisorNote string) (note string, ok bool) {
+	defer func() {
+		if r := recover(); r != nil {
+			slog.Error("Escalation pass panicked", "session_id", sessionID, "panic", r)
+		}
+	}()
+
+	ctx, cancel := context.WithTimeout(ctx, escalateTimeout)
+	defer cancel()
+
+	agent := fantasy.NewAgent(
+		a.escalateModel.Model,
+		fantasy.WithSystemPrompt(escalateSystemPrompt),
+		fantasy.WithTools(a.escalateTools...),
+		fantasy.WithUserAgent(userAgent),
+	)
+
+	review := "User asked:\n" + truncateForAdvisor(userPrompt) +
+		"\n\nAgent responded:\n" + truncateForAdvisor(assistantText) +
+		"\n\nFirst reviewer (" + strings.ToLower(severity) + "): " + advisorNote
+
+	result, err := agent.Stream(ctx, fantasy.AgentStreamCall{Prompt: review})
+	if err != nil {
+		slog.Warn("Escalation pass failed", "session_id", sessionID, "error", err)
+		return "", false
+	}
+	if result == nil {
+		return "", false
+	}
+
+	escalated := strings.TrimSpace(result.Response.Content.Text())
+	if escalated == "" {
+		return "", false
+	}
+	return escalated, true
 }
 
 // parseAdvisorReply extracts the severity prefix and note from the

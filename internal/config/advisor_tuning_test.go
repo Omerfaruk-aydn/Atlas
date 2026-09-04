@@ -43,3 +43,24 @@ func TestAdvisorNotifyThresholdRejectsUnknownValue(t *testing.T) {
 		t.Fatalf("NotifyThreshold() = %q, want CONCERN for an unrecognized value", got)
 	}
 }
+
+func TestAdvisorEscalateSeverityThresholdDefaultsToBlocker(t *testing.T) {
+	var a Advisor
+	if got := a.EscalateSeverityThreshold(); got != "BLOCKER" {
+		t.Fatalf("EscalateSeverityThreshold() = %q, want BLOCKER", got)
+	}
+}
+
+func TestAdvisorEscalateSeverityThresholdIsCaseInsensitive(t *testing.T) {
+	a := Advisor{EscalateThreshold: "concern"}
+	if got := a.EscalateSeverityThreshold(); got != "CONCERN" {
+		t.Fatalf("EscalateSeverityThreshold() = %q, want CONCERN", got)
+	}
+}
+
+func TestAdvisorEscalateSeverityThresholdRejectsUnknownValue(t *testing.T) {
+	a := Advisor{EscalateThreshold: "urgent"}
+	if got := a.EscalateSeverityThreshold(); got != "BLOCKER" {
+		t.Fatalf("EscalateSeverityThreshold() = %q, want BLOCKER for an unrecognized value", got)
+	}
+}

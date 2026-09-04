@@ -238,10 +238,17 @@ type sessionAgent struct {
 	advisorEveryNTurns     int
 	advisorNotifyThreshold string
 	advisorTurnCounts      *csync.Map[string, int]
-	isYolo                 bool
-	permissions            permission.Service
-	notify                 pubsub.Publisher[notify.Notification]
-	runComplete            pubsub.Publisher[notify.RunComplete]
+	// escalateModel and escalateTools are nil unless Advisor.AutoEscalate
+	// is on and has a model to run on (see coordinator.buildEscalator).
+	// When set, a severity meeting escalateThreshold triggers a second,
+	// deeper pass whose output replaces the advisor's one-line note.
+	escalateModel     *Model
+	escalateTools     []fantasy.AgentTool
+	escalateThreshold string
+	isYolo            bool
+	permissions       permission.Service
+	notify            pubsub.Publisher[notify.Notification]
+	runComplete       pubsub.Publisher[notify.RunComplete]
 
 	messageQueue   *csync.Map[string, []SessionAgentCall]
 	activeRequests *csync.Map[string, *activeCancel]
@@ -345,13 +352,23 @@ type SessionAgentOptions struct {
 	// BLOCKER) that raises a notify.TypeAdvisorNote notification. Every
 	// severity still queues a next-prompt note regardless.
 	AdvisorNotifyThreshold string
-	IsYolo                 bool
-	Permissions            permission.Service
-	Sessions               session.Service
-	Messages               message.Service
-	Tools                  []fantasy.AgentTool
-	Notify                 pubsub.Publisher[notify.Notification]
-	RunComplete            pubsub.Publisher[notify.RunComplete]
+	// EscalateModel is the model an escalation pass runs on when the
+	// advisor's severity meets EscalateThreshold. Nil means
+	// Advisor.AutoEscalate is off or has nothing to run on.
+	EscalateModel *Model
+	// EscalateTools are the (read-only) tools an escalation pass may
+	// use. Ignored when EscalateModel is nil.
+	EscalateTools []fantasy.AgentTool
+	// EscalateThreshold is the lowest severity (NIT, CONCERN, or
+	// BLOCKER) that triggers an escalation pass.
+	EscalateThreshold string
+	IsYolo            bool
+	Permissions       permission.Service
+	Sessions          session.Service
+	Messages          message.Service
+	Tools             []fantasy.AgentTool
+	Notify            pubsub.Publisher[notify.Notification]
+	RunComplete       pubsub.Publisher[notify.RunComplete]
 }
 
 func NewSessionAgent(
@@ -384,6 +401,9 @@ func NewSessionAgent(
 		advisorEveryNTurns:     opts.AdvisorEveryNTurns,
 		advisorNotifyThreshold: opts.AdvisorNotifyThreshold,
 		advisorTurnCounts:      csync.NewMap[string, int](),
+		escalateModel:          opts.EscalateModel,
+		escalateTools:          opts.EscalateTools,
+		escalateThreshold:      opts.EscalateThreshold,
 		onProviderExhausted:    opts.OnProviderExhausted,
 		tools:                  csync.NewSliceFrom(opts.Tools),
 		isYolo:                 opts.IsYolo,

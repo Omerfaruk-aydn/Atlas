@@ -4,4 +4,6 @@ This is different from calling `agent` several times yourself: `agent` runs one 
 
 Requires at least two agent_names, each a distinct subagent with its own instructions or model -- running the same subagent against itself twice on the same prompt mostly reproduces the same answer and wastes the second call. Every named agent gets the exact same prompt, run independently; none of them sees any other's answer, so agreement between them is real corroboration, not one copying another.
 
+Optionally set judge_agent to a third subagent (distinct from agent_names) that reads every answer once they are all in and produces one final synthesis -- the best one, a merge, or its own correction if all of them share a flaw -- instead of leaving that comparison to you. The raw answers are still returned alongside the synthesis, so a synthesis that misreads or drops something stays checkable. Skip judge_agent for a quick side-by-side comparison you want to read yourself; use it when you want one settled answer back.
+
 Every named agent still counts toward this session's subagent concurrency limit (the same `MaxConcurrentSubAgents` setting `agent` calls respect) -- naming five agents when the limit is two will queue three of them rather than run five at once.

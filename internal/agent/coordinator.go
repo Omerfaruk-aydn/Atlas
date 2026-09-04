@@ -656,11 +656,18 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 	var advisorTools []fantasy.AgentTool
 	var advisorEveryNTurns int
 	var advisorNotifyThreshold string
+	var escalateModel *Model
+	var escalateTools []fantasy.AgentTool
+	var escalateThreshold string
 	if !isSubAgent {
 		advisorModel, advisorTools = c.buildAdvisor(ctx)
 		if adv := c.cfg.Config().Options.Advisor; adv != nil {
 			advisorEveryNTurns = adv.TurnInterval()
 			advisorNotifyThreshold = adv.NotifyThreshold()
+			if advisorModel != nil {
+				escalateModel, escalateTools = c.buildEscalator(ctx, advisorModel, advisorTools)
+				escalateThreshold = adv.EscalateSeverityThreshold()
+			}
 		}
 	}
 
@@ -687,6 +694,9 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		AdvisorTools:           advisorTools,
 		AdvisorEveryNTurns:     advisorEveryNTurns,
 		AdvisorNotifyThreshold: advisorNotifyThreshold,
+		EscalateModel:          escalateModel,
+		EscalateTools:          escalateTools,
+		EscalateThreshold:      escalateThreshold,
 		IsYolo:                 c.permissions.SkipRequests(),
 		Permissions:            c.permissions,
 		Sessions:               c.sessions,
@@ -778,6 +788,14 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			return nil, err
 		}
 		allTools = append(allTools, orchestrateTool)
+	}
+
+	if slices.Contains(agent.AllowedTools, DelegateToolName) {
+		delegateTool, err := c.delegateTool(ctx)
+		if err != nil {
+			return nil, err
+		}
+		allTools = append(allTools, delegateTool)
 	}
 
 	pathPolicy := tools.NewPathPolicy(c.cfg.Config(), c.cfg.WorkingDir())
@@ -1220,6 +1238,40 @@ func (c *coordinator) buildAdvisor(ctx context.Context) (*Model, []fantasy.Agent
 	if err != nil {
 		slog.Warn("Advisor tools failed to build; running without it", "error", err)
 		return nil, nil
+	}
+
+	return &model, tools
+}
+
+// buildEscalator resolves the "escalate" model role for
+// Advisor.AutoEscalate, falling back to the already-built advisor model
+// and tools when no dedicated "escalate" role is configured -- so
+// AutoEscalate works with zero extra config, and only needs a role added
+// when the user actually wants a different (typically stronger) model
+// for it. Never fails buildAgent, the same posture buildAdvisor takes:
+// a misconfigured escalate role falls back to the advisor model rather
+// than leaving AutoEscalate silently without a model to run on.
+func (c *coordinator) buildEscalator(ctx context.Context, advisorModel *Model, advisorTools []fantasy.AgentTool) (*Model, []fantasy.AgentTool) {
+	opts := c.cfg.Config().Options
+	if opts == nil || opts.Advisor == nil || !opts.Advisor.AutoEscalate {
+		return nil, nil
+	}
+
+	roleModel, ok := c.cfg.Config().ResolveRole("escalate")
+	if !ok {
+		return advisorModel, advisorTools
+	}
+
+	model, err := c.resolveModel(ctx, roleModel, true)
+	if err != nil {
+		slog.Warn("Escalate model failed to build; falling back to the advisor model", "error", err)
+		return advisorModel, advisorTools
+	}
+
+	tools, err := c.buildTools(ctx, config.Agent{AllowedTools: advisorToolNames}, true)
+	if err != nil {
+		slog.Warn("Escalate tools failed to build; falling back to the advisor model", "error", err)
+		return advisorModel, advisorTools
 	}
 
 	return &model, tools

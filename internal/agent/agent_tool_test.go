@@ -1,13 +1,17 @@
 package agent
 
 import (
+	"context"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/agent/tools"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/credentials"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/stretchr/testify/require"
 )
@@ -92,6 +96,47 @@ func TestBuildAdvisorResolvesItsModelRole(t *testing.T) {
 	require.NotContains(t, names, "edit", "the advisor must not get write/execute tools")
 }
 
+func TestBuildEscalatorDisabledByDefault(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.cfg.Config().Options.Advisor = &config.Advisor{Enabled: true}
+	advisorModel, advisorTools := coord.buildAdvisor(t.Context())
+
+	model, tools := coord.buildEscalator(t.Context(), advisorModel, advisorTools)
+	require.Nil(t, model)
+	require.Nil(t, tools)
+}
+
+func TestBuildEscalatorFallsBackToAdvisorModelWithNoEscalateRole(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.cfg.Config().Options.Advisor = &config.Advisor{Enabled: true, AutoEscalate: true}
+	coord.cfg.Config().Options.ModelRoles = map[string]config.SelectedModel{
+		"advisor": {Provider: "role-provider", Model: "role-model"},
+	}
+	advisorModel, advisorTools := coord.buildAdvisor(t.Context())
+	require.NotNil(t, advisorModel, "the advisor must have built for this test to be meaningful")
+
+	model, tools := coord.buildEscalator(t.Context(), advisorModel, advisorTools)
+	require.Same(t, advisorModel, model, "no escalate role configured must fall back to the advisor's own model")
+	require.Equal(t, len(advisorTools), len(tools))
+}
+
+func TestBuildEscalatorResolvesItsOwnRole(t *testing.T) {
+	coord := hermeticSubagentCoordinator(t)
+	coord.cfg.Config().Options.Advisor = &config.Advisor{Enabled: true, AutoEscalate: true}
+	coord.cfg.Config().Options.ModelRoles = map[string]config.SelectedModel{
+		"advisor":  {Provider: "role-provider", Model: "role-model"},
+		"escalate": {Provider: "mock", Model: "mock-model"},
+	}
+	advisorModel, advisorTools := coord.buildAdvisor(t.Context())
+	require.NotNil(t, advisorModel)
+
+	model, _ := coord.buildEscalator(t.Context(), advisorModel, advisorTools)
+	require.NotNil(t, model)
+	require.NotSame(t, advisorModel, model, "a configured escalate role must not reuse the advisor's model")
+	require.Equal(t, "mock", model.ModelCfg.Provider)
+	require.Equal(t, "mock-model", model.ModelCfg.Model)
+}
+
 func TestResolveModelBuildsAReadyModel(t *testing.T) {
 	coord := hermeticSubagentCoordinator(t)
 
@@ -170,6 +215,121 @@ func TestResolveSubagentCachesTheBuiltAgent(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Same(t, first, second, "the second call must reuse the cached instance, not rebuild")
+}
+
+// agentToolCallTestContext returns a context carrying real session and
+// message IDs (runAgentToolCall/runSubAgent need both) plus a freshly
+// created parent session, without ever touching a real provider.
+func agentToolCallTestContext(t *testing.T, coord *coordinator) context.Context {
+	t.Helper()
+	ctx := context.WithValue(t.Context(), tools.SessionIDContextKey, "session-1")
+	ctx = context.WithValue(ctx, tools.MessageIDContextKey, "message-1")
+	parentSession, err := coord.sessions.Create(ctx, "Parent")
+	require.NoError(t, err)
+	return context.WithValue(ctx, tools.SessionIDContextKey, parentSession.ID)
+}
+
+// TestAgentToolAutoRoutesToTheBestMatchingSubagent drives
+// runAgentToolCall directly (bypassing the tool.Run/JSON layer, which
+// TestOrchestrateToolRunsNamedAgentsInParallel already exercises for the
+// sibling orchestrate tool) with "research" pre-populated in
+// subagentInstances -- a cache hit inside resolveSubagent, so this
+// never resolves a real model or makes a network call, the same trick
+// TestRunOrchestratedAgentHappyPath uses.
+func TestAgentToolAutoRoutesToTheBestMatchingSubagent(t *testing.T) {
+	const providerID = "test-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, providerID, config.ProviderConfig{ID: providerID})
+	ctx := agentToolCallTestContext(t, coord)
+
+	discovered := []*subagents.Subagent{
+		{Name: "frontend", Description: "React and CSS component work."},
+		{Name: "research", Description: "Deep research into unfamiliar libraries and APIs."},
+	}
+	mock := newMockAgent(providerID, 4096, func(_ context.Context, call SessionAgentCall) (*fantasy.AgentResult, error) {
+		return agentResultWithText("researched it"), nil
+	})
+	cache := csync.NewMap[string, SessionAgent]()
+	cache.Set("research", mock)
+
+	resp, err := coord.runAgentToolCall(ctx, agentToolCallParams{
+		discovered:        discovered,
+		subagentInstances: cache,
+		limiter:           newConcurrencyLimiter(0),
+		sessionID:         tools.GetSessionFromContext(ctx),
+		agentMessageID:    "message-1",
+		toolCallID:        "call-1",
+		auto:              true,
+		prompt:            "Research the best library for parsing CSV files",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "researched it", resp.Content)
+
+	var meta AgentResponseMetadata
+	require.NoError(t, json.Unmarshal([]byte(resp.Metadata), &meta))
+	require.Equal(t, "research", meta.RoutedTo)
+}
+
+func TestAgentToolAutoWithNoMatchFallsBackToTheDefaultAgent(t *testing.T) {
+	const providerID = "test-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, providerID, config.ProviderConfig{ID: providerID})
+	ctx := agentToolCallTestContext(t, coord)
+
+	discovered := []*subagents.Subagent{{Name: "frontend", Description: "React and CSS component work."}}
+	var ranOnDefault bool
+	defaultAgent := newMockAgent(providerID, 4096, func(_ context.Context, call SessionAgentCall) (*fantasy.AgentResult, error) {
+		ranOnDefault = true
+		return agentResultWithText("default agent answer"), nil
+	})
+
+	resp, err := coord.runAgentToolCall(ctx, agentToolCallParams{
+		discovered:        discovered,
+		subagentInstances: csync.NewMap[string, SessionAgent](),
+		defaultAgent:      defaultAgent,
+		limiter:           newConcurrencyLimiter(0),
+		sessionID:         tools.GetSessionFromContext(ctx),
+		agentMessageID:    "message-1",
+		toolCallID:        "call-1",
+		auto:              true,
+		prompt:            "Investigate a completely unrelated database migration failure",
+	})
+	require.NoError(t, err)
+	require.True(t, ranOnDefault, "no keyword match must fall back to the default agent")
+	require.Equal(t, "default agent answer", resp.Content)
+	require.Empty(t, resp.Metadata, "no match means no routing metadata, same as a plain agent_name-less call")
+}
+
+func TestAgentToolAutoIsIgnoredWhenAgentNameIsSet(t *testing.T) {
+	const providerID = "test-provider"
+	env := testEnv(t)
+	coord := newTestCoordinator(t, env, providerID, config.ProviderConfig{ID: providerID})
+	ctx := agentToolCallTestContext(t, coord)
+
+	discovered := []*subagents.Subagent{
+		{Name: "frontend", Description: "React and CSS component work."},
+		{Name: "research", Description: "Deep research into unfamiliar libraries and APIs."},
+	}
+	frontendMock := newMockAgent(providerID, 4096, func(_ context.Context, call SessionAgentCall) (*fantasy.AgentResult, error) {
+		return agentResultWithText("frontend answer"), nil
+	})
+	cache := csync.NewMap[string, SessionAgent]()
+	cache.Set("frontend", frontendMock)
+
+	resp, err := coord.runAgentToolCall(ctx, agentToolCallParams{
+		discovered:        discovered,
+		subagentInstances: cache,
+		limiter:           newConcurrencyLimiter(0),
+		sessionID:         tools.GetSessionFromContext(ctx),
+		agentMessageID:    "message-1",
+		toolCallID:        "call-1",
+		agentName:         "frontend",
+		auto:              true, // must be ignored: agent_name wins
+		prompt:            "Research the best library for parsing CSV files",
+	})
+	require.NoError(t, err)
+	require.Equal(t, "frontend answer", resp.Content, "an explicit agent_name must win over auto-routing")
+	require.Empty(t, resp.Metadata, "an explicit agent_name carries no routing metadata")
 }
 
 func TestResolveSubagentUnknownNameErrors(t *testing.T) {

@@ -132,3 +132,31 @@ func TestAdvisorShouldNotifyUnrecognizedThresholdFallsBackToConcern(t *testing.T
 	require.False(t, advisorShouldNotify("NIT", "not-a-real-severity"))
 	require.True(t, advisorShouldNotify("CONCERN", "not-a-real-severity"))
 }
+
+func TestShouldEscalateDefaultsToBlocker(t *testing.T) {
+	require.False(t, shouldEscalate("CONCERN", ""), "unset threshold keeps escalation's own BLOCKER-only default")
+	require.True(t, shouldEscalate("BLOCKER", ""))
+}
+
+func TestShouldEscalateHonorsConfiguredThreshold(t *testing.T) {
+	require.True(t, shouldEscalate("CONCERN", "CONCERN"), "a CONCERN floor also escalates CONCERN")
+	require.True(t, shouldEscalate("BLOCKER", "CONCERN"))
+	require.False(t, shouldEscalate("NIT", "CONCERN"))
+}
+
+func TestShouldEscalateUnrecognizedThresholdFallsBackToBlocker(t *testing.T) {
+	require.False(t, shouldEscalate("CONCERN", "not-a-real-severity"))
+	require.True(t, shouldEscalate("BLOCKER", "not-a-real-severity"))
+}
+
+func TestRunEscalationPassNilModelPanicsAreCaught(t *testing.T) {
+	// runEscalationPass is only ever called when a.escalateModel != nil
+	// (see runAdvisorPass); this just pins that the panic recovery
+	// covers a nil model the same way runAdvisorPass's covers a nil
+	// advisor model, in case that invariant is ever violated by a future
+	// caller.
+	a := &sessionAgent{}
+	note, ok := a.runEscalationPass(t.Context(), "s1", "prompt", "response", "BLOCKER", "advisor note")
+	require.False(t, ok)
+	require.Empty(t, note)
+}

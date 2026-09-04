@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 
@@ -26,10 +27,16 @@ type OrchestrateParams struct {
 	// AgentNames names at least two configured subagents (see internal/subagents
 	// and `atlas agent list`) to run this same prompt with, in parallel.
 	AgentNames []string `json:"agent_names" description:"At least two distinct subagent names to run this prompt with, in parallel."`
+	// JudgeAgent optionally names a third, distinct subagent that reads
+	// every answer once they are all in and produces one final synthesis
+	// -- the best answer, a merge, or its own correction if all of them
+	// share a flaw -- instead of leaving that comparison to the caller.
+	JudgeAgent string `json:"judge_agent,omitempty" description:"A subagent, distinct from agent_names, that reviews every answer once they are all in and produces one final synthesized answer. Optional -- omit to get the raw answers only."`
 }
 
 type OrchestrateResponseMetadata struct {
 	Agents []string `json:"agents"`
+	Judge  string   `json:"judge,omitempty"`
 }
 
 type orchestrateResult struct {
@@ -77,6 +84,12 @@ func (c *coordinator) orchestrateTool(ctx context.Context) (fantasy.AgentTool, e
 					"orchestrate needs at least two distinct agent_names -- for a single agent, use `agent` instead"), nil
 			}
 
+			judgeName := strings.TrimSpace(params.JudgeAgent)
+			if judgeName != "" && slices.Contains(names, judgeName) {
+				return fantasy.NewTextErrorResponse(
+					"judge_agent must be a different agent from agent_names -- it needs an independent view of the answers, not one it also produced"), nil
+			}
+
 			sessionID := tools.GetSessionFromContext(ctx)
 			if sessionID == "" {
 				return fantasy.ToolResponse{}, errors.New("session id missing from context")
@@ -107,9 +120,25 @@ func (c *coordinator) orchestrateTool(ctx context.Context) (fantasy.AgentTool, e
 			}
 			wg.Wait()
 
+			var judge *orchestrateResult
+			if judgeName != "" {
+				res := c.runOrchestratedAgent(ctx, orchestratedAgentParams{
+					agentCfg:          agentCfg,
+					discovered:        discovered,
+					subagentInstances: subagentInstances,
+					limiter:           limiter,
+					name:              judgeName,
+					sessionID:         sessionID,
+					agentMessageID:    agentMessageID,
+					toolCallID:        fmt.Sprintf("%s-judge-%s", call.ID, judgeName),
+					prompt:            buildJudgePrompt(params.Prompt, results),
+				})
+				judge = &res
+			}
+
 			return fantasy.WithResponseMetadata(
-				fantasy.NewTextResponse(formatOrchestrateResults(results)),
-				OrchestrateResponseMetadata{Agents: names},
+				fantasy.NewTextResponse(formatOrchestrateResults(results, judge)),
+				OrchestrateResponseMetadata{Agents: names, Judge: judgeName},
 			), nil
 		},
 	), nil
@@ -169,8 +198,42 @@ func dedupeAgentNames(names []string) []string {
 	return out
 }
 
-func formatOrchestrateResults(results []orchestrateResult) string {
+// buildJudgePrompt hands a judge agent the original task and every
+// answer produced for it (failures included, so the judge can see that
+// an agent came up empty rather than treating its absence as agreement).
+func buildJudgePrompt(task string, results []orchestrateResult) string {
 	var b strings.Builder
+	b.WriteString("You are judging independent answers from several agents given the exact same task. " +
+		"Read them, then give ONE final answer: the best one, a merge of their strengths, or your own " +
+		"corrected answer if they share a flaw. Note any meaningful disagreement between them.\n\n")
+	fmt.Fprintf(&b, "Task:\n%s\n\nAnswers:\n", task)
+	for _, r := range results {
+		fmt.Fprintf(&b, "\n=== %s ===\n", r.name)
+		if r.err != nil {
+			fmt.Fprintf(&b, "(failed: %s)\n", r.err)
+			continue
+		}
+		b.WriteString(r.content)
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+
+// formatOrchestrateResults renders every agent's raw answer, preceded by
+// the judge's synthesis when one was requested. The raw answers stay in
+// the response even with a judge present, so a synthesis that misreads
+// or drops something stays checkable against the source material.
+func formatOrchestrateResults(results []orchestrateResult, judge *orchestrateResult) string {
+	var b strings.Builder
+	if judge != nil {
+		if judge.err != nil {
+			fmt.Fprintf(&b, "Synthesis unavailable -- judge %q failed: %s\n\n", judge.name, judge.err)
+		} else {
+			fmt.Fprintf(&b, "=== Synthesis (judged by %s) ===\n%s\n\n", judge.name, judge.content)
+		}
+		b.WriteString("--- Raw answers ---\n")
+	}
+
 	fmt.Fprintf(&b, "%d agent(s) ran independently on the same prompt.\n", len(results))
 	for _, r := range results {
 		fmt.Fprintf(&b, "\n=== %s ===\n", r.name)
