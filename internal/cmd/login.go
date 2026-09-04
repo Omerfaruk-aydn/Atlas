@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
+	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
@@ -213,7 +215,7 @@ func loginAntigravity(ws workspace.Workspace, force bool) error {
 		}
 	}
 
-	fmt.Println("Note: only Antigravity's Gemini-family models (gemini-3-pro-high/low) are supported; Claude and GPT-OSS models served through an Antigravity account are not.")
+	fmt.Println("Note: only Antigravity's Gemini-family models are supported; Claude and GPT-OSS models served through an Antigravity account are not.")
 	fmt.Println()
 
 	session, err := antigravity.Start(loginCtx)
@@ -231,8 +233,18 @@ func loginAntigravity(ws workspace.Workspace, force bool) error {
 	}
 
 	fmt.Println("Waiting for authorization...")
-	token, err := session.Wait(loginCtx)
+	// Bounded on top of getLoginContext's signal-only cancellation: a
+	// network-level stall here (proxy, AV, DNS) would otherwise hang with
+	// no feedback at all instead of failing with a clear timeout.
+	waitCtx, waitCancel := context.WithTimeout(loginCtx, 3*time.Minute)
+	defer waitCancel()
+	token, err := session.WaitWithProgress(waitCtx, func(msg string) {
+		fmt.Println(msg)
+	})
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			return fmt.Errorf("timed out waiting for Google sign-in to complete: %w", err)
+		}
 		return err
 	}
 

@@ -205,17 +205,32 @@ func (s *AuthSession) send(r authResult) {
 // exchanges the code for tokens, discovers (or provisions) a Cloud
 // project for the account, and shuts the local listener down either way.
 func (s *AuthSession) Wait(ctx context.Context) (*oauth.Token, error) {
+	return s.WaitWithProgress(ctx, nil)
+}
+
+// WaitWithProgress is Wait, but calls progress (if non-nil) with a short
+// status string before each network step, so a CLI caller can narrate
+// what would otherwise be a silent wait -- project provisioning for a
+// brand-new account can take up to a minute.
+func (s *AuthSession) WaitWithProgress(ctx context.Context, progress func(string)) (*oauth.Token, error) {
 	defer s.close()
+	report := func(msg string) {
+		if progress != nil {
+			progress(msg)
+		}
+	}
 
 	select {
 	case res := <-s.resultCh:
 		if res.err != nil {
 			return nil, res.err
 		}
+		report("Exchanging authorization code for tokens...")
 		tok, err := exchangeCode(ctx, res.code, s.verifier)
 		if err != nil {
 			return nil, err
 		}
+		report("Resolving your Cloud project (new accounts can take up to a minute)...")
 		project, tier, err := discoverProject(ctx, tok.AccessToken)
 		if err != nil {
 			return nil, fmt.Errorf("signed in, but could not resolve a Cloud project for this account: %w", err)
