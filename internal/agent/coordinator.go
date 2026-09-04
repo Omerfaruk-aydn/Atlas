@@ -864,6 +864,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewDepAuditTool(c.cfg.WorkingDir()),
 			tools.NewDockerBuildExplainTool(c.cfg.WorkingDir()),
 			tools.NewK8sManifestLintTool(c.cfg.WorkingDir()),
+			tools.NewTerraformLintTool(c.cfg.WorkingDir()),
 		)
 	}
 
