@@ -117,8 +117,12 @@ func NewModelItem(t *styles.Styles, prov catwalk.Provider, model catwalk.Model, 
 }
 
 // Filter implements ListItem.
+//
+// Includes the provider name alongside the model's own, so typing a
+// provider like "antigravity" or "nvidia" finds its models even when
+// none of their display names happen to contain that word.
 func (m *ModelItem) Filter() string {
-	return m.model.Name
+	return m.prov.Name + " " + m.model.Name
 }
 
 // ID implements ListItem.
