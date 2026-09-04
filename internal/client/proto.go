@@ -927,6 +927,24 @@ func (c *Client) GetSubAgentRuns(ctx context.Context, id, sessionID string) ([]p
 	return runs, nil
 }
 
+// GetAgentHubEntries lists every sub-agent session spawned under a
+// session, finished or still running.
+func (c *Client) GetAgentHubEntries(ctx context.Context, id, sessionID string) ([]proto.AgentHubEntry, error) {
+	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/%s/agenthub", id, sessionID), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get agent hub entries: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to get agent hub entries: status code %d", rsp.StatusCode)
+	}
+	var entries []proto.AgentHubEntry
+	if err := json.NewDecoder(rsp.Body).Decode(&entries); err != nil {
+		return nil, fmt.Errorf("failed to decode agent hub entries: %w", err)
+	}
+	return entries, nil
+}
+
 // ListUserMessages retrieves user-role messages for a session as proto types.
 func (c *Client) ListUserMessages(ctx context.Context, id string, sessionID string) ([]proto.Message, error) {
 	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/%s/messages/user", id, sessionID), nil, nil)

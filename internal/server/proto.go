@@ -481,6 +481,47 @@ func (c *controllerV1) handleGetWorkspaceSessionSubAgents(w http.ResponseWriter,
 	jsonEncode(w, runs)
 }
 
+// handleGetWorkspaceSessionAgentHub lists every sub-agent session spawned
+// under a session, finished or still running -- the full history behind
+// the Agent Hub dialog, unlike handleGetWorkspaceSessionSubAgents which
+// only reports currently in-flight runs.
+//
+//	@Summary		List agent hub entries for session
+//	@Tags			sessions
+//	@Produce		json
+//	@Param			id	path		string	true	"Workspace ID"
+//	@Param			sid	path		string	true	"Session ID"
+//	@Success		200	{array}		proto.AgentHubEntry
+//	@Failure		404	{object}	proto.Error
+//	@Failure		500	{object}	proto.Error
+//	@Router			/workspaces/{id}/sessions/{sid}/agenthub [get]
+func (c *controllerV1) handleGetWorkspaceSessionAgentHub(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	sid := r.PathValue("sid")
+	children, err := c.backend.ListChildSessions(r.Context(), id, sid)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	ws, _ := c.backend.GetWorkspace(id)
+
+	var entries []proto.AgentHubEntry
+	for _, child := range children {
+		if ws == nil || ws.Sessions == nil || !ws.Sessions.IsAgentToolSession(child.ID) {
+			continue
+		}
+		entries = append(entries, proto.AgentHubEntry{
+			SessionID:    child.ID,
+			Title:        child.Title,
+			StartedAt:    time.UnixMilli(child.CreatedAt),
+			Cost:         child.Cost,
+			MessageCount: child.MessageCount,
+			Busy:         isSessionBusy(ws, child.ID),
+		})
+	}
+	jsonEncode(w, entries)
+}
+
 // handleGetWorkspaceSessions lists sessions for a workspace.
 //
 //	@Summary		List sessions

@@ -373,6 +373,30 @@ func (w *AppWorkspace) SubAgentRunsList(ctx context.Context, sessionID string) [
 	return runs
 }
 
+func (w *AppWorkspace) AgentHubEntries(ctx context.Context, sessionID string) []AgentHubEntry {
+	children, err := w.app.Sessions.ListByParent(ctx, sessionID)
+	if err != nil {
+		slog.Error("Failed to list child sessions for agent hub", "error", err)
+		return nil
+	}
+
+	var entries []AgentHubEntry
+	for _, child := range children {
+		if !w.app.Sessions.IsAgentToolSession(child.ID) {
+			continue
+		}
+		entries = append(entries, AgentHubEntry{
+			SessionID:    child.ID,
+			Title:        child.Title,
+			StartedAt:    time.UnixMilli(child.CreatedAt),
+			Cost:         child.Cost,
+			MessageCount: child.MessageCount,
+			Busy:         w.AgentIsSessionBusy(child.ID),
+		})
+	}
+	return entries
+}
+
 func (w *AppWorkspace) LSPGetStates() map[string]LSPClientInfo {
 	states := app.GetLSPStates()
 	result := make(map[string]LSPClientInfo, len(states))

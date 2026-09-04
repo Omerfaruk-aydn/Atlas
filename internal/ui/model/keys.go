@@ -87,6 +87,7 @@ type KeyMap struct {
 	CyclePermissionMode key.Binding
 	Rewind              key.Binding
 	Jobs                key.Binding
+	AgentHub            key.Binding
 	BackToSession       key.Binding
 	FocusMode           key.Binding
 	ChatSearch          key.Binding
@@ -147,6 +148,10 @@ func DefaultKeyMap() KeyMap {
 		Jobs: key.NewBinding(
 			key.WithKeys("p"),
 			key.WithHelp("p", "jobs"),
+		),
+		AgentHub: key.NewBinding(
+			key.WithKeys("alt+a"),
+			key.WithHelp("alt+a", "agent hub"),
 		),
 		BackToSession: key.NewBinding(
 			// f3 fallback for the same reason as Rewind's f2 (see there).

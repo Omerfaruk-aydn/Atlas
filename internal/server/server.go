@@ -180,6 +180,7 @@ func (s *Server) installHandler() {
 	mux.HandleFunc("GET /v1/workspaces/{id}/sessions/{sid}/messages", c.handleGetWorkspaceSessionMessages)
 	mux.HandleFunc("GET /v1/workspaces/{id}/sessions/{sid}/messages/user", c.handleGetWorkspaceSessionUserMessages)
 	mux.HandleFunc("GET /v1/workspaces/{id}/sessions/{sid}/subagents", c.handleGetWorkspaceSessionSubAgents)
+	mux.HandleFunc("GET /v1/workspaces/{id}/sessions/{sid}/agenthub", c.handleGetWorkspaceSessionAgentHub)
 	mux.HandleFunc("GET /v1/workspaces/{id}/jobs", c.handleGetWorkspaceJobs)
 	mux.HandleFunc("DELETE /v1/workspaces/{id}/jobs/{jid}", c.handleDeleteWorkspaceJob)
 	mux.HandleFunc("GET /v1/workspaces/{id}/messages/user", c.handleGetWorkspaceAllUserMessages)

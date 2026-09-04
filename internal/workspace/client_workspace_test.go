@@ -945,3 +945,47 @@ func TestClientWorkspace_RecoveryCreateIsBounded(t *testing.T) {
 		t.Fatal("recoverWorkspace blocked on an unresponsive server")
 	}
 }
+
+func TestClientWorkspaceAgentHubEntries(t *testing.T) {
+	t.Parallel()
+
+	started := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, "/v1/workspaces/ws-1/sessions/parent-1/agenthub", r.URL.Path)
+		require.NoError(t, json.NewEncoder(w).Encode([]proto.AgentHubEntry{
+			{SessionID: "child-1", Title: "Research", StartedAt: started, Cost: 0.01, MessageCount: 3, Busy: true},
+			{SessionID: "child-2", Title: "Refactor", StartedAt: started, Cost: 0.02, MessageCount: 7, Busy: false},
+		}))
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	got := workspace.AgentHubEntries(t.Context(), "parent-1")
+	require.Equal(t, []AgentHubEntry{
+		{SessionID: "child-1", Title: "Research", StartedAt: started, Cost: 0.01, MessageCount: 3, Busy: true},
+		{SessionID: "child-2", Title: "Refactor", StartedAt: started, Cost: 0.02, MessageCount: 7, Busy: false},
+	}, got)
+}
+
+func TestClientWorkspaceAgentHubEntriesServerErrorReturnsNil(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	got := workspace.AgentHubEntries(t.Context(), "parent-1")
+	require.Nil(t, got)
+}

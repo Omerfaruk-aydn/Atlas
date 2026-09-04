@@ -2189,9 +2189,11 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 
-	// Jobs dialog: jump into a running sub-agent's session to watch it live.
+	// Jobs/Agent Hub dialogs: jump into a sub-agent's session to watch or
+	// review it.
 	case dialog.ActionViewSession:
 		m.dialog.CloseDialog(dialog.JobsID)
+		m.dialog.CloseDialog(dialog.AgentHubID)
 		if m.hasSession() && m.session.ID != msg.SessionID {
 			m.previousSessionID = m.session.ID
 		}
@@ -3245,6 +3247,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				m.chat.Blur()
 			case key.Matches(msg, m.keyMap.Jobs):
 				if cmd := m.openJobsDialog(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			case key.Matches(msg, m.keyMap.AgentHub):
+				if cmd := m.openAgentHubDialog(); cmd != nil {
 					cmds = append(cmds, cmd)
 				}
 			case key.Matches(msg, m.keyMap.Files):
@@ -4911,6 +4917,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		if cmd := m.openJobsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.AgentHubID:
+		if cmd := m.openAgentHubDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case dialog.ChatSearchID:
 		if cmd := m.openChatSearchDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -5079,6 +5089,23 @@ func (m *UI) openJobsDialog() tea.Cmd {
 		return nil
 	}
 	m.dialog.OpenDialog(dialog.NewJobs(m.com, m.jobStates, m.subAgentRuns))
+	return nil
+}
+
+// openAgentHubDialog opens the agent hub dialog: every sub-agent session
+// spawned under the current session, finished or still running. Unlike
+// openJobsDialog it fetches fresh from the workspace on open rather than
+// reading pre-memoized state, since Agent Hub is opened deliberately to
+// inspect history rather than kept live for a sidebar count.
+func (m *UI) openAgentHubDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.AgentHubID) {
+		m.dialog.BringToFront(dialog.AgentHubID)
+		return nil
+	}
+	if !m.hasSession() {
+		return util.ReportWarn("No active session")
+	}
+	m.dialog.OpenDialog(dialog.NewAgentHub(m.com, m.session.ID))
 	return nil
 }
 

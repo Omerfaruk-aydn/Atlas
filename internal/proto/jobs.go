@@ -21,6 +21,18 @@ type SubAgentRun struct {
 	StartedAt time.Time `json:"started_at"`
 }
 
+// AgentHubEntry is the wire representation of a workspace.AgentHubEntry --
+// one sub-agent session spawned under a top-level session, finished or
+// still running.
+type AgentHubEntry struct {
+	SessionID    string    `json:"session_id"`
+	Title        string    `json:"title"`
+	StartedAt    time.Time `json:"started_at"`
+	Cost         float64   `json:"cost"`
+	MessageCount int64     `json:"message_count"`
+	Busy         bool      `json:"busy"`
+}
+
 // JobEvent is the wire representation of a shell.JobEvent — a refresh
 // signal for the background jobs sidebar, forwarded over SSE. Consumers
 // re-fetch via GetJobs rather than trusting this payload for anything

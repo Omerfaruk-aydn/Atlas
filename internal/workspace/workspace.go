@@ -127,6 +127,22 @@ type SubAgentRunInfo struct {
 	StartedAt time.Time
 }
 
+// AgentHubEntry describes one sub-agent session spawned under a top-level
+// session, for the Agent Hub dialog -- unlike SubAgentRunInfo this covers
+// every sub-agent that has run in the session, finished or not, so the
+// Hub is a history, not just a live-jobs list.
+type AgentHubEntry struct {
+	SessionID string
+	Title     string
+	StartedAt time.Time
+	Cost      float64
+	// MessageCount is the sub-agent session's own message count, a rough
+	// proxy for how much work it did.
+	MessageCount int64
+	// Busy reports whether this sub-agent is still actively running.
+	Busy bool
+}
+
 // Workspace is the main abstraction consumed by the TUI and CLI. It
 // groups every operation a frontend needs to perform against a running
 // workspace, regardless of whether the workspace is in-process or
@@ -236,6 +252,12 @@ type Workspace interface {
 	// sessionID (i.e. spawned by the "agent"/"agentic_fetch" tools during
 	// that session's current turn).
 	SubAgentRunsList(ctx context.Context, sessionID string) []SubAgentRunInfo
+
+	// AgentHubEntries returns every sub-agent session spawned under
+	// sessionID, finished or still running -- the full history behind the
+	// Agent Hub dialog (Alt+A), as opposed to SubAgentRunsList's
+	// currently-in-flight-only view.
+	AgentHubEntries(ctx context.Context, sessionID string) []AgentHubEntry
 
 	// Config (read-only data)
 	Config() *config.Config

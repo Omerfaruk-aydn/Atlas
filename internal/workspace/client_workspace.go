@@ -573,6 +573,25 @@ func (w *ClientWorkspace) SubAgentRunsList(ctx context.Context, sessionID string
 	return result
 }
 
+func (w *ClientWorkspace) AgentHubEntries(ctx context.Context, sessionID string) []AgentHubEntry {
+	entries, err := w.client.GetAgentHubEntries(ctx, w.workspaceID(), sessionID)
+	if err != nil {
+		return nil
+	}
+	result := make([]AgentHubEntry, len(entries))
+	for i, e := range entries {
+		result[i] = AgentHubEntry{
+			SessionID:    e.SessionID,
+			Title:        e.Title,
+			StartedAt:    e.StartedAt,
+			Cost:         e.Cost,
+			MessageCount: e.MessageCount,
+			Busy:         e.Busy,
+		}
+	}
+	return result
+}
+
 func (w *ClientWorkspace) LSPGetStates() map[string]LSPClientInfo {
 	states, err := w.client.GetLSPs(context.Background(), w.workspaceID())
 	if err != nil {
