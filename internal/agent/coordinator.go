@@ -850,6 +850,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewSecurityScanTool(c.cfg.WorkingDir()),
 			tools.NewGenerateDocstringTool(c.cfg.WorkingDir()),
 			tools.NewGenerateTestsTool(c.cfg.WorkingDir()),
+			tools.NewSemanticCodeSearchTool(c.cfg.WorkingDir()),
 		)
 	}
 
