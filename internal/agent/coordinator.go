@@ -897,6 +897,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewGitConventionalCommitTool(c.cfg.WorkingDir()),
 			tools.NewGitConflictResolverTool(c.cfg.WorkingDir()),
 			tools.NewAuditTrailTool(c.cfg.WorkingDir()),
+			tools.NewGitCommitSplitTool(c.cfg.WorkingDir()),
 		)
 	}
 
