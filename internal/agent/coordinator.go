@@ -862,6 +862,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewCoverageReportTool(c.cfg.WorkingDir()),
 			tools.NewLintRunTool(c.cfg.WorkingDir()),
 			tools.NewDepAuditTool(c.cfg.WorkingDir()),
+			tools.NewDockerBuildExplainTool(c.cfg.WorkingDir()),
 		)
 	}
 
