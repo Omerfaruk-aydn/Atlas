@@ -231,7 +231,7 @@ func (s *AuthSession) WaitWithProgress(ctx context.Context, progress func(string
 			return nil, err
 		}
 		report("Resolving your Cloud project (new accounts can take up to a minute)...")
-		project, tier, err := discoverProject(ctx, tok.AccessToken)
+		project, tier, err := discoverProject(ctx, tok.AccessToken, report)
 		if err != nil {
 			return nil, fmt.Errorf("signed in, but could not resolve a Cloud project for this account: %w", err)
 		}
@@ -370,8 +370,12 @@ type onboardUserResponse struct {
 // discoverProject resolves the Cloud Code project id backing this
 // account's Antigravity access, provisioning one via onboardUser when the
 // account does not have one yet (a fresh sign-up). Returns the project id
-// and the account's tier ("free" or "paid").
-func discoverProject(ctx context.Context, accessToken string) (project, tier string, err error) {
+// and the account's tier ("free" or "paid"). report, if non-nil, is called
+// with a short status string before each network step.
+func discoverProject(ctx context.Context, accessToken string, report func(string)) (project, tier string, err error) {
+	if report == nil {
+		report = func(string) {}
+	}
 	load, err := postCodeAssist[loadCodeAssistResponse](ctx, accessToken, "loadCodeAssist", loadCodeAssistRequest{
 		Metadata: metadata(),
 	})
@@ -397,6 +401,7 @@ func discoverProject(ctx context.Context, accessToken string) (project, tier str
 		pollDelay   = 5 * time.Second
 	)
 	for attempt := 0; attempt < maxAttempts; attempt++ {
+		report(fmt.Sprintf("Setting up your Cloud project (attempt %d/%d)...", attempt+1, maxAttempts))
 		onboard, err := postCodeAssist[onboardUserResponse](ctx, accessToken, "onboardUser", onboardUserRequest{
 			TierID:   tierID,
 			Metadata: metadata(),

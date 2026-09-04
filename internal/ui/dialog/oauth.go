@@ -352,7 +352,7 @@ func (m *OAuth) innerDialogContent() string {
 			Width(innerWidth).
 			Padding(0, 1).
 			Render(
-				successStyle.Render(m.spinner.View()) + statusTextStyle.Render("Verifying..."),
+				successStyle.Render(m.spinner.View()) + statusTextStyle.Render("Verifying... (a brand-new account can take up to a couple of minutes)"),
 			)
 
 		elements := []string{""}
