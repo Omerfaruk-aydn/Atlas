@@ -43,6 +43,24 @@ func connect() {
 	require.Equal(t, "connect", f.Func)
 }
 
+func TestSecurityScanRedactsTheCredentialValue(t *testing.T) {
+	dir := t.TempDir()
+	writeSecurityFile(t, dir, "a.go", `package a
+
+func connect() {
+	password := "hunter2-real-secret"
+	_ = password
+}
+`)
+
+	got, err := SecurityScan(dir, SecurityScanOptions{})
+	require.NoError(t, err)
+	f := findSecurityKind(t, got.Findings, "hardcoded-credential")
+	require.NotNil(t, f)
+	require.NotContains(t, f.Snippet, "hunter2-real-secret")
+	require.Contains(t, f.Snippet, "*")
+}
+
 func TestSecurityScanIgnoresAPlaceholderCredential(t *testing.T) {
 	dir := t.TempDir()
 	writeSecurityFile(t, dir, "a.go", `package a

@@ -181,7 +181,7 @@ func checkHardcodedCredentialAssign(v *ast.AssignStmt, path string, fset *token.
 			Line:    fset.Position(lit.Pos()).Line,
 			Func:    fn,
 			Message: fmt.Sprintf("%s is assigned a literal string that looks like a real credential", id.Name),
-			Snippet: fmt.Sprintf("%s = %s", id.Name, truncateSnippet(lit.Value)),
+			Snippet: fmt.Sprintf("%s = %s", id.Name, redactCredential(lit.Value)),
 		})
 	}
 }
@@ -204,7 +204,7 @@ func checkHardcodedCredentialSpec(v *ast.ValueSpec, path string, fset *token.Fil
 			Line:    fset.Position(lit.Pos()).Line,
 			Func:    fn,
 			Message: fmt.Sprintf("%s is declared with a literal string that looks like a real credential", name.Name),
-			Snippet: fmt.Sprintf("%s = %s", name.Name, truncateSnippet(lit.Value)),
+			Snippet: fmt.Sprintf("%s = %s", name.Name, redactCredential(lit.Value)),
 		})
 	}
 }
@@ -285,10 +285,14 @@ func isSprintfCall(e ast.Expr) bool {
 	return ok && pkg.Name == "fmt"
 }
 
-func truncateSnippet(v string) string {
-	const max = 24
-	if len(v) <= max {
-		return v
+// redactCredential mirrors scan_secrets' own rule: a finding names the
+// shape of a problem, never the value, so a value that turns out to be a
+// live credential is never one field-read away from leaking into a
+// transcript or a log.
+func redactCredential(litValue string) string {
+	v := strings.Trim(litValue, "`\"")
+	if len(v) <= 8 {
+		return `"` + strings.Repeat("*", len(v)) + `"`
 	}
-	return v[:max] + `..."`
+	return `"` + v[:4] + strings.Repeat("*", len(v)-8) + v[len(v)-4:] + `"`
 }
