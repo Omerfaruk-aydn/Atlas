@@ -876,6 +876,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewGitBranchesTool(c.cfg.WorkingDir()),
 			tools.NewChangelogGenTool(c.cfg.WorkingDir()),
 			tools.NewPRDescribeTool(c.cfg.WorkingDir()),
+			tools.NewPreCommitGuardTool(c.cfg.WorkingDir()),
 		)
 	}
 
