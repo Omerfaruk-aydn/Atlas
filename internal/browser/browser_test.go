@@ -29,8 +29,18 @@ func (f *fakeSession) Eval(string) (string, error)     { return "", nil }
 func (f *fakeSession) Text(string) (string, error)     { return "", nil }
 func (f *fakeSession) HTML(string) (string, error)     { return "", nil }
 func (f *fakeSession) Screenshot(bool) ([]byte, error) { return []byte("png"), nil }
-func (f *fakeSession) URL() (string, error)            { return "https://example.com", nil }
-func (f *fakeSession) Close()                          { f.closed = true }
+
+func (f *fakeSession) URL() (string, error)                                  { return "https://example.com", nil }
+func (f *fakeSession) Back() error                                           { return nil }
+func (f *fakeSession) Forward() error                                        { return nil }
+func (f *fakeSession) Scroll(int, int) error                                 { return nil }
+func (f *fakeSession) Snapshot(bool) ([]SnapshotElement, error)              { return nil, nil }
+func (f *fakeSession) Images() ([]ImageInfo, error)                          { return nil, nil }
+func (f *fakeSession) ConsoleLogs() []ConsoleEntry                           { return nil }
+func (f *fakeSession) PendingDialogs() []DialogInfo                          { return nil }
+func (f *fakeSession) HandleDialog(bool, string) error                       { return nil }
+func (f *fakeSession) RawCDP(string, map[string]any) (map[string]any, error) { return nil, nil }
+func (f *fakeSession) Close()                                                { f.closed = true }
 
 func newTestManager() (*Manager, *int) {
 	created := 0
