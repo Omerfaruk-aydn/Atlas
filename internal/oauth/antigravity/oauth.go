@@ -77,14 +77,11 @@ type clientMetadata struct {
 }
 
 func metadata() clientMetadata {
-	platform := "LINUX"
-	switch runtime.GOOS {
-	case "windows":
-		platform = "WINDOWS"
-	case "darwin":
-		platform = "MACOS"
-	}
-	return clientMetadata{IdeType: "ANTIGRAVITY", Platform: platform, PluginType: "GEMINI"}
+	// Google's ClientMetadata.Platform enum rejects OS-specific values
+	// like "WINDOWS" or "LINUX" here (confirmed against the real
+	// loadCodeAssist endpoint, which 400s on them) -- the only value that
+	// works is PLATFORM_UNSPECIFIED, the same one the pi-ai runtime uses.
+	return clientMetadata{IdeType: "ANTIGRAVITY", Platform: "PLATFORM_UNSPECIFIED", PluginType: "GEMINI"}
 }
 
 // RequestHeaders returns the headers Antigravity's Cloud Code backend
