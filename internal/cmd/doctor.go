@@ -199,7 +199,55 @@ func checkBrowser(cfg *config.ConfigStore) *checkResult {
 			return &checkResult{"browser", statusOK, path}
 		}
 	}
-	return &checkResult{"browser", statusWarn, "no Chrome/Chromium/Edge found on PATH; set tools.browser.executable_path if one is installed elsewhere"}
+	// Chrome/Edge installers do not put their binary on PATH by default,
+	// so this is the common case, not an edge case: check the well-known
+	// per-OS install locations chromedp itself already probes internally
+	// before reporting a miss.
+	for _, path := range commonBrowserPaths() {
+		if _, err := os.Stat(path); err == nil {
+			return &checkResult{"browser", statusOK, path}
+		}
+	}
+	return &checkResult{"browser", statusWarn, "no Chrome/Chromium/Edge found on PATH or in the usual install locations; set tools.browser.executable_path if one is installed elsewhere"}
+}
+
+// commonBrowserPaths lists the well-known install locations for Chrome,
+// Chromium, and Edge outside PATH, for the current OS. Best-effort: not
+// exhaustive, just the common installer defaults.
+func commonBrowserPaths() []string {
+	switch runtime.GOOS {
+	case "windows":
+		programFiles := os.Getenv("ProgramFiles")
+		programFilesX86 := os.Getenv("ProgramFiles(x86)")
+		localAppData := os.Getenv("LOCALAPPDATA")
+		var paths []string
+		for _, base := range []string{programFiles, programFilesX86, localAppData} {
+			if base == "" {
+				continue
+			}
+			paths = append(paths,
+				filepath.Join(base, "Google", "Chrome", "Application", "chrome.exe"),
+				filepath.Join(base, "Chromium", "Application", "chrome.exe"),
+				filepath.Join(base, "Microsoft", "Edge", "Application", "msedge.exe"),
+			)
+		}
+		return paths
+	case "darwin":
+		return []string{
+			"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+			"/Applications/Chromium.app/Contents/MacOS/Chromium",
+			"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+		}
+	default: // linux and everything else
+		return []string{
+			"/usr/bin/google-chrome",
+			"/usr/bin/google-chrome-stable",
+			"/usr/bin/chromium",
+			"/usr/bin/chromium-browser",
+			"/snap/bin/chromium",
+			"/opt/google/chrome/chrome",
+		}
+	}
 }
 
 // checkDebugger reports whether the debugger tool, if turned on, has a
