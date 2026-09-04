@@ -808,6 +808,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewLsTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Ls),
 		tools.NewMemoryTool(c.memory, c.permissions),
 		tools.NewFactsTool(c.facts, c.permissions),
+		tools.NewInspectFileTool(c.cfg.WorkingDir()),
 		tools.NewSessionSearchTool(c.messages),
 		tools.NewSkillManageTool(skillDirs(c.cfg), c.allSkills, c.permissions),
 		tools.NewUsageTool(c.sessions, c.cfg.Config().Options.MaxSessionCost),

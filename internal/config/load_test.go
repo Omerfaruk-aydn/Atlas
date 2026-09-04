@@ -873,7 +873,7 @@ func TestConfig_setupAgentsWithDisabledTools(t *testing.T) {
 	coderAgent, ok := cfg.Agents[AgentCoder]
 	require.True(t, ok)
 
-	assert.Equal(t, []string{"agent", "bash", "atlas_info", "atlas_logs", "job_output", "job_kill", "exit_plan_mode", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "lsp_symbols", "lsp_definition", "lsp_call_hierarchy", "lsp_rename", "lsp_rename_file", "lsp_replace_symbol", "fetch", "agentic_fetch", "facts", "glob", "ls", "memory", "question", "session_search", "skill_manage", "sourcegraph", "todos", "usage", "view", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
+	assert.Equal(t, []string{"agent", "bash", "atlas_info", "atlas_logs", "job_output", "job_kill", "exit_plan_mode", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "lsp_symbols", "lsp_definition", "lsp_call_hierarchy", "lsp_rename", "lsp_rename_file", "lsp_replace_symbol", "fetch", "agentic_fetch", "facts", "inspect_file", "glob", "ls", "memory", "question", "session_search", "skill_manage", "sourcegraph", "todos", "usage", "view", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
 
 	taskAgent, ok := cfg.Agents[AgentTask]
 	require.True(t, ok)
@@ -901,7 +901,7 @@ func TestConfig_setupAgentsWithEveryReadOnlyToolDisabled(t *testing.T) {
 	cfg.SetupAgents()
 	coderAgent, ok := cfg.Agents[AgentCoder]
 	require.True(t, ok)
-	assert.Equal(t, []string{"agent", "bash", "atlas_info", "atlas_logs", "job_output", "job_kill", "download", "edit", "exit_plan_mode", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "lsp_rename", "lsp_rename_file", "lsp_replace_symbol", "fetch", "agentic_fetch", "facts", "memory", "question", "skill_manage", "todos", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
+	assert.Equal(t, []string{"agent", "bash", "atlas_info", "atlas_logs", "job_output", "job_kill", "download", "edit", "exit_plan_mode", "multiedit", "lsp_diagnostics", "lsp_references", "lsp_restart", "lsp_rename", "lsp_rename_file", "lsp_replace_symbol", "fetch", "agentic_fetch", "facts", "inspect_file", "memory", "question", "skill_manage", "todos", "write", "list_mcp_resources", "read_mcp_resource"}, coderAgent.AllowedTools)
 
 	taskAgent, ok := cfg.Agents[AgentTask]
 	require.True(t, ok)

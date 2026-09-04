@@ -1298,6 +1298,7 @@ func allToolNames() []string {
 		"fetch",
 		"agentic_fetch",
 		"facts",
+		"inspect_file",
 		"glob",
 		"grep",
 		"ls",
