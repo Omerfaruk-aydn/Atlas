@@ -869,6 +869,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewTerraformLintTool(c.cfg.WorkingDir()),
 			tools.NewCICDPipelineDebuggerTool(c.cfg.WorkingDir()),
 			tools.NewCloudResourceCostsTool(c.cfg.WorkingDir()),
+			tools.NewLogTailTool(c.cfg.WorkingDir()),
 		)
 	}
 
