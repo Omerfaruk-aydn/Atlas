@@ -851,6 +851,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewGenerateDocstringTool(c.cfg.WorkingDir()),
 			tools.NewGenerateTestsTool(c.cfg.WorkingDir()),
 			tools.NewSemanticCodeSearchTool(c.cfg.WorkingDir()),
+			tools.NewMetricExportTool(c.cfg.WorkingDir()),
 		)
 	}
 
