@@ -236,7 +236,7 @@ func loginAntigravity(ws workspace.Workspace, force bool) error {
 	// Bounded on top of getLoginContext's signal-only cancellation: a
 	// network-level stall here (proxy, AV, DNS) would otherwise hang with
 	// no feedback at all instead of failing with a clear timeout.
-	waitCtx, waitCancel := context.WithTimeout(loginCtx, 3*time.Minute)
+	waitCtx, waitCancel := context.WithTimeout(loginCtx, 5*time.Minute)
 	defer waitCancel()
 	token, err := session.WaitWithProgress(waitCtx, func(msg string) {
 		fmt.Println(msg)

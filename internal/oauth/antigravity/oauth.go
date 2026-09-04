@@ -395,11 +395,15 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 	}
 
 	// No project yet: this account needs onboarding, which provisions one
-	// asynchronously. Poll until it reports done with a project id.
+	// asynchronously. Poll until it reports done with a project id. 24
+	// attempts at 5s gives 2 minutes, which is closer to what onboarding a
+	// genuinely brand-new Google Cloud identity has been observed to take
+	// than the original 10 (50s) -- too short in practice.
 	const (
-		maxAttempts = 10
+		maxAttempts = 24
 		pollDelay   = 5 * time.Second
 	)
+	var lastDone bool
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		report(fmt.Sprintf("Setting up your Cloud project (attempt %d/%d)...", attempt+1, maxAttempts))
 		onboard, err := postCodeAssist[onboardUserResponse](ctx, accessToken, "onboardUser", onboardUserRequest{
@@ -409,6 +413,7 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 		if err != nil {
 			return "", "", fmt.Errorf("onboardUser: %w", err)
 		}
+		lastDone = onboard.Done
 		if onboard.Done && onboard.Response.CloudaicompanionProject.ID != "" {
 			return onboard.Response.CloudaicompanionProject.ID, tierID, nil
 		}
@@ -418,7 +423,7 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 			return "", "", ctx.Err()
 		}
 	}
-	return "", "", errors.New("timed out waiting for Antigravity project provisioning")
+	return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts (tier=%q, last onboardUser done=%v)", maxAttempts, tierID, lastDone)
 }
 
 func postCodeAssist[T any](ctx context.Context, accessToken, method string, body any) (*T, error) {
