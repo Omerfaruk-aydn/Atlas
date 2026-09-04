@@ -38,6 +38,9 @@ func (e *modelRoleEntry) Filter() string { return e.name }
 
 func (e *modelRoleEntry) info() string {
 	info := fmt.Sprintf("%s / %s", e.model.Provider, e.model.Model)
+	if e.model.ReasoningEffort != "" {
+		info += " · " + e.model.ReasoningEffort + " reasoning"
+	}
 	if e.builtin {
 		info += " (built-in)"
 	}
@@ -194,7 +197,12 @@ func (d *ModelRoles) HandleMsg(msg tea.Msg) Action {
 			if !ok {
 				return nil
 			}
-			return ActionOpenModelRoleForm{ExistingName: entry.name, ExistingProvider: entry.model.Provider, ExistingModel: entry.model.Model}
+			return ActionOpenModelRoleForm{
+				ExistingName:            entry.name,
+				ExistingProvider:        entry.model.Provider,
+				ExistingModel:           entry.model.Model,
+				ExistingReasoningEffort: entry.model.ReasoningEffort,
+			}
 		case key.Matches(msg, d.keyMap.Delete):
 			entry, ok := d.selectedCustomEntry()
 			if !ok {

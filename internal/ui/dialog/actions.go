@@ -102,14 +102,16 @@ type (
 	// ActionOpenModelRoleForm opens the add/edit form for a model role.
 	// An empty ExistingName means creating a new role, in which case
 	// the form includes a name field; editing an existing one keeps its
-	// name fixed and only offers provider/model.
+	// name fixed and only offers provider/model/reasoning_effort.
 	ActionOpenModelRoleForm struct {
-		ExistingName     string
-		ExistingProvider string
-		ExistingModel    string
+		ExistingName            string
+		ExistingProvider        string
+		ExistingModel           string
+		ExistingReasoningEffort string
 	}
 	// ActionSaveModelRole is the model role form's result. Args holds
-	// "name" (create only), "provider", "model".
+	// "name" (create only), "provider", "model", "reasoning_effort"
+	// (optional -- empty leaves the model's own default in effect).
 	ActionSaveModelRole struct {
 		ExistingName string
 		Args         map[string]string
@@ -159,6 +161,15 @@ type (
 	ActionEditSubagentFile struct {
 		Name string
 		Path string
+	}
+
+	// ActionSetMode switches the coder agent between the small model
+	// ("fast": quicker, cheaper, lowest available reasoning effort) and
+	// the large model ("quality": the model actually chosen as the
+	// session's primary, highest available reasoning effort). See
+	// handleSetMode in ui.go.
+	ActionSetMode struct {
+		Mode string // "fast" or "quality"
 	}
 	// ActionSelectReasoningEffort is a message indicating a reasoning effort
 	// has been selected.

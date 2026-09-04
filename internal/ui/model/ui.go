@@ -2348,6 +2348,11 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		if cmd := m.handleEditSubagentFile(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.ActionSetMode:
+		if cmd := m.handleSetMode(msg.Mode); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		m.dialog.CloseDialog(dialog.CommandsID)
 	case dialog.ActionToggleHelp:
 		m.status.ToggleHelp()
 		m.dialog.CloseDialog(dialog.CommandsID)
@@ -5082,6 +5087,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		}
 	case dialog.SubagentsID:
 		if cmd := m.openSubagentsDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ToolSettingsID:
+		if cmd := m.openToolSettingsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
 	case dialog.ChatSearchID:

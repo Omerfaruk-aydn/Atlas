@@ -57,7 +57,7 @@ func testModelRolesConfig() *config.Config {
 		},
 		Options: &config.Options{
 			ModelRoles: map[string]config.SelectedModel{
-				"research": {Provider: "openai", Model: "o3"},
+				"research": {Provider: "openai", Model: "o3", ReasoningEffort: "high"},
 			},
 		},
 	}
@@ -96,6 +96,7 @@ func TestModelRolesEditOpensFormForCustomRole(t *testing.T) {
 	require.Equal(t, "research", form.ExistingName)
 	require.Equal(t, "openai", form.ExistingProvider)
 	require.Equal(t, "o3", form.ExistingModel)
+	require.Equal(t, "high", form.ExistingReasoningEffort)
 }
 
 func TestModelRolesDeleteIgnoresBuiltinRoles(t *testing.T) {

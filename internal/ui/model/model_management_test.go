@@ -5,9 +5,12 @@ import (
 	"testing"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/workspace"
 	"github.com/stretchr/testify/require"
 )
@@ -27,6 +30,10 @@ type modelManagementWorkspace struct {
 	savedSubagent subagents.Subagent
 	savedScope    bool
 	saveErr       error
+
+	updatedModels     map[config.SelectedModelType]config.SelectedModel
+	updateErr         error
+	updatedAgentModel bool
 }
 
 func (w *modelManagementWorkspace) Config() *config.Config { return w.cfg }
@@ -38,6 +45,19 @@ func (w *modelManagementWorkspace) SetConfigField(_ config.Scope, key string, va
 
 func (w *modelManagementWorkspace) ListSubagents(context.Context) ([]subagents.Subagent, error) {
 	return w.subagentsList, nil
+}
+
+func (w *modelManagementWorkspace) UpdatePreferredModel(_ config.Scope, modelType config.SelectedModelType, model config.SelectedModel) error {
+	if w.updatedModels == nil {
+		w.updatedModels = map[config.SelectedModelType]config.SelectedModel{}
+	}
+	w.updatedModels[modelType] = model
+	return w.updateErr
+}
+
+func (w *modelManagementWorkspace) UpdateAgentModel(context.Context) error {
+	w.updatedAgentModel = true
+	return nil
 }
 
 func (w *modelManagementWorkspace) SaveSubagent(_ context.Context, sub subagents.Subagent, userScope bool) (string, error) {
@@ -74,6 +94,18 @@ func TestHandleSaveModelRoleWritesTheExpectedField(t *testing.T) {
 	require.NoError(t, msg.err)
 	require.Equal(t, "options.model_roles.research", ws.setKey)
 	require.Equal(t, config.SelectedModel{Provider: "openai", Model: "o3"}, ws.setValue)
+}
+
+func TestHandleSaveModelRoleIncludesReasoningEffortWhenGiven(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: &config.Config{}}
+	m := newModelManagementTestUI(ws)
+
+	cmd := m.handleSaveModelRole(dialog.ActionSaveModelRole{
+		Args: map[string]string{"name": "research", "provider": "openai", "model": "o3", "reasoning_effort": "high"},
+	})
+	msg := cmd().(modelRoleSavedMsg)
+	require.NoError(t, msg.err)
+	require.Equal(t, config.SelectedModel{Provider: "openai", Model: "o3", ReasoningEffort: "high"}, ws.setValue)
 }
 
 func TestHandleSaveModelRoleEditingKeepsTheExistingName(t *testing.T) {
@@ -221,4 +253,79 @@ func TestHandleSaveSubagentMetaSaveErrorIsReported(t *testing.T) {
 	})
 	msg := cmd().(subagentSavedMsg)
 	require.Error(t, msg.err)
+}
+
+func testModeSwitchConfig() *config.Config {
+	providers := csync.NewMap[string, config.ProviderConfig]()
+	providers.Set("openai", config.ProviderConfig{
+		ID:     "openai",
+		Models: []catwalk.Model{{ID: "o3-mini", ReasoningLevels: []string{"low", "medium", "high"}}},
+	})
+	providers.Set("anthropic", config.ProviderConfig{
+		ID:     "anthropic",
+		Models: []catwalk.Model{{ID: "claude-sonnet-5", ReasoningLevels: []string{"low", "high"}}},
+	})
+	return &config.Config{
+		Models: map[config.SelectedModelType]config.SelectedModel{
+			config.SelectedModelTypeLarge: {Provider: "anthropic", Model: "claude-sonnet-5"},
+			config.SelectedModelTypeSmall: {Provider: "openai", Model: "o3-mini"},
+		},
+		Providers: providers,
+	}
+}
+
+func TestHandleSetModeRejectsUnknownMode(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: testModeSwitchConfig()}
+	m := newModelManagementTestUI(ws)
+
+	cmd := m.handleSetMode("turbo")
+	require.NotNil(t, cmd)
+	cmd()
+	require.Empty(t, ws.setKey, "an unknown mode must not touch the workspace")
+}
+
+func TestHandleSetModeFastSwitchesToSmallAtLowestReasoning(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: testModeSwitchConfig()}
+	m := newModelManagementTestUI(ws)
+
+	msg := m.applyMode("fast")
+	info, ok := msg.(util.InfoMsg)
+	require.True(t, ok, "expected an info message, got %T", msg)
+	require.Contains(t, info.Msg, "Fast")
+	require.Contains(t, info.Msg, "low")
+
+	require.Equal(t, "options.agent_models.coder", ws.setKey)
+	require.Equal(t, config.SelectedModelTypeSmall, ws.setValue)
+
+	updated, ok := ws.updatedModels[config.SelectedModelTypeSmall]
+	require.True(t, ok, "the small model's reasoning effort must be updated")
+	require.Equal(t, "low", updated.ReasoningEffort)
+	require.True(t, ws.updatedAgentModel, "the live agent must be rebuilt after a mode switch")
+}
+
+func TestHandleSetModeQualitySwitchesToLargeAtHighestReasoning(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: testModeSwitchConfig()}
+	m := newModelManagementTestUI(ws)
+
+	msg := m.applyMode("quality")
+	info := msg.(util.InfoMsg)
+	require.Contains(t, info.Msg, "Quality")
+	require.Contains(t, info.Msg, "high")
+
+	require.Equal(t, "options.agent_models.coder", ws.setKey)
+	require.Equal(t, config.SelectedModelTypeLarge, ws.setValue)
+
+	updated, ok := ws.updatedModels[config.SelectedModelTypeLarge]
+	require.True(t, ok)
+	require.Equal(t, "high", updated.ReasoningEffort)
+}
+
+func TestHandleSetModeAgentModelWriteErrorIsReported(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: testModeSwitchConfig(), setErr: context.DeadlineExceeded}
+	m := newModelManagementTestUI(ws)
+
+	msg := m.applyMode("fast")
+	info, ok := msg.(util.InfoMsg)
+	require.True(t, ok, "expected an info message, got %T", msg)
+	require.Equal(t, util.InfoTypeError, info.Type, "a SetConfigField failure must be reported as an error, not success")
 }

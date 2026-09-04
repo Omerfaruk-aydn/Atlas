@@ -51,6 +51,82 @@ func (m *UI) openSubagentsDialog() tea.Cmd {
 	return nil
 }
 
+func (m *UI) openToolSettingsDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.ToolSettingsID) {
+		m.dialog.BringToFront(dialog.ToolSettingsID)
+		return nil
+	}
+	m.dialog.OpenDialog(dialog.NewToolSettings(m.com))
+	return nil
+}
+
+// handleSetMode switches the coder agent between the small model
+// ("fast") and the large model ("quality"), and pushes that model's
+// reasoning effort to the corresponding end of its supported range --
+// lowest for fast, highest for quality. Reuses exactly the two
+// primitives ActionSelectReasoningEffort already relies on
+// (SetConfigField for the agent-model override, UpdatePreferredModel
+// for the effort), just choosing both ends of an axis at once instead
+// of asking the user to pick.
+func (m *UI) handleSetMode(mode string) tea.Cmd {
+	if m.isAgentBusy() {
+		return util.ReportWarn("Agent is busy, please wait...")
+	}
+	if mode != "fast" && mode != "quality" {
+		return util.ReportError(fmt.Errorf("unknown mode %q", mode))
+	}
+	return m.updateAgentModelCmd(func() tea.Msg {
+		return m.applyMode(mode)
+	})
+}
+
+// applyMode does the actual mode-switch work: it is a plain function
+// (not a tea.Cmd factory) so a test can call it directly and inspect
+// its return value, rather than having to unwrap the tea.Sequence
+// handleSetMode wraps it in.
+func (m *UI) applyMode(mode string) tea.Msg {
+	targetType := config.SelectedModelTypeLarge
+	if mode == "fast" {
+		targetType = config.SelectedModelTypeSmall
+	}
+
+	ws := m.com.Workspace
+	if err := ws.SetConfigField(config.ScopeGlobal, "options.agent_models."+config.AgentCoder, targetType); err != nil {
+		return util.ReportError(fmt.Errorf("switching mode: %w", err))()
+	}
+
+	// SetConfigField reloads the config synchronously before returning,
+	// so this read sees the agent-model override just written.
+	cfg := ws.Config()
+	if cfg == nil {
+		return util.NewInfoMsg(modeLabel(mode) + " mode: now running on the " + string(targetType) + " model.")
+	}
+
+	if model := cfg.GetModelByType(targetType); model != nil && len(model.ReasoningLevels) > 0 {
+		effort := model.ReasoningLevels[0]
+		if mode == "quality" {
+			effort = model.ReasoningLevels[len(model.ReasoningLevels)-1]
+		}
+		selected := cfg.Models[targetType]
+		selected.ReasoningEffort = effort
+		if err := ws.UpdatePreferredModel(config.ScopeGlobal, targetType, selected); err != nil {
+			return util.ReportError(fmt.Errorf("setting reasoning effort: %w", err))()
+		}
+		ws.UpdateAgentModel(context.Background())
+		return util.NewInfoMsg(fmt.Sprintf("%s mode: now running on the %s model at %s reasoning.", modeLabel(mode), targetType, effort))
+	}
+
+	ws.UpdateAgentModel(context.Background())
+	return util.NewInfoMsg(modeLabel(mode) + " mode: now running on the " + string(targetType) + " model.")
+}
+
+func modeLabel(mode string) string {
+	if mode == "fast" {
+		return "Fast"
+	}
+	return "Quality"
+}
+
 // -- Model roles --
 
 func (m *UI) handleOpenModelRoleForm(msg dialog.ActionOpenModelRoleForm) tea.Cmd {
@@ -66,12 +142,17 @@ func (m *UI) handleOpenModelRoleForm(msg dialog.ActionOpenModelRoleForm) tea.Cmd
 	args = append(args,
 		commands.Argument{ID: "provider", Title: "Provider", Description: "e.g. openai", Required: true},
 		commands.Argument{ID: "model", Title: "Model", Description: "e.g. gpt-4o", Required: true},
+		commands.Argument{ID: "reasoning_effort", Title: "Reasoning Effort", Description: "e.g. low, medium, high -- leave empty for the model's own default"},
 	)
 
 	form := dialog.NewArguments(m.com, title, "A named model role a subagent, the advisor, or a vibe worker can run on -- see `atlas models roles`.",
 		args, dialog.ActionSaveModelRole{ExistingName: msg.ExistingName})
 	if msg.ExistingName != "" {
-		form.SetValues(map[string]string{"provider": msg.ExistingProvider, "model": msg.ExistingModel})
+		form.SetValues(map[string]string{
+			"provider":         msg.ExistingProvider,
+			"model":            msg.ExistingModel,
+			"reasoning_effort": msg.ExistingReasoningEffort,
+		})
 	}
 	m.dialog.OpenDialog(form)
 	return nil
@@ -93,8 +174,9 @@ func (m *UI) handleSaveModelRole(msg dialog.ActionSaveModelRole) tea.Cmd {
 		return util.ReportWarn("Role name is required.")
 	}
 	model := config.SelectedModel{
-		Provider: strings.TrimSpace(msg.Args["provider"]),
-		Model:    strings.TrimSpace(msg.Args["model"]),
+		Provider:        strings.TrimSpace(msg.Args["provider"]),
+		Model:           strings.TrimSpace(msg.Args["model"]),
+		ReasoningEffort: strings.TrimSpace(msg.Args["reasoning_effort"]),
 	}
 
 	ws := m.com.Workspace
