@@ -47,6 +47,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/anthropic"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/antigravity"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/azure"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/bedrock"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/google"
@@ -538,6 +539,16 @@ func getProviderOptions(model Model, providerCfg config.ProviderConfig) fantasy.
 		parsed, err := google.ParseOptions(mergedOptions)
 		if err == nil {
 			options[google.Name] = parsed
+		}
+
+	case antigravity.Name:
+		_, hasEffort := mergedOptions["thinking_level"]
+		if !hasEffort && shouldSetEffort {
+			mergedOptions["thinking_level"] = reasoningEffort
+		}
+		parsed, err := antigravity.ParseOptions(mergedOptions)
+		if err == nil {
+			options[antigravity.Name] = parsed
 		}
 
 	case openaicompat.Name:
@@ -1485,6 +1496,23 @@ func (c *coordinator) buildGoogleVertexProvider(headers map[string]string, optio
 	return google.New(opts...)
 }
 
+func (c *coordinator) buildAntigravityProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []antigravity.Option{
+		antigravity.WithAPIKey(apiKey),
+		antigravity.WithProject(options["project"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, antigravity.WithBaseURL(baseURL))
+	}
+	if c.cfg.Config().Options.Debug {
+		opts = append(opts, antigravity.WithHTTPClient(log.NewHTTPClient()))
+	}
+	if len(headers) > 0 {
+		opts = append(opts, antigravity.WithHeaders(headers))
+	}
+	return antigravity.New(opts...)
+}
+
 func (c *coordinator) isAnthropicThinking(model config.SelectedModel) bool {
 	if model.Think {
 		return true
@@ -1548,6 +1576,8 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 		return c.buildGoogleProvider(baseURL, apiKey, headers)
 	case "google-vertex":
 		return c.buildGoogleVertexProvider(headers, providerCfg.ExtraParams)
+	case antigravity.Name:
+		return c.buildAntigravityProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
 	case openaicompat.Name:
 		switch providerCfg.ID {
 		case string(catwalk.InferenceProviderZAI):
