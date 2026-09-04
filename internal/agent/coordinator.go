@@ -922,6 +922,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewDefinitionTool(c.lspManager),
 			tools.NewCallHierarchyTool(c.lspManager),
 			tools.NewRenameTool(c.lspManager, c.permissions, c.history, c.filetracker),
+			tools.NewLspRenameFileTool(c.lspManager, c.permissions, c.history, c.filetracker, c.cfg.WorkingDir()),
 			tools.NewReplaceSymbolTool(c.lspManager, c.permissions, c.history, c.filetracker),
 		)
 	}

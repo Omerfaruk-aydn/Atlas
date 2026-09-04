@@ -43,6 +43,8 @@ const (
 	MethodWorkspaceDidChangeConfiguration    = "workspace/didChangeConfiguration"
 	MethodWorkspaceDidChangeWorkspaceFolders = "workspace/didChangeWorkspaceFolders"
 	MethodWorkspaceDidChangeWatchedFiles     = "workspace/didChangeWatchedFiles"
+	MethodWorkspaceWillRenameFiles           = "workspace/willRenameFiles"
+	MethodWorkspaceDidRenameFiles            = "workspace/didRenameFiles"
 )
 
 // Repeated JSON field names used both as LSP/JSON-RPC keys (in
@@ -456,6 +458,39 @@ func (c *Client) RequestRename(ctx context.Context, filepath string, line, chara
 		return nil, fmt.Errorf("rename request failed: %w", err)
 	}
 	return &result, nil
+}
+
+// RequestWillRenameFiles asks the server what edits (typically import or
+// module-path updates in files elsewhere in the workspace) should
+// accompany renaming the given files or folders, before the rename
+// actually happens on disk. A server that doesn't advertise this
+// capability returns a JSON-RPC "method not found" error, which the
+// caller should treat as "no edits needed" rather than a failure.
+func (c *Client) RequestWillRenameFiles(ctx context.Context, files []protocol.FileRename) (*protocol.WorkspaceEdit, error) {
+	if !c.initialized.Load() {
+		return nil, fmt.Errorf("client not initialized")
+	}
+
+	params := protocol.RenameFilesParams{Files: files}
+	var result protocol.WorkspaceEdit
+	err := c.conn.Call(ctx, MethodWorkspaceWillRenameFiles, params, &result)
+	if err != nil {
+		return nil, fmt.Errorf("willRenameFiles request failed: %w", err)
+	}
+	return &result, nil
+}
+
+// NotifyDidRenameFiles tells the server a rename it was asked about (or
+// one it was never asked about at all) has actually happened, so it can
+// update its own model of the workspace -- re-index the file under its
+// new path, for instance.
+func (c *Client) NotifyDidRenameFiles(ctx context.Context, files []protocol.FileRename) error {
+	if !c.initialized.Load() {
+		return fmt.Errorf("client not initialized")
+	}
+
+	params := protocol.RenameFilesParams{Files: files}
+	return c.conn.Notify(ctx, MethodWorkspaceDidRenameFiles, params) //nolint:wrapcheck
 }
 
 // RequestDocumentSymbols requests the document symbols for the given file.

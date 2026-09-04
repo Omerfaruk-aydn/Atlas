@@ -716,6 +716,39 @@ func (c *Client) Rename(ctx context.Context, filepath string, line, character in
 	return c.client.RequestRename(ctx, filepath, line-1, character-1, newName) //nolint:wrapcheck
 }
 
+// WillRenameFiles asks the server what edits should accompany moving
+// oldPath to newPath -- typically updates to import or module-path
+// references in other files, the way a symbol rename updates every
+// reference to that symbol. Call this before the move happens on disk,
+// then DidRenameFiles after.
+//
+// A server with no file-operation support for this returns a "method
+// not found" error, which is not a real failure: it means there is
+// nothing else to update, not that something went wrong.
+func (c *Client) WillRenameFiles(ctx context.Context, oldPath, newPath string) (*protocol.WorkspaceEdit, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	files := []protocol.FileRename{{
+		OldURI: string(protocol.URIFromPath(oldPath)),
+		NewURI: string(protocol.URIFromPath(newPath)),
+	}}
+	return c.client.RequestWillRenameFiles(ctx, files) //nolint:wrapcheck
+}
+
+// DidRenameFiles tells the server the move from oldPath to newPath has
+// actually happened, so it can update its own model of the workspace.
+func (c *Client) DidRenameFiles(ctx context.Context, oldPath, newPath string) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	files := []protocol.FileRename{{
+		OldURI: string(protocol.URIFromPath(oldPath)),
+		NewURI: string(protocol.URIFromPath(newPath)),
+	}}
+	return c.client.NotifyDidRenameFiles(ctx, files) //nolint:wrapcheck
+}
+
 // DocumentSymbols returns the document symbols for the given file.
 func (c *Client) DocumentSymbols(ctx context.Context, filepath string) ([]protocol.DocumentSymbolResult, error) {
 	if err := c.OpenFileOnDemand(ctx, filepath); err != nil {
