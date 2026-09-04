@@ -26,6 +26,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/discover"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/factstore"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/filetracker"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/history"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/hooks"
@@ -138,6 +139,10 @@ type coordinator struct {
 	// memory is the bounded prose the agent carries between sessions.
 	memory *memory.Store
 
+	// facts is the queryable, in-session fact store -- see
+	// internal/factstore and facts.md for how it differs from memory.
+	facts *factstore.Store
+
 	// credentials round-robins between a provider's configured API keys
 	// (ProviderConfig.APIKey/APIKeys) across session/model builds,
 	// persisted to disk so `atlas provider usage` can show it and so
@@ -199,6 +204,7 @@ func NewCoordinator(ctx context.Context, opts CoordinatorOptions) (Coordinator, 
 		activeSkills: activeSkills,
 		skillTracker: skillTracker,
 		memory:       memoryStore(opts.Config),
+		facts:        factsStore(opts.Config),
 		interactive:  opts.Interactive,
 		credentials:  credentials.Load(filepath.Join(opts.Config.Config().Options.DataDirectory, credentials.StateFileName)),
 		teams:        teams.NewRegistry(),
@@ -801,6 +807,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		tools.NewGrepTool(c.cfg.WorkingDir(), c.cfg.Config().Tools.Grep),
 		tools.NewLsTool(c.permissions, c.cfg.WorkingDir(), c.cfg.Config().Tools.Ls),
 		tools.NewMemoryTool(c.memory, c.permissions),
+		tools.NewFactsTool(c.facts, c.permissions),
 		tools.NewSessionSearchTool(c.messages),
 		tools.NewSkillManageTool(skillDirs(c.cfg), c.allSkills, c.permissions),
 		tools.NewUsageTool(c.sessions, c.cfg.Config().Options.MaxSessionCost),
