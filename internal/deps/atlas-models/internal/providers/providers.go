@@ -105,6 +105,9 @@ var openCodeZenConfig []byte
 //go:embed configs/openrouter.json
 var openRouterConfig []byte
 
+//go:embed configs/nvidia-nim.json
+var nvidiaNIMConfig []byte
+
 //go:embed configs/qiniucloud.json
 var qiniuCloudConfig []byte
 
@@ -174,6 +177,7 @@ var providerRegistry = []ProviderFunc{
 	ioNetProvider,
 	nebiusProvider,
 	neuralwattProvider,
+	nvidiaNIMProvider,
 	openCodeGoProvider,
 	openCodeZenProvider,
 	openRouterProvider,
@@ -314,6 +318,10 @@ func nebiusProvider() catwalk.Provider {
 
 func neuralwattProvider() catwalk.Provider {
 	return loadProviderFromConfig(neuralwattConfig)
+}
+
+func nvidiaNIMProvider() catwalk.Provider {
+	return loadProviderFromConfig(nvidiaNIMConfig)
 }
 
 func openAIProvider() catwalk.Provider {

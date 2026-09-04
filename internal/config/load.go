@@ -214,6 +214,21 @@ func PushPopAtlasAgentEnv() func() {
 	return restore
 }
 
+// isDiscoveryExemptKnownProvider reports whether id names a known/embedded
+// provider that -- uniquely -- still runs through live model discovery
+// alongside custom providers, merging its live /v1/models response into
+// its pinned configs/*.json catalog instead of using that catalog as-is.
+// Every other known provider's catalog is exactly its configs/*.json file.
+//
+// Kept to a single provider on purpose: nvidia-nim.json curates the well
+// known, well specified NVIDIA models, but NIM's real catalog is 100+
+// entries and changes too often for a hand-maintained list to track, so
+// this one provider opts into the same discovery path a user's own custom
+// provider gets.
+func isDiscoveryExemptKnownProvider(id string) bool {
+	return id == string(catwalk.InferenceProviderNvidiaNIM)
+}
+
 func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env env.Env, resolver VariableResolver, knownProviders []catwalk.Provider) error {
 	knownProviderNames := make(map[string]bool)
 	restore := PushPopAtlasAgentEnv()
@@ -334,6 +349,18 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 		if prepared.ExtraParams == nil {
 			prepared.ExtraParams = make(map[string]string)
 		}
+		if p.ID == catwalk.InferenceProviderNvidiaNIM && config.AutoDiscoverModels == nil {
+			// NIM's real catalog is 100+ models and changes too often for
+			// the pinned list in configs/nvidia-nim.json to stay accurate
+			// on its own, so -- uniquely among known providers -- this one
+			// merges in whatever its live /v1/models endpoint reports,
+			// same as a user's custom provider does (a user's own
+			// discover_models: false in their config still wins; see the
+			// nvidiaNIMDiscoveryExempt checks below for where that merge
+			// actually runs).
+			autoDiscover := true
+			prepared.AutoDiscoverModels = &autoDiscover
+		}
 
 		switch {
 		case p.ID == catwalk.InferenceProviderAnthropic && config.OAuthToken != nil:
@@ -421,7 +448,7 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 
 	discoverCtx, discoverCancel := context.WithTimeout(ctx, 3*time.Second)
 	for id, pc := range c.Providers.Seq2() {
-		if knownProviderNames[id] {
+		if knownProviderNames[id] && !isDiscoveryExemptKnownProvider(id) {
 			continue
 		}
 		if pc.Disable || pc.BaseURL == "" {
@@ -456,9 +483,13 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 	wg.Wait()
 	discoverCancel()
 
-	// Validate the custom providers.
+	// Validate the custom providers (plus the narrow discovery-exempt known
+	// providers, e.g. nvidia-nim, whose Models field this loop refreshes
+	// with the discovery results computed above; every other check below
+	// is a no-op for them since they already passed the known-provider
+	// checks earlier in this function).
 	for id, providerConfig := range c.Providers.Seq2() {
-		if knownProviderNames[id] {
+		if knownProviderNames[id] && !isDiscoveryExemptKnownProvider(id) {
 			continue
 		}
 
