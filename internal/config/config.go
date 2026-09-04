@@ -855,6 +855,7 @@ type Tools struct {
 	CodeIntel ToolCodeIntel `json:"code_intel,omitzero"`
 	Quality   ToolQuality   `json:"quality,omitzero"`
 	Git       ToolGit       `json:"git,omitzero"`
+	Docs      ToolDocs      `json:"docs,omitzero"`
 }
 
 // ToolGit configures the read-only git tools -- status, log, blame and
@@ -904,6 +905,24 @@ type ToolCodeIntel struct {
 // IsEnabled reports whether the code-intelligence tools should be
 // registered.
 func (t ToolCodeIntel) IsEnabled() bool {
+	return ptrValOr(t.Enabled, false)
+}
+
+// ToolDocs configures the documentation tools (doc_index and friends),
+// which read a tree's Markdown files to answer structural questions --
+// what topics exist, where a section lives -- without the agent reading
+// every file in full first.
+//
+// Off by default, the same reasoning as ToolCodeIntel: read-only, but not
+// worth its context cost on a request that has nothing to do with a
+// repository's documentation.
+type ToolDocs struct {
+	Enabled *bool `json:"enabled,omitempty" jsonschema:"description=Turn on the documentation tools (doc_index and friends) so the agent can index and search a tree's Markdown files by heading.,default=false"`
+}
+
+// IsEnabled reports whether the documentation tools should be
+// registered.
+func (t ToolDocs) IsEnabled() bool {
 	return ptrValOr(t.Enabled, false)
 }
 

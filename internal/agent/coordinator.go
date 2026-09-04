@@ -881,6 +881,15 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		)
 	}
 
+	// Documentation tools. Read-only against Markdown files, gated the
+	// same way as CodeIntel and Git: cheap to skip, not worth the
+	// context cost on a request unrelated to a repository's docs.
+	if c.cfg.Config().Tools.Docs.IsEnabled() {
+		allTools = append(allTools,
+			tools.NewDocIndexTool(c.cfg.WorkingDir()),
+		)
+	}
+
 	// Add LSP tools if user has configured LSPs or auto_lsp is enabled (nil or true).
 	if len(c.cfg.Config().LSP) > 0 || c.cfg.Config().Options.AutoLSP == nil || *c.cfg.Config().Options.AutoLSP {
 		allTools = append(

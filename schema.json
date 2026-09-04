@@ -1174,6 +1174,17 @@
       "additionalProperties": false,
       "type": "object"
     },
+    "ToolDocs": {
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turn on the documentation tools (doc_index and friends) so the agent can index and search a tree's Markdown files by heading.",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
     "ToolGit": {
       "properties": {
         "enabled": {
@@ -1310,6 +1321,9 @@
         },
         "git": {
           "$ref": "#/$defs/ToolGit"
+        },
+        "docs": {
+          "$ref": "#/$defs/ToolDocs"
         }
       },
       "additionalProperties": false,
