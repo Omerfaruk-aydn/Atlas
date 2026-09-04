@@ -27,19 +27,28 @@ var logoutCmd = &cobra.Command{
 	Long: `Logout ATLAS-AGENT from a specified platform, removing stored credentials.
 The platform should be provided as an argument.
 If no argument is given, a list of logged-in platforms will be shown.
-Available platforms are: hyper, copilot.`,
+Available platforms are: hyper, copilot, chatgpt, antigravity.`,
 	Example: `
 # Sign out from Atlas Hyper
 atlas logout hyper
 
 # Sign out from GitHub Copilot
 atlas logout copilot
+
+# Sign out from ChatGPT
+atlas logout chatgpt
+
+# Sign out from Antigravity
+atlas logout antigravity
   `,
 	ValidArgs: []cobra.Completion{
 		"hyper",
 		"copilot",
 		"github",
 		"github-copilot",
+		"chatgpt",
+		"codex",
+		"antigravity",
 	},
 	Args: cobra.MaximumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -84,6 +93,10 @@ atlas logout copilot
 			return logoutHyper(c, ws.ID)
 		case "copilot", "github", "github-copilot":
 			return logoutCopilot(c, ws.ID)
+		case "chatgpt", "codex":
+			return logoutChatGPT(c, ws.ID)
+		case "antigravity":
+			return logoutAntigravity(c, ws.ID)
 		default:
 			return fmt.Errorf("unknown platform: %s", provider)
 		}
@@ -118,6 +131,34 @@ func logoutCopilot(c *client.Client, wsID string) error {
 	return nil
 }
 
+func logoutChatGPT(c *client.Client, wsID string) error {
+	ctx := getLogoutContext()
+
+	if err := cmp.Or(
+		c.RemoveConfigField(ctx, wsID, config.ScopeGlobal, "providers.chatgpt.api_key"),
+		c.RemoveConfigField(ctx, wsID, config.ScopeGlobal, "providers.chatgpt.oauth"),
+	); err != nil {
+		return err
+	}
+
+	fmt.Println(logoutHeaderStyle.Render("Successfully logged out of ChatGPT."))
+	return nil
+}
+
+func logoutAntigravity(c *client.Client, wsID string) error {
+	ctx := getLogoutContext()
+
+	if err := cmp.Or(
+		c.RemoveConfigField(ctx, wsID, config.ScopeGlobal, "providers.antigravity.api_key"),
+		c.RemoveConfigField(ctx, wsID, config.ScopeGlobal, "providers.antigravity.oauth"),
+	); err != nil {
+		return err
+	}
+
+	fmt.Println(logoutHeaderStyle.Render("Successfully logged out of Antigravity."))
+	return nil
+}
+
 func pickLoggedInProvider(c *client.Client, wsID string) (string, error) {
 	ctx := getLogoutContext()
 
@@ -134,8 +175,10 @@ func pickLoggedInProvider(c *client.Client, wsID string) (string, error) {
 	// Only OAuth-based providers support login/logout. Keep this list in sync
 	// with the switch in RunE and the login command.
 	oauthProviders := map[string]string{
-		"hyper":   "Hyper",
-		"copilot": "GitHub Copilot",
+		"hyper":       "Hyper",
+		"copilot":     "GitHub Copilot",
+		"chatgpt":     "ChatGPT",
+		"antigravity": "Antigravity",
 	}
 
 	var loggedIn []loggedInProvider

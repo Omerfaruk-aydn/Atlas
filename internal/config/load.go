@@ -337,7 +337,6 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 
 		switch {
 		case p.ID == catwalk.InferenceProviderAnthropic && config.OAuthToken != nil:
-			// Claude Code subscription is not supported anymore. Remove to show onboarding.
 			// RemoveConfigField persists the deletion to disk. The in-memory
 			// state is kept consistent by the Providers.Del call below; any
 			// concurrent reload that races with this write will also see the
@@ -347,6 +346,10 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 			continue
 		case p.ID == catwalk.InferenceProviderCopilot && config.OAuthToken != nil:
 			prepared.SetupGitHubCopilot()
+		case p.ID == catwalk.InferenceProviderChatGPT && config.OAuthToken != nil:
+			prepared.SetupChatGPT()
+		case p.ID == catwalk.InferenceProviderAntigravity && config.OAuthToken != nil:
+			prepared.SetupAntigravity()
 		}
 
 		switch p.ID {

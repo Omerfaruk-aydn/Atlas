@@ -14,6 +14,7 @@ const (
 	TypeAzure        Type = "azure"
 	TypeBedrock      Type = "bedrock"
 	TypeVertexAI     Type = "google-vertex"
+	TypeAntigravity  Type = "antigravity"
 )
 
 // InferenceProvider represents the inference provider identifier.
@@ -43,6 +44,8 @@ const (
 	InferenceAIHubMix                 InferenceProvider = "aihubmix"
 	InferenceKimiCoding               InferenceProvider = "kimi-coding"
 	InferenceProviderCopilot          InferenceProvider = "copilot"
+	InferenceProviderChatGPT          InferenceProvider = "chatgpt"
+	InferenceProviderAntigravity      InferenceProvider = "antigravity"
 	InferenceProviderCortecs          InferenceProvider = "cortecs"
 	InferenceProviderVercel           InferenceProvider = "vercel"
 	InferenceProviderMiniMax          InferenceProvider = "minimax"
@@ -126,6 +129,7 @@ func KnownProviders() []InferenceProvider {
 		InferenceAIHubMix,
 		InferenceKimiCoding,
 		InferenceProviderCopilot,
+		InferenceProviderChatGPT,
 		InferenceProviderCortecs,
 		InferenceProviderVercel,
 		InferenceProviderMiniMax,
@@ -155,5 +159,6 @@ func KnownProviderTypes() []Type {
 		TypeAzure,
 		TypeBedrock,
 		TypeVertexAI,
+		TypeAntigravity,
 	}
 }

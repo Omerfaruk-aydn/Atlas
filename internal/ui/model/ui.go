@@ -2724,6 +2724,10 @@ func (m *UI) openAuthenticationDialog(provider catwalk.Provider, model config.Se
 	switch provider.ID {
 	case catwalk.InferenceProviderCopilot:
 		dlg, cmd = dialog.NewOAuthCopilot(m.com, isOnboarding, provider, model, modelType)
+	case catwalk.InferenceProviderChatGPT:
+		dlg, cmd = dialog.NewOAuthChatGPT(m.com, isOnboarding, provider, model, modelType)
+	case catwalk.InferenceProviderAntigravity:
+		dlg, cmd = dialog.NewOAuthAntigravity(m.com, isOnboarding, provider, model, modelType)
 	default:
 		dlg, cmd = dialog.NewAPIKeyInput(m.com, isOnboarding, provider, model, modelType)
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/csync"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-models/pkg/catwalk"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/antigravity"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
 	"github.com/invopop/jsonschema"
 )
@@ -204,6 +205,41 @@ func (c *ProviderConfig) ToProvider() catwalk.Provider {
 
 func (c *ProviderConfig) SetupGitHubCopilot() {
 	maps.Copy(c.ExtraHeaders, copilot.Headers())
+}
+
+// SetupChatGPT configures the extra headers a ChatGPT (Codex) OAuth
+// session needs against the chatgpt.com backend: the signed-in account id
+// so requests are billed against that subscription, and an originator tag
+// identifying this client the way the official Codex CLI does.
+func (c *ProviderConfig) SetupChatGPT() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraHeaders["chatgpt-account-id"] = c.OAuthToken.AccountID
+	}
+	c.ExtraHeaders["originator"] = "codex_cli_rs"
+}
+
+// SetupAntigravity records the Cloud project id a signed-in Antigravity
+// (Google AI Pro/Ultra) account was assigned or provisioned with, and the
+// Client-Metadata/User-Agent headers its Cloud Code backend expects on
+// every model request.
+func (c *ProviderConfig) SetupAntigravity() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	c.ExtraParams["project"] = c.OAuthToken.AccountID
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = map[string]string{}
+	}
+	maps.Copy(c.ExtraHeaders, antigravity.RequestHeaders())
 }
 
 type MCPType string

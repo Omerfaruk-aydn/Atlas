@@ -16,6 +16,8 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/env"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/antigravity"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/codex"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
@@ -531,6 +533,10 @@ func (s *ConfigStore) SetProviderAPIKey(scope Scope, providerID string, apiKey a
 			switch providerID {
 			case string(catwalk.InferenceProviderCopilot):
 				providerConfig.SetupGitHubCopilot()
+			case string(catwalk.InferenceProviderChatGPT):
+				providerConfig.SetupChatGPT()
+			case string(catwalk.InferenceProviderAntigravity):
+				providerConfig.SetupAntigravity()
 			}
 		}
 	}
@@ -669,6 +675,17 @@ func (s *ConfigStore) refreshOAuthTokenLocked(ctx context.Context, scope Scope, 
 	}
 
 	slog.Info("Successfully refreshed OAuth token", "provider", providerID)
+	// Some providers only include account metadata (e.g. a decoded id_token
+	// claim, or a discovered Cloud project id) in the initial code exchange
+	// and omit it from a plain refresh_token grant. Carry it forward so a
+	// provider that needs it in a header (ChatGPT, Antigravity) does not go
+	// dark on the exchange after the token's first refresh.
+	if refreshedToken.AccountID == "" {
+		refreshedToken.AccountID = entryToken.AccountID
+	}
+	if refreshedToken.PlanType == "" {
+		refreshedToken.PlanType = entryToken.PlanType
+	}
 	if err := s.applyToken(providerConfig, refreshedToken, providerID); err != nil {
 		return err
 	}
@@ -801,6 +818,10 @@ func (s *ConfigStore) exchange(ctx context.Context, providerID, refreshToken str
 	switch providerID {
 	case string(catwalk.InferenceProviderCopilot):
 		return copilot.RefreshToken(ctx, refreshToken)
+	case string(catwalk.InferenceProviderChatGPT):
+		return codex.RefreshToken(ctx, refreshToken)
+	case string(catwalk.InferenceProviderAntigravity):
+		return antigravity.RefreshToken(ctx, refreshToken)
 	default:
 		return nil, fmt.Errorf("OAuth refresh not supported for provider %s", providerID)
 	}
@@ -838,8 +859,13 @@ func (s *ConfigStore) refreshLockPath(providerID string) string {
 func (s *ConfigStore) applyToken(providerConfig ProviderConfig, token *oauth.Token, providerID string) error {
 	providerConfig.OAuthToken = token
 	providerConfig.APIKey = token.AccessToken
-	if providerID == string(catwalk.InferenceProviderCopilot) {
+	switch providerID {
+	case string(catwalk.InferenceProviderCopilot):
 		providerConfig.SetupGitHubCopilot()
+	case string(catwalk.InferenceProviderChatGPT):
+		providerConfig.SetupChatGPT()
+	case string(catwalk.InferenceProviderAntigravity):
+		providerConfig.SetupAntigravity()
 	}
 	s.Config().Providers.Set(providerID, providerConfig)
 	return nil

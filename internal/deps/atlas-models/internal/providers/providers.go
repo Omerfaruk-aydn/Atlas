@@ -18,6 +18,9 @@ var alibabaSingaporeConfig []byte
 //go:embed configs/alibaba-united-states.json
 var alibabaUnitedStatesConfig []byte
 
+//go:embed configs/antigravity.json
+var antigravityConfig []byte
+
 //go:embed configs/anthropic.json
 var anthropicConfig []byte
 
@@ -41,6 +44,9 @@ var bedrockEuropeConfig []byte
 
 //go:embed configs/cerebras.json
 var cerebrasConfig []byte
+
+//go:embed configs/chatgpt.json
+var chatGPTConfig []byte
 
 //go:embed configs/chutes.json
 var chutesConfig []byte
@@ -149,6 +155,7 @@ var providerRegistry = []ProviderFunc{
 	aiHubMixProvider,
 	alibabaSingaporeProvider,
 	alibabaUnitedStatesProvider,
+	antigravityProvider,
 	atlasCloudProvider,
 	basetenProvider,
 	avianProvider,
@@ -156,6 +163,7 @@ var providerRegistry = []ProviderFunc{
 	bedrockUnitedStatesProvider,
 	bedrockEuropeProvider,
 	cerebrasProvider,
+	chatGPTProvider,
 	chutesProvider,
 	copilotProvider,
 	cortecsProvider,
@@ -208,6 +216,10 @@ func alibabaUnitedStatesProvider() catwalk.Provider {
 	return loadProviderFromConfig(alibabaUnitedStatesConfig)
 }
 
+func antigravityProvider() catwalk.Provider {
+	return loadProviderFromConfig(antigravityConfig)
+}
+
 func anthropicProvider() catwalk.Provider {
 	return loadProviderFromConfig(anthropicConfig)
 }
@@ -238,6 +250,10 @@ func bedrockEuropeProvider() catwalk.Provider {
 
 func cerebrasProvider() catwalk.Provider {
 	return loadProviderFromConfig(cerebrasConfig)
+}
+
+func chatGPTProvider() catwalk.Provider {
+	return loadProviderFromConfig(chatGPTConfig)
 }
 
 func chutesProvider() catwalk.Provider {
