@@ -1382,6 +1382,61 @@ func allToolNames() []string {
 		"write",
 		"list_mcp_resources",
 		"read_mcp_resource",
+
+		// The opt-in tool groups below (see the Tools struct and
+		// coordinator.buildTools) are only ever registered when their
+		// group is enabled, but still need to be listed here -- an
+		// agent's AllowedTools is filtered against this list regardless
+		// of whether the tool was actually built, so a name missing here
+		// makes the tool silently unusable even after the user turns its
+		// group on.
+		"browser",
+		"debugger",
+		"team_send",
+		"team_read",
+		// CodeIntel
+		"dead_code",
+		"type_hierarchy",
+		"import_graph",
+		"impact_analysis",
+		"code_metrics",
+		"todo_scan",
+		"api_surface",
+		"anti_pattern_scan",
+		"security_scan",
+		"generate_docstring",
+		"generate_tests",
+		"semantic_code_search",
+		"metric_export",
+		"env_var_audit",
+		// Quality
+		"scan_secrets",
+		"test_run",
+		"coverage_report",
+		"lint_run",
+		"dep_audit",
+		"docker_build_explain",
+		"k8s_manifest_lint",
+		"terraform_lint",
+		"ci_cd_pipeline_debugger",
+		"cloud_resource_costs",
+		"log_tail",
+		// Git
+		"git_status",
+		"git_log",
+		"git_blame",
+		"git_diff",
+		"git_branches",
+		"changelog_gen",
+		"pr_describe",
+		"pre_commit_guard",
+		"git_conventional_commit",
+		"git_conflict_resolver",
+		"audit_trail",
+		"git_commit_split",
+		"github_pr_view",
+		// Docs
+		"doc_index",
 	}
 }
 
