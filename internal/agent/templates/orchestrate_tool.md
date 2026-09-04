@@ -1,0 +1,7 @@
+Run the same task on several named subagents (see `atlas agent list`) in parallel and get every one of their answers back side by side, each labelled by which agent produced it.
+
+This is different from calling `agent` several times yourself: `agent` runs one task on one agent and returns just that answer, so verifying a result against a second opinion means one call, waiting for it, reading it, then deciding whether a third is worth it. `orchestrate` runs them all at once and returns every answer together, so a single call gets you the material to compare, cross-check, or pick a majority answer from -- worth it when a task is worth more than one perspective (an ambiguous fix, a decision with tradeoffs, a result you don't want to take on faith) but not for routine work a single subagent already handles well.
+
+Requires at least two agent_names, each a distinct subagent with its own instructions or model -- running the same subagent against itself twice on the same prompt mostly reproduces the same answer and wastes the second call. Every named agent gets the exact same prompt, run independently; none of them sees any other's answer, so agreement between them is real corroboration, not one copying another.
+
+Every named agent still counts toward this session's subagent concurrency limit (the same `MaxConcurrentSubAgents` setting `agent` calls respect) -- naming five agents when the limit is two will queue three of them rather than run five at once.

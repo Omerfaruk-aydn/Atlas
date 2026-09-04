@@ -1297,6 +1297,7 @@ func allToolNames() []string {
 		"lsp_replace_symbol",
 		"fetch",
 		"agentic_fetch",
+		"orchestrate",
 		"facts",
 		"inspect_file",
 		"glob",

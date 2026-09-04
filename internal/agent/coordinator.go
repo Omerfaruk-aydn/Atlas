@@ -772,6 +772,14 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, agenticFetchTool)
 	}
 
+	if slices.Contains(agent.AllowedTools, OrchestrateToolName) {
+		orchestrateTool, err := c.orchestrateTool(ctx)
+		if err != nil {
+			return nil, err
+		}
+		allTools = append(allTools, orchestrateTool)
+	}
+
 	pathPolicy := tools.NewPathPolicy(c.cfg.Config(), c.cfg.WorkingDir())
 
 	// Get the model name for the agent

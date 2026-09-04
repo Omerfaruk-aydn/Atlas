@@ -46,7 +46,7 @@ func TestEveryBuiltToolIsAllowed(t *testing.T) {
 	// unconditionally and then filtered.
 	buildable := agentCfg
 	buildable.AllowedTools = slices.DeleteFunc(slices.Clone(agentCfg.AllowedTools), func(name string) bool {
-		return name == AgentToolName || name == tools.AgenticFetchToolName
+		return name == AgentToolName || name == tools.AgenticFetchToolName || name == OrchestrateToolName
 	})
 
 	built, err := c.assembleTools(t.Context(), buildable, false)
