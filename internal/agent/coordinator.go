@@ -883,6 +883,7 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 			tools.NewPRDescribeTool(c.cfg.WorkingDir()),
 			tools.NewPreCommitGuardTool(c.cfg.WorkingDir()),
 			tools.NewGitConventionalCommitTool(c.cfg.WorkingDir()),
+			tools.NewGitConflictResolverTool(c.cfg.WorkingDir()),
 		)
 	}
 
