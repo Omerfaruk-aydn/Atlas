@@ -838,6 +838,7 @@
             "azure",
             "bedrock",
             "google-vertex",
+            "antigravity",
             "litellm",
             "llamacpp",
             "lmstudio",
@@ -1097,6 +1098,12 @@
         },
         "client": {
           "$ref": "#/$defs/OAuthClient"
+        },
+        "account_id": {
+          "type": "string"
+        },
+        "plan_type": {
+          "type": "string"
         }
       },
       "additionalProperties": false,
