@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/update"
@@ -66,7 +69,62 @@ If you installed Atlas Agent via 'go install' instead, run:
 			return fmt.Errorf("npm install failed: %w", err)
 		}
 
+		// npm can exit 0 while still leaving the old binary in place: on
+		// Windows, replacing an .exe that another process (a running Atlas
+		// Agent session, an antivirus scan) still has open fails with
+		// EPERM, which npm reports as a non-fatal "npm warn cleanup" and
+		// otherwise ignores. Confirm the installed binary actually reports
+		// the new version before declaring success, instead of trusting
+		// npm's exit code alone.
+		if installedVersion, err := installedBinaryVersion(ctx); err == nil && installedVersion != "" && installedVersion != info.Latest {
+			return fmt.Errorf(
+				"npm reported success, but the installed binary still reports v%s (expected v%s). "+
+					"This usually means Windows couldn't replace the running executable. "+
+					"Close every Atlas Agent window/session and run `atlas-agent update` again",
+				installedVersion, info.Latest,
+			)
+		}
+
 		fmt.Printf("\nUpdated to v%s. Restart any running Atlas Agent sessions.\n", info.Latest)
 		return nil
 	},
+}
+
+// installedBinaryVersion shells out to `npm root -g` to find where the npm
+// wrapper installs the platform binary, then runs that binary's own
+// --version to see what actually landed on disk -- the only way to catch a
+// silently-incomplete replacement (see the EPERM comment above). Returns
+// ("", nil) if the binary cannot be located or run, so callers treat that
+// as "could not verify" rather than a hard failure: this check is a bonus
+// safety net, not the update's success criterion.
+func installedBinaryVersion(ctx context.Context) (string, error) {
+	rootOut, err := exec.CommandContext(ctx, "npm", "root", "-g").Output()
+	if err != nil {
+		return "", err
+	}
+	root := strings.TrimSpace(string(rootOut))
+
+	arch := "x64"
+	if runtime.GOARCH == "arm64" {
+		arch = "arm64"
+	}
+	name := fmt.Sprintf("atlas-agent-%s-%s", runtime.GOOS, arch)
+	if runtime.GOOS == "windows" {
+		name += ".exe"
+	}
+	binPath := filepath.Join(root, "@atlas-coder", "atlas-agent", "bin", name)
+	if _, err := os.Stat(binPath); err != nil {
+		return "", err
+	}
+
+	out, err := exec.CommandContext(ctx, binPath, "--version").Output()
+	if err != nil {
+		return "", err
+	}
+	// Output looks like "atlas-agent-windows-x64 version v0.9.10".
+	fields := strings.Fields(string(out))
+	if len(fields) == 0 {
+		return "", nil
+	}
+	return strings.TrimPrefix(fields[len(fields)-1], "v"), nil
 }
