@@ -25,6 +25,19 @@
           "examples": [
             "BLOCKER"
           ]
+        },
+        "auto_escalate": {
+          "type": "boolean",
+          "description": "Run a deeper second pass (the \"escalate\" model role",
+          "default": false
+        },
+        "escalate_threshold": {
+          "type": "string",
+          "description": "Lowest severity (NIT / CONCERN / BLOCKER) that triggers auto_escalate.",
+          "default": "BLOCKER",
+          "examples": [
+            "CONCERN"
+          ]
         }
       },
       "additionalProperties": false,
