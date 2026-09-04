@@ -121,6 +121,20 @@ func (a *Arguments) ID() string {
 	return ArgumentsID
 }
 
+// SetValues pre-fills inputs by argument ID with real, submittable
+// text -- unlike Placeholder (a grey hint shown only while the field is
+// empty), a value set here is what Confirm submits if the field is
+// left untouched. Use this when the form is editing an existing item
+// rather than creating a new one, so leaving a field alone keeps its
+// current value instead of submitting blank.
+func (a *Arguments) SetValues(values map[string]string) {
+	for i, arg := range a.arguments {
+		if v, ok := values[arg.ID]; ok {
+			a.inputs[i].SetValue(v)
+		}
+	}
+}
+
 // focusInput changes focus to a new input by index with wrap-around.
 func (a *Arguments) focusInput(newIndex int) {
 	a.inputs[a.focused].Blur()
@@ -216,6 +230,18 @@ func (a *Arguments) HandleMsg(msg tea.Msg) Action {
 					action.Args = args
 					return action
 				case ActionRunMCPPrompt:
+					action.Args = args
+					return action
+				case ActionSaveModelRole:
+					action.Args = args
+					return action
+				case ActionSaveFallbackEntry:
+					action.Args = args
+					return action
+				case ActionSaveFallbackCooldown:
+					action.Args = args
+					return action
+				case ActionSaveSubagentMeta:
 					action.Args = args
 					return action
 				}

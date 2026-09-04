@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/home"
 	"gopkg.in/yaml.v3"
 )
 
@@ -88,4 +89,51 @@ func Delete(dir, name string) error {
 		return fmt.Errorf("no subagent file at %s: %w", path, err)
 	}
 	return os.Remove(path)
+}
+
+// ProjectDir is where a new project-scoped subagent is written --
+// mirrors config.ProjectSubagentsDir's first (and primary) entry. Kept
+// as a small, independent helper here rather than importing
+// internal/config, which subagents otherwise has no reason to depend on.
+func ProjectDir(workingDir string) string {
+	return filepath.Join(workingDir, ".atlas", "agents")
+}
+
+// UserDir is where a new user-scoped subagent (atlas agent new --user)
+// is written.
+func UserDir() string {
+	return filepath.Join(home.Config(), "atlas", "agents")
+}
+
+// SaveNamed resolves which directory sub belongs in and writes it
+// there. A subagent already discovered under searchDirs by this name
+// keeps living in its current directory regardless of userScope --
+// editing one must not silently relocate it between project and user
+// scope; userScope only decides where a genuinely new one is created.
+func SaveNamed(searchDirs []string, workingDir string, sub Subagent, userScope bool) (string, error) {
+	dir := ProjectDir(workingDir)
+	if userScope {
+		dir = UserDir()
+	}
+	if existing, ok := Find(Discover(searchDirs), sub.Name); ok && existing.Path != "" {
+		dir = filepath.Dir(existing.Path)
+	}
+	return Save(dir, &sub)
+}
+
+// DeleteNamed finds name among searchDirs and removes its file,
+// refusing to touch anything whose file name does not match name.
+// Mirrors internal/cmd/agent_remove.go's removeSubagent.
+func DeleteNamed(searchDirs []string, name string) error {
+	existing, ok := Find(Discover(searchDirs), name)
+	if !ok {
+		return fmt.Errorf("no subagent named %q is configured", name)
+	}
+
+	base := filepath.Base(existing.Path)
+	if base != name+FileExt {
+		return fmt.Errorf("refusing to remove %s: its file name does not match the subagent name", existing.Path)
+	}
+
+	return Delete(filepath.Dir(existing.Path), name)
 }

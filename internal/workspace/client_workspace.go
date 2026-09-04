@@ -32,6 +32,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/rewind"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/version"
 	"github.com/pkg/browser"
 )
@@ -590,6 +591,50 @@ func (w *ClientWorkspace) AgentHubEntries(ctx context.Context, sessionID string)
 		}
 	}
 	return result
+}
+
+func protoToSubagent(s proto.Subagent) subagents.Subagent {
+	return subagents.Subagent{
+		Name:         s.Name,
+		Description:  s.Description,
+		Model:        s.Model,
+		Instructions: s.Instructions,
+		Path:         s.Path,
+	}
+}
+
+func subagentToProto(s subagents.Subagent) proto.Subagent {
+	return proto.Subagent{
+		Name:         s.Name,
+		Description:  s.Description,
+		Model:        s.Model,
+		Instructions: s.Instructions,
+		Path:         s.Path,
+	}
+}
+
+func (w *ClientWorkspace) ListSubagents(ctx context.Context) ([]subagents.Subagent, error) {
+	list, err := w.client.ListSubagents(ctx, w.workspaceID())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]subagents.Subagent, len(list))
+	for i, s := range list {
+		out[i] = protoToSubagent(s)
+	}
+	return out, nil
+}
+
+func (w *ClientWorkspace) SaveSubagent(ctx context.Context, sub subagents.Subagent, userScope bool) (string, error) {
+	saved, err := w.client.SaveSubagent(ctx, w.workspaceID(), subagentToProto(sub), userScope)
+	if err != nil {
+		return "", err
+	}
+	return saved.Path, nil
+}
+
+func (w *ClientWorkspace) DeleteSubagent(ctx context.Context, name string) error {
+	return w.client.DeleteSubagent(ctx, w.workspaceID(), name)
 }
 
 func (w *ClientWorkspace) LSPGetStates() map[string]LSPClientInfo {

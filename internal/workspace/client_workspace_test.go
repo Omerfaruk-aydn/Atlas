@@ -21,6 +21,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/stretchr/testify/require"
 )
 
@@ -988,4 +989,97 @@ func TestClientWorkspaceAgentHubEntriesServerErrorReturnsNil(t *testing.T) {
 
 	got := workspace.AgentHubEntries(t.Context(), "parent-1")
 	require.Nil(t, got)
+}
+
+func TestClientWorkspaceListSubagents(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodGet, r.Method)
+		require.Equal(t, "/v1/workspaces/ws-1/agents", r.URL.Path)
+		require.NoError(t, json.NewEncoder(w).Encode([]proto.Subagent{
+			{Name: "research", Description: "Deep research.", Model: "@research", Instructions: "Dig deep.", Path: "/agents/research.md"},
+		}))
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	got, err := workspace.ListSubagents(t.Context())
+	require.NoError(t, err)
+	require.Equal(t, []subagents.Subagent{
+		{Name: "research", Description: "Deep research.", Model: "@research", Instructions: "Dig deep.", Path: "/agents/research.md"},
+	}, got)
+}
+
+func TestClientWorkspaceSaveSubagent(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodPost, r.Method)
+		require.Equal(t, "/v1/workspaces/ws-1/agents", r.URL.Path)
+
+		var req proto.SaveSubagentRequest
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&req))
+		require.Equal(t, "research", req.Subagent.Name)
+		require.True(t, req.UserScope)
+
+		req.Subagent.Path = "/agents/research.md"
+		require.NoError(t, json.NewEncoder(w).Encode(req.Subagent))
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	path, err := workspace.SaveSubagent(t.Context(), subagents.Subagent{
+		Name: "research", Description: "Deep research.", Instructions: "Dig deep.",
+	}, true)
+	require.NoError(t, err)
+	require.Equal(t, "/agents/research.md", path)
+}
+
+func TestClientWorkspaceDeleteSubagent(t *testing.T) {
+	t.Parallel()
+
+	var deletedName string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		require.Equal(t, http.MethodDelete, r.Method)
+		deletedName = strings.TrimPrefix(r.URL.Path, "/v1/workspaces/ws-1/agents/")
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	require.NoError(t, workspace.DeleteSubagent(t.Context(), "research"))
+	require.Equal(t, "research", deletedName)
+}
+
+func TestClientWorkspaceDeleteSubagentServerErrorReturnsError(t *testing.T) {
+	t.Parallel()
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+	}))
+	defer srv.Close()
+
+	u, err := url.Parse(srv.URL)
+	require.NoError(t, err)
+	c, err := client.NewClient(t.TempDir(), "tcp", u.Host)
+	require.NoError(t, err)
+	workspace := NewClientWorkspace(c, proto.Workspace{ID: "ws-1"})
+
+	require.Error(t, workspace.DeleteSubagent(t.Context(), "nope"))
 }

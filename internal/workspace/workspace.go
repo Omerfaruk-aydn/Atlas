@@ -25,6 +25,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/rewind"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 )
 
 // Reasons the coder agent may be unavailable, returned by
@@ -272,6 +273,17 @@ type Workspace interface {
 	RemoveConfigField(scope config.Scope, key string) error
 	ImportCopilot() (*oauth.Token, bool)
 	RefreshOAuthToken(ctx context.Context, scope config.Scope, providerID string) error
+
+	// Subagents: named, model-routable agent definitions (see
+	// internal/subagents). Unlike model roles and fallbacks, these are
+	// files rather than config fields, so they need their own
+	// endpoints rather than going through SetConfigField.
+	ListSubagents(ctx context.Context) ([]subagents.Subagent, error)
+	// SaveSubagent creates or updates sub, returning the path it was
+	// written to. userScope is ignored when a subagent by this name
+	// already exists -- see workspace.saveSubagent.
+	SaveSubagent(ctx context.Context, sub subagents.Subagent, userScope bool) (string, error)
+	DeleteSubagent(ctx context.Context, name string) error
 
 	// Project lifecycle
 	ProjectNeedsInitialization() (bool, error)

@@ -24,6 +24,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session/rewind"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/shell"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 )
 
 // AppWorkspace implements the Workspace interface by delegating
@@ -395,6 +396,33 @@ func (w *AppWorkspace) AgentHubEntries(ctx context.Context, sessionID string) []
 		})
 	}
 	return entries
+}
+
+// subagentsPaths returns the configured subagent search directories, or
+// nil if none are configured yet.
+func (w *AppWorkspace) subagentsPaths() []string {
+	opts := w.Config().Options
+	if opts == nil {
+		return nil
+	}
+	return opts.SubagentsPaths
+}
+
+func (w *AppWorkspace) ListSubagents(context.Context) ([]subagents.Subagent, error) {
+	discovered := subagents.Discover(w.subagentsPaths())
+	out := make([]subagents.Subagent, len(discovered))
+	for i, s := range discovered {
+		out[i] = *s
+	}
+	return out, nil
+}
+
+func (w *AppWorkspace) SaveSubagent(_ context.Context, sub subagents.Subagent, userScope bool) (string, error) {
+	return subagents.SaveNamed(w.subagentsPaths(), w.WorkingDir(), sub, userScope)
+}
+
+func (w *AppWorkspace) DeleteSubagent(_ context.Context, name string) error {
+	return subagents.DeleteNamed(w.subagentsPaths(), name)
 }
 
 func (w *AppWorkspace) LSPGetStates() map[string]LSPClientInfo {

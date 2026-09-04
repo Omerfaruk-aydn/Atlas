@@ -13,6 +13,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/pubsub"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/skills"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 )
 
 // publishConfigChanged publishes a ConfigChanged event on the workspace's
@@ -86,6 +87,48 @@ func (b *Backend) UpdatePreferredModel(workspaceID string, scope config.Scope, m
 	}
 	publishConfigChanged(ws)
 	return nil
+}
+
+// subagentsPaths returns ws's configured subagent search directories.
+func subagentsPaths(ws *Workspace) []string {
+	opts := ws.Cfg.Config().Options
+	if opts == nil {
+		return nil
+	}
+	return opts.SubagentsPaths
+}
+
+// ListSubagents lists every discovered subagent for a workspace.
+func (b *Backend) ListSubagents(workspaceID string) ([]subagents.Subagent, error) {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	discovered := subagents.Discover(subagentsPaths(ws))
+	out := make([]subagents.Subagent, len(discovered))
+	for i, s := range discovered {
+		out[i] = *s
+	}
+	return out, nil
+}
+
+// SaveSubagent creates or updates a subagent definition, returning the
+// path it was written to.
+func (b *Backend) SaveSubagent(workspaceID string, sub subagents.Subagent, userScope bool) (string, error) {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return "", err
+	}
+	return subagents.SaveNamed(subagentsPaths(ws), ws.Cfg.WorkingDir(), sub, userScope)
+}
+
+// DeleteSubagent deletes a subagent definition by name.
+func (b *Backend) DeleteSubagent(workspaceID string, name string) error {
+	ws, err := b.GetWorkspace(workspaceID)
+	if err != nil {
+		return err
+	}
+	return subagents.DeleteNamed(subagentsPaths(ws), name)
 }
 
 // SetCompactMode sets the compact mode setting and persists it.

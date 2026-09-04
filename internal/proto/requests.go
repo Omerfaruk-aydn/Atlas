@@ -86,6 +86,28 @@ type ConfigRefreshOAuthRequest struct {
 	ProviderID string       `json:"provider_id"`
 }
 
+// Subagent is the wire form of a subagent definition (see
+// internal/subagents.Subagent) for the subagent management endpoints.
+type Subagent struct {
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Model        string `json:"model,omitempty"`
+	Instructions string `json:"instructions"`
+	// Path is the file this subagent was loaded from, empty for one not
+	// yet saved. Read-only: SaveSubagentRequest ignores it and resolves
+	// the destination itself (see workspace.SaveSubagent).
+	Path string `json:"path,omitempty"`
+}
+
+// SaveSubagentRequest is a request to create or update a subagent.
+// UserScope selects the user subagents directory over the project's
+// for a new subagent; it is ignored when one by this name already
+// exists, which is saved back to wherever it already lives.
+type SaveSubagentRequest struct {
+	Subagent  Subagent `json:"subagent"`
+	UserScope bool     `json:"user_scope"`
+}
+
 // ImportCopilotResponse represents the response from importing Copilot credentials.
 type ImportCopilotResponse struct {
 	Token   any  `json:"token"`

@@ -945,6 +945,56 @@ func (c *Client) GetAgentHubEntries(ctx context.Context, id, sessionID string) (
 	return entries, nil
 }
 
+// ListSubagents lists every discovered subagent for a workspace.
+func (c *Client) ListSubagents(ctx context.Context, id string) ([]proto.Subagent, error) {
+	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/agents", id), nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list subagents: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list subagents: status code %d", rsp.StatusCode)
+	}
+	var subagents []proto.Subagent
+	if err := json.NewDecoder(rsp.Body).Decode(&subagents); err != nil {
+		return nil, fmt.Errorf("failed to decode subagents: %w", err)
+	}
+	return subagents, nil
+}
+
+// SaveSubagent creates or updates a subagent, returning it as saved
+// (with its resolved Path filled in).
+func (c *Client) SaveSubagent(ctx context.Context, id string, sub proto.Subagent, userScope bool) (proto.Subagent, error) {
+	rsp, err := c.post(ctx, fmt.Sprintf("/workspaces/%s/agents", id), nil, jsonBody(proto.SaveSubagentRequest{
+		Subagent: sub, UserScope: userScope,
+	}), http.Header{"Content-Type": []string{"application/json"}})
+	if err != nil {
+		return proto.Subagent{}, fmt.Errorf("failed to save subagent: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return proto.Subagent{}, fmt.Errorf("failed to save subagent: status code %d", rsp.StatusCode)
+	}
+	var saved proto.Subagent
+	if err := json.NewDecoder(rsp.Body).Decode(&saved); err != nil {
+		return proto.Subagent{}, fmt.Errorf("failed to decode saved subagent: %w", err)
+	}
+	return saved, nil
+}
+
+// DeleteSubagent deletes a subagent by name.
+func (c *Client) DeleteSubagent(ctx context.Context, id, name string) error {
+	rsp, err := c.delete(ctx, fmt.Sprintf("/workspaces/%s/agents/%s", id, name), nil, nil)
+	if err != nil {
+		return fmt.Errorf("failed to delete subagent: %w", err)
+	}
+	defer rsp.Body.Close()
+	if rsp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to delete subagent: status code %d", rsp.StatusCode)
+	}
+	return nil
+}
+
 // ListUserMessages retrieves user-role messages for a session as proto types.
 func (c *Client) ListUserMessages(ctx context.Context, id string, sessionID string) ([]proto.Message, error) {
 	rsp, err := c.get(ctx, fmt.Sprintf("/workspaces/%s/sessions/%s/messages/user", id, sessionID), nil, nil)

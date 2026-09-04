@@ -1155,6 +1155,40 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case copyChatHighlightMsg:
 		cmds = append(cmds, m.copyChatHighlight())
+	case interruptedContentMsg:
+		if msg.text != "" {
+			m.textarea.SetValue(fmt.Sprintf("[Interrupted mid-response]\n> %s\n\nCorrection: ", truncateInterruptedContent(msg.text)))
+			m.textarea.CursorEnd()
+		}
+	case modelRoleSavedMsg:
+		if msg.err != nil {
+			cmds = append(cmds, util.ReportError(fmt.Errorf("saving model role: %w", msg.err)))
+		} else {
+			cmds = append(cmds, util.ReportInfo("Model role saved."))
+			if cmd := m.openModelRolesDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+	case fallbackEntrySavedMsg:
+		if msg.err != nil {
+			cmds = append(cmds, util.ReportError(fmt.Errorf("saving fallback: %w", msg.err)))
+		} else {
+			cmds = append(cmds, util.ReportInfo("Fallback saved."))
+			if cmd := m.openFallbacksDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+	case subagentSavedMsg:
+		if msg.err != nil {
+			cmds = append(cmds, util.ReportError(fmt.Errorf("saving subagent: %w", msg.err)))
+		} else {
+			cmds = append(cmds, util.ReportInfo("Subagent saved. Press enter on it to edit its instructions."))
+			if cmd := m.openSubagentsDialog(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+	case subagentFileEditedMsg:
+		m.refreshSubagentsDialogIfOpen()
 	case DelayedClickMsg:
 		// Handle delayed single-click action (e.g., expansion).
 		m.chat.HandleDelayedClick(msg)
@@ -2258,6 +2292,62 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 			return nil
 		})
 		m.dialog.CloseDialog(dialog.CommandsID)
+	case dialog.ActionFreshSession:
+		// Unlike ActionSummarize, this deliberately does not wait for an
+		// idle agent -- a stuck or stale session is exactly the case
+		// this exists to recover from. Cancel whatever is running (a
+		// no-op if nothing is), then reload the session's messages from
+		// the backend so the chat view resyncs with the source of
+		// truth, the same reload a session switch already does.
+		m.com.Workspace.AgentCancel(msg.SessionID)
+		cmds = append(cmds, m.loadSession(msg.SessionID))
+		cmds = append(cmds, util.ReportInfo("Session refreshed."))
+		m.dialog.CloseDialog(dialog.CommandsID)
+	case dialog.ActionInterruptWithCorrection:
+		if cmd := m.interruptWithCorrection(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		m.dialog.CloseDialog(dialog.CommandsID)
+
+	// Model roles, model fallbacks, and subagent management dialogs:
+	// list -> Arguments form -> save/delete, and (subagents only) ->
+	// $EDITOR for the instructions body. See model_management.go.
+	case dialog.ActionOpenModelRoleForm:
+		if cmd := m.handleOpenModelRoleForm(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSaveModelRole:
+		if cmd := m.handleSaveModelRole(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionOpenFallbackEntryForm:
+		if cmd := m.handleOpenFallbackEntryForm(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSaveFallbackEntry:
+		if cmd := m.handleSaveFallbackEntry(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionOpenFallbackCooldownForm:
+		if cmd := m.handleOpenFallbackCooldownForm(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSaveFallbackCooldown:
+		if cmd := m.handleSaveFallbackCooldown(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionOpenSubagentForm:
+		if cmd := m.handleOpenSubagentForm(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSaveSubagentMeta:
+		if cmd := m.handleSaveSubagentMeta(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionEditSubagentFile:
+		if cmd := m.handleEditSubagentFile(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case dialog.ActionToggleHelp:
 		m.status.ToggleHelp()
 		m.dialog.CloseDialog(dialog.CommandsID)
@@ -3251,6 +3341,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				}
 			case key.Matches(msg, m.keyMap.AgentHub):
 				if cmd := m.openAgentHubDialog(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			case key.Matches(msg, m.keyMap.InterruptWithCorrection):
+				if cmd := m.interruptWithCorrection(); cmd != nil {
 					cmds = append(cmds, cmd)
 				}
 			case key.Matches(msg, m.keyMap.Files):
@@ -4877,6 +4971,63 @@ func (m *UI) doCancelAgent() tea.Cmd {
 	return m.dispatchBusyRefresh()
 }
 
+// interruptedContentMsg carries the partial assistant response text
+// found after interruptWithCorrection cancels a turn, so the composer
+// can be pre-filled with it. An empty Text means nothing worth carrying
+// forward was found (no session, no messages yet, or the last message
+// was not from the assistant), in which case the composer is left
+// alone.
+type interruptedContentMsg struct {
+	text string
+}
+
+// maxInterruptedContentChars caps how much of the interrupted response
+// gets quoted back into the composer -- enough to remind the user (and
+// the model, once this is sent) what was being said, not a full replay.
+const maxInterruptedContentChars = 500
+
+// truncateInterruptedContent trims trailing whitespace (a cut-off
+// stream often ends mid-word or mid-line) and caps length by rune
+// count, not byte count, so multi-byte text is never split mid-rune.
+func truncateInterruptedContent(s string) string {
+	s = strings.TrimSpace(s)
+	r := []rune(s)
+	if len(r) <= maxInterruptedContentChars {
+		return s
+	}
+	return string(r[:maxInterruptedContentChars]) + "…"
+}
+
+// interruptWithCorrection is "time travel": instead of waiting out a
+// response already headed somewhere wrong, or cancelling and losing the
+// thread entirely, it cancels the current turn (the same cancellation
+// interruptAgent performs) and carries the partial response forward
+// into the composer as a quote, with room to type a correction. Sending
+// that is an entirely ordinary prompt afterward -- this adds no new
+// streaming, dispatch, or resume mechanism of its own, just automates
+// what a user could already do by hand: stop, read what was cut off,
+// and reply to it.
+func (m *UI) interruptWithCorrection() tea.Cmd {
+	if !m.hasSession() || !m.agentReady || !m.isAgentBusy() {
+		return nil
+	}
+
+	sessionID := m.session.ID
+	cmds := []tea.Cmd{m.doCancelAgent()}
+	cmds = append(cmds, func() tea.Msg {
+		msgs, err := m.com.Workspace.ListMessages(context.Background(), sessionID)
+		if err != nil || len(msgs) == 0 {
+			return interruptedContentMsg{}
+		}
+		last := msgs[len(msgs)-1]
+		if last.Role != message.Assistant {
+			return interruptedContentMsg{}
+		}
+		return interruptedContentMsg{text: last.Content().Text}
+	})
+	return tea.Batch(cmds...)
+}
+
 // openDialog opens a dialog by its ID.
 func (m *UI) openDialog(id string) tea.Cmd {
 	var cmds []tea.Cmd
@@ -4919,6 +5070,18 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		}
 	case dialog.AgentHubID:
 		if cmd := m.openAgentHubDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ModelRolesID:
+		if cmd := m.openModelRolesDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.FallbacksID:
+		if cmd := m.openFallbacksDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.SubagentsID:
+		if cmd := m.openSubagentsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
 	case dialog.ChatSearchID:

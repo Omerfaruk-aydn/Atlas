@@ -456,6 +456,8 @@ func (c *Commands) defaultCommands() []*CommandItem {
 	// Only show compact command if there's an active session
 	if c.hasSession {
 		commands = append(commands, NewCommandItem(c.com.Styles, "summarize", "Summarize Session", "", ActionSummarize{SessionID: c.sessionID}))
+		commands = append(commands, NewCommandItem(c.com.Styles, "fresh", "Refresh Session (recover from a stuck run)", "", ActionFreshSession{SessionID: c.sessionID}))
+		commands = append(commands, NewCommandItem(c.com.Styles, "interrupt_correct", "Interrupt + Correct", "f10", ActionInterruptWithCorrection{}))
 	}
 
 	// Add reasoning toggle for models that support it
@@ -541,6 +543,9 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.com.Styles, "rewind", "Rewind to Checkpoint", "ctrl+shift+r", ActionOpenDialog{DialogID: RewindID}),
 		NewCommandItem(c.com.Styles, "jobs", "Background Jobs", "p", ActionOpenDialog{DialogID: JobsID}),
 		NewCommandItem(c.com.Styles, "agent-hub", "Agent Hub", "alt+a", ActionOpenDialog{DialogID: AgentHubID}),
+		NewCommandItem(c.com.Styles, "model-roles", "Model Roles", "", ActionOpenDialog{DialogID: ModelRolesID}),
+		NewCommandItem(c.com.Styles, "model-fallbacks", "Model Fallbacks", "", ActionOpenDialog{DialogID: FallbacksID}),
+		NewCommandItem(c.com.Styles, "subagents", "Subagents", "", ActionOpenDialog{DialogID: SubagentsID}),
 		NewCommandItem(c.com.Styles, "search", "Search Chat", "f5", ActionOpenDialog{DialogID: ChatSearchID}),
 		NewCommandItem(c.com.Styles, "files", "Modified Files", "f", ActionOpenDialog{DialogID: FilesID}),
 		NewCommandItem(c.com.Styles, "usage", "Usage & Cost", "f6", ActionOpenDialog{DialogID: UsageID}),

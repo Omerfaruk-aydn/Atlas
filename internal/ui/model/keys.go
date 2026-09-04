@@ -76,26 +76,27 @@ type KeyMap struct {
 	}
 
 	// Global key maps
-	Quit                key.Binding
-	Help                key.Binding
-	Commands            key.Binding
-	Models              key.Binding
-	Suspend             key.Binding
-	Sessions            key.Binding
-	Tab                 key.Binding
-	ToggleYolo          key.Binding
-	CyclePermissionMode key.Binding
-	Rewind              key.Binding
-	Jobs                key.Binding
-	AgentHub            key.Binding
-	BackToSession       key.Binding
-	FocusMode           key.Binding
-	ChatSearch          key.Binding
-	Files               key.Binding
-	Usage               key.Binding
-	Snippets            key.Binding
-	PromptHistorySearch key.Binding
-	SessionSearch       key.Binding
+	Quit                    key.Binding
+	Help                    key.Binding
+	Commands                key.Binding
+	Models                  key.Binding
+	Suspend                 key.Binding
+	Sessions                key.Binding
+	Tab                     key.Binding
+	ToggleYolo              key.Binding
+	CyclePermissionMode     key.Binding
+	Rewind                  key.Binding
+	Jobs                    key.Binding
+	AgentHub                key.Binding
+	InterruptWithCorrection key.Binding
+	BackToSession           key.Binding
+	FocusMode               key.Binding
+	ChatSearch              key.Binding
+	Files                   key.Binding
+	Usage                   key.Binding
+	Snippets                key.Binding
+	PromptHistorySearch     key.Binding
+	SessionSearch           key.Binding
 }
 
 func DefaultKeyMap() KeyMap {
@@ -152,6 +153,12 @@ func DefaultKeyMap() KeyMap {
 		AgentHub: key.NewBinding(
 			key.WithKeys("alt+a"),
 			key.WithHelp("alt+a", "agent hub"),
+		),
+		InterruptWithCorrection: key.NewBinding(
+			// f10 fallback for the same conhost/cmd.exe ctrl+shift+<letter>
+			// ambiguity noted on Rewind/BackToSession above.
+			key.WithKeys("ctrl+shift+i", "f10"),
+			key.WithHelp("f10", "interrupt + correct"),
 		),
 		BackToSession: key.NewBinding(
 			// f3 fallback for the same reason as Rewind's f2 (see there).

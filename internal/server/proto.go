@@ -10,6 +10,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/backend"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/proto"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/session"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/google/uuid"
 )
 
@@ -520,6 +521,95 @@ func (c *controllerV1) handleGetWorkspaceSessionAgentHub(w http.ResponseWriter, 
 		})
 	}
 	jsonEncode(w, entries)
+}
+
+// subagentToProto converts a subagents.Subagent to its wire form.
+func subagentToProto(s subagents.Subagent) proto.Subagent {
+	return proto.Subagent{
+		Name:         s.Name,
+		Description:  s.Description,
+		Model:        s.Model,
+		Instructions: s.Instructions,
+		Path:         s.Path,
+	}
+}
+
+// handleGetWorkspaceSubagents lists every discovered subagent.
+//
+//	@Summary		List subagents
+//	@Tags			config
+//	@Produce		json
+//	@Param			id	path		string	true	"Workspace ID"
+//	@Success		200	{array}		proto.Subagent
+//	@Failure		404	{object}	proto.Error
+//	@Router			/workspaces/{id}/agents [get]
+func (c *controllerV1) handleGetWorkspaceSubagents(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	list, err := c.backend.ListSubagents(id)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	out := make([]proto.Subagent, len(list))
+	for i, s := range list {
+		out[i] = subagentToProto(s)
+	}
+	jsonEncode(w, out)
+}
+
+// handlePostWorkspaceSubagent creates or updates a subagent.
+//
+//	@Summary		Save a subagent
+//	@Tags			config
+//	@Accept			json
+//	@Produce		json
+//	@Param			id		path		string						true	"Workspace ID"
+//	@Param			request	body		proto.SaveSubagentRequest	true	"Save subagent request"
+//	@Success		200		{object}	proto.Subagent
+//	@Failure		400		{object}	proto.Error
+//	@Router			/workspaces/{id}/agents [post]
+func (c *controllerV1) handlePostWorkspaceSubagent(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+
+	var req proto.SaveSubagentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.server.logError(r, "Failed to decode request", "error", err)
+		jsonError(w, http.StatusBadRequest, "failed to decode request")
+		return
+	}
+
+	sub := subagents.Subagent{
+		Name:         req.Subagent.Name,
+		Description:  req.Subagent.Description,
+		Model:        req.Subagent.Model,
+		Instructions: req.Subagent.Instructions,
+	}
+	path, err := c.backend.SaveSubagent(id, sub, req.UserScope)
+	if err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	sub.Path = path
+	jsonEncode(w, subagentToProto(sub))
+}
+
+// handleDeleteWorkspaceSubagent deletes a subagent by name.
+//
+//	@Summary		Delete a subagent
+//	@Tags			config
+//	@Param			id		path	string	true	"Workspace ID"
+//	@Param			name	path	string	true	"Subagent name"
+//	@Success		200
+//	@Failure		400	{object}	proto.Error
+//	@Router			/workspaces/{id}/agents/{name} [delete]
+func (c *controllerV1) handleDeleteWorkspaceSubagent(w http.ResponseWriter, r *http.Request) {
+	id := r.PathValue("id")
+	name := r.PathValue("name")
+	if err := c.backend.DeleteSubagent(id, name); err != nil {
+		c.handleError(w, r, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 // handleGetWorkspaceSessions lists sessions for a workspace.

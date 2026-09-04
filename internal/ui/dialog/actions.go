@@ -85,6 +85,81 @@ type (
 	ActionSummarize                   struct {
 		SessionID string
 	}
+	// ActionFreshSession is a message indicating the user wants to
+	// recover a session that looks stuck or stale: cancel whatever is
+	// running, then reload the session's messages from the backend so
+	// the chat view resyncs with the source of truth. See /fresh in
+	// commands.go.
+	ActionFreshSession struct {
+		SessionID string
+	}
+	// ActionInterruptWithCorrection is a message indicating the user
+	// wants to stop the current turn and correct course from where it
+	// left off, rather than waiting for it to finish or losing the
+	// partial response entirely. See interruptWithCorrection in ui.go.
+	ActionInterruptWithCorrection struct{}
+
+	// ActionOpenModelRoleForm opens the add/edit form for a model role.
+	// An empty ExistingName means creating a new role, in which case
+	// the form includes a name field; editing an existing one keeps its
+	// name fixed and only offers provider/model.
+	ActionOpenModelRoleForm struct {
+		ExistingName     string
+		ExistingProvider string
+		ExistingModel    string
+	}
+	// ActionSaveModelRole is the model role form's result. Args holds
+	// "name" (create only), "provider", "model".
+	ActionSaveModelRole struct {
+		ExistingName string
+		Args         map[string]string
+	}
+
+	// ActionOpenFallbackEntryForm opens the add-fallback form for one
+	// model type's chain.
+	ActionOpenFallbackEntryForm struct {
+		ModelType config.SelectedModelType
+	}
+	// ActionSaveFallbackEntry is the fallback-entry form's result: Args
+	// holds "provider", "model", appended to ModelType's chain.
+	ActionSaveFallbackEntry struct {
+		ModelType config.SelectedModelType
+		Args      map[string]string
+	}
+	// ActionOpenFallbackCooldownForm opens the cooldown-editing form.
+	ActionOpenFallbackCooldownForm struct {
+		Current int
+	}
+	// ActionSaveFallbackCooldown is the cooldown form's result: Args
+	// holds "seconds".
+	ActionSaveFallbackCooldown struct {
+		Args map[string]string
+	}
+
+	// ActionOpenSubagentForm opens the add/edit form for a subagent's
+	// name, description, and model role. An empty ExistingName means
+	// creating a new one, in which case the form includes a name field
+	// and UserScope decides which directory it is written to; editing
+	// an existing one keeps its name and directory fixed.
+	ActionOpenSubagentForm struct {
+		ExistingName        string
+		ExistingDescription string
+		ExistingModel       string
+		UserScope           bool
+	}
+	// ActionSaveSubagentMeta is the subagent form's result. Args holds
+	// "name" (create only), "description", "model".
+	ActionSaveSubagentMeta struct {
+		ExistingName string
+		UserScope    bool
+		Args         map[string]string
+	}
+	// ActionEditSubagentFile opens a subagent's definition file in
+	// $EDITOR, for the instructions body the form does not edit.
+	ActionEditSubagentFile struct {
+		Name string
+		Path string
+	}
 	// ActionSelectReasoningEffort is a message indicating a reasoning effort
 	// has been selected.
 	ActionSelectReasoningEffort struct {
