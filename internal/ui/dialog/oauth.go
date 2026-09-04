@@ -309,25 +309,38 @@ func (m *OAuth) innerDialogContent() string {
 			)
 
 	case OAuthStateDisplay:
+		// Providers without a user-facing device code (PKCE + localhost
+		// redirect flows, e.g. ChatGPT) leave userCode empty: there is
+		// nothing to type into a browser, just a sign-in page to open, so
+		// the code box is skipped and the instructions read accordingly.
+		hasUserCode := m.userCode != ""
+
 		// Render each text segment with its own style. Wrapping the
 		// whole concatenation in a single style would lose the text
 		// color after enterKeyStyle's reset code.
+		instructionBody := " to open the browser and finish signing in."
+		if hasUserCode {
+			instructionBody = " to copy the code below and open the browser."
+		}
 		instructionText := instructionStyle.Render("Press ") +
 			enterKeyStyle.Render("enter") +
-			instructionStyle.Render(" to copy the code below and open the browser.")
+			instructionStyle.Render(instructionBody)
 		instructions := lipgloss.NewStyle().
 			Width(innerWidth).
 			Padding(0, 1).
 			Render(instructionText)
 
-		codeBox := lipgloss.NewStyle().
-			Width(innerWidth).
-			Height(7).
-			Align(lipgloss.Center, lipgloss.Center).
-			Background(t.Dialog.OAuth.UserCodeBg).
-			Render(
-				t.Dialog.OAuth.UserCode.Render(m.userCode),
-			)
+		var codeBox string
+		if hasUserCode {
+			codeBox = lipgloss.NewStyle().
+				Width(innerWidth).
+				Height(7).
+				Align(lipgloss.Center, lipgloss.Center).
+				Background(t.Dialog.OAuth.UserCodeBg).
+				Render(
+					t.Dialog.OAuth.UserCode.Render(m.userCode),
+				)
+		}
 
 		link := linkStyle.Hyperlink(m.verificationURL, "id=oauth-verify").Render(m.verificationURL)
 		url := statusTextStyle.
@@ -342,18 +355,14 @@ func (m *OAuth) innerDialogContent() string {
 				successStyle.Render(m.spinner.View()) + statusTextStyle.Render("Verifying..."),
 			)
 
-		return lipgloss.JoinVertical(
-			lipgloss.Left,
-			"",
-			instructions,
-			"",
-			codeBox,
-			"",
-			url,
-			"",
-			waiting,
-			"",
-		)
+		elements := []string{""}
+		elements = append(elements, instructions, "")
+		if hasUserCode {
+			elements = append(elements, codeBox, "")
+		}
+		elements = append(elements, url, "", waiting, "")
+
+		return lipgloss.JoinVertical(lipgloss.Left, elements...)
 
 	case OAuthStateSuccess:
 		return successStyle.
@@ -405,6 +414,13 @@ func (m *OAuth) ShortHelp() []key.Binding {
 		return nil
 
 	default:
+		if m.userCode == "" {
+			return []key.Binding{
+				m.keyMap.CopyURL,
+				m.keyMap.Submit,
+				m.keyMap.Close,
+			}
+		}
 		return []key.Binding{
 			m.keyMap.Copy,
 			m.keyMap.CopyURL,
@@ -432,15 +448,21 @@ func (m *OAuth) copyCodeAndOpenURL() tea.Cmd {
 	if m.State != OAuthStateDisplay {
 		return nil
 	}
+	openBrowser := func() tea.Msg {
+		if err := browser.OpenURL(m.verificationURL); err != nil {
+			return ActionOAuthErrored{fmt.Errorf("failed to open browser: %w", err)}
+		}
+		return nil
+	}
+	if m.userCode == "" {
+		// No device code to copy for a PKCE/redirect flow; just open the
+		// browser.
+		return openBrowser
+	}
 	return common.CopyToClipboardWithCallback(
 		m.userCode,
 		"Code copied and URL opened",
-		func() tea.Msg {
-			if err := browser.OpenURL(m.verificationURL); err != nil {
-				return ActionOAuthErrored{fmt.Errorf("failed to open browser: %w", err)}
-			}
-			return nil
-		},
+		openBrowser,
 	)
 }
 

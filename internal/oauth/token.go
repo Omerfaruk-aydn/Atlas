@@ -31,6 +31,13 @@ type Token struct {
 	ExpiresIn    int          `json:"expires_in"`
 	ExpiresAt    int64        `json:"expires_at"`
 	Client       *OAuthClient `json:"client,omitempty"`
+
+	// AccountID and PlanType carry provider-specific account metadata
+	// decoded once at token exchange/refresh time (e.g. the ChatGPT
+	// account id a Codex-style OAuth login needs on every request).
+	// Empty for providers that don't need them.
+	AccountID string `json:"account_id,omitempty"`
+	PlanType  string `json:"plan_type,omitempty"`
 }
 
 // SetExpiresAt calculates and sets the ExpiresAt field based on the
