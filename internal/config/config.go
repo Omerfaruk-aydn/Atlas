@@ -1326,6 +1326,7 @@ func allToolNames() []string {
 		"agentic_fetch",
 		"orchestrate",
 		"delegate",
+		"vibe",
 		"facts",
 		"inspect_file",
 		"glob",

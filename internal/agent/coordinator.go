@@ -798,6 +798,14 @@ func (c *coordinator) assembleTools(ctx context.Context, agent config.Agent, isS
 		allTools = append(allTools, delegateTool)
 	}
 
+	if slices.Contains(agent.AllowedTools, VibeToolName) {
+		vibeTool, err := c.vibeTool(ctx)
+		if err != nil {
+			return nil, err
+		}
+		allTools = append(allTools, vibeTool)
+	}
+
 	pathPolicy := tools.NewPathPolicy(c.cfg.Config(), c.cfg.WorkingDir())
 
 	// Get the model name for the agent
