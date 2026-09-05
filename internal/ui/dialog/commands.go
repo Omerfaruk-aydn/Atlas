@@ -413,33 +413,12 @@ func (c *Commands) setCommandItems(commandType CommandType) {
 			commandItems = append(commandItems, cmd)
 		}
 	case UserCommands:
-		for _, cmd := range c.customCommands {
-			var action Action
-			if cmd.Skill != nil {
-				action = ActionAttachSkill{ID: cmd.Skill.SkillFilePath, Name: cmd.Skill.Name}
-			} else {
-				action = ActionRunCustomCommand{
-					Content:   cmd.Content,
-					Arguments: cmd.Arguments,
-					Skill:     cmd.Skill,
-				}
-			}
-			item := NewCommandItem(c.com.Styles, "custom_"+cmd.ID, cmd.Name, "", action)
-			if cmd.Skill != nil {
-				item = item.WithDescription(cmd.Skill.Description)
-			}
-			commandItems = append(commandItems, item)
+		for _, cmd := range c.customCommandItems() {
+			commandItems = append(commandItems, cmd)
 		}
 	case MCPPrompts:
-		for _, cmd := range c.mcpPrompts {
-			action := ActionRunMCPPrompt{
-				Title:       cmd.Title,
-				Description: cmd.Description,
-				PromptID:    cmd.PromptID,
-				ClientID:    cmd.ClientID,
-				Arguments:   cmd.Arguments,
-			}
-			commandItems = append(commandItems, NewCommandItem(c.com.Styles, "mcp_"+cmd.ID, cmd.PromptID, "", action))
+		for _, cmd := range c.mcpCommandItems() {
+			commandItems = append(commandItems, cmd)
 		}
 	}
 
@@ -448,6 +427,60 @@ func (c *Commands) setCommandItems(commandType CommandType) {
 	c.list.ScrollToTop()
 	c.list.SetSelected(0)
 	c.input.SetValue("")
+}
+
+// customCommandItems converts the workspace's custom (user-authored)
+// commands into CommandItems, same construction setCommandItems' user
+// tab uses -- factored out so AllItems can offer them too.
+func (c *Commands) customCommandItems() []*CommandItem {
+	items := make([]*CommandItem, 0, len(c.customCommands))
+	for _, cmd := range c.customCommands {
+		var action Action
+		if cmd.Skill != nil {
+			action = ActionAttachSkill{ID: cmd.Skill.SkillFilePath, Name: cmd.Skill.Name}
+		} else {
+			action = ActionRunCustomCommand{
+				Content:   cmd.Content,
+				Arguments: cmd.Arguments,
+				Skill:     cmd.Skill,
+			}
+		}
+		item := NewCommandItem(c.com.Styles, "custom_"+cmd.ID, cmd.Name, "", action)
+		if cmd.Skill != nil {
+			item = item.WithDescription(cmd.Skill.Description)
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+// mcpCommandItems converts the connected MCP servers' prompts into
+// CommandItems, same construction setCommandItems' MCP tab uses --
+// factored out so AllItems can offer them too.
+func (c *Commands) mcpCommandItems() []*CommandItem {
+	items := make([]*CommandItem, 0, len(c.mcpPrompts))
+	for _, cmd := range c.mcpPrompts {
+		action := ActionRunMCPPrompt{
+			Title:       cmd.Title,
+			Description: cmd.Description,
+			PromptID:    cmd.PromptID,
+			ClientID:    cmd.ClientID,
+			Arguments:   cmd.Arguments,
+		}
+		items = append(items, NewCommandItem(c.com.Styles, "mcp_"+cmd.ID, cmd.PromptID, "", action))
+	}
+	return items
+}
+
+// AllItems returns every command this dialog can offer, across all
+// three tabs (system, custom, MCP prompt) as one flat list. Used by the
+// "/" inline completion popup, which searches across all of them at
+// once rather than making the user switch tabs first.
+func (c *Commands) AllItems() []*CommandItem {
+	items := c.defaultCommands()
+	items = append(items, c.customCommandItems()...)
+	items = append(items, c.mcpCommandItems()...)
+	return items
 }
 
 // defaultCommands returns the list of default system commands.

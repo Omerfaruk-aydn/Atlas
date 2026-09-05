@@ -76,6 +76,12 @@ func (c *CommandItem) ID() string {
 	return c.id
 }
 
+// Title returns the command's display title, as shown in the palette
+// (and, unlike Filter, without its aliases or description mixed in).
+func (c *CommandItem) Title() string {
+	return c.title
+}
+
 // SetFocused implements ListItem.
 func (c *CommandItem) SetFocused(focused bool) {
 	if c.focused == focused {
