@@ -32,6 +32,7 @@ var toolSettingsCatalog = []struct {
 	{"teams", "Teams (sub-agent broadcast)", "team_send/team_read so sub-agents spawned by the same task can message each other."},
 	{"debugger", "Debugger", "Drive a Go program under Delve (dlv dap): breakpoints, step, inspect variables. Requires dlv installed."},
 	{"browser", "Browser", "Drive a real Chrome/Chromium tab: navigate, click, type, screenshot, read console. Requires Chrome/Chromium installed."},
+	{"browser_visible", "Browser: Visible Window", "Show the Chrome window the Browser tool drives instead of running it headless (no window, no audio)."},
 }
 
 // toolEnabled reports whether the opt-in tool group named key is
@@ -46,6 +47,10 @@ func toolEnabled(cfg *config.Config) map[string]bool {
 		"teams":      cfg.Tools.Teams.IsEnabled(),
 		"debugger":   cfg.Tools.Debugger.IsEnabled(),
 		"browser":    cfg.Tools.Browser.IsEnabled(),
+		// Not a tool group switch like the others: this row reflects the
+		// browser tool's Headless setting, inverted so "enabled" reads as
+		// "the Chrome window is visible" -- the sense the user toggles.
+		"browser_visible": !cfg.Tools.Browser.IsHeadless(),
 	}
 }
 
@@ -168,7 +173,15 @@ type toolToggledMsg struct {
 func (d *ToolSettings) toggleCmd(key string, newState bool) tea.Cmd {
 	ws := d.com.Workspace
 	return func() tea.Msg {
-		err := ws.SetConfigField(config.ScopeGlobal, "tools."+key+".enabled", newState)
+		// browser_visible isn't its own tool group -- it flips the
+		// Browser tool's Headless field, inverted (visible = !headless).
+		field := "tools." + key + ".enabled"
+		value := any(newState)
+		if key == "browser_visible" {
+			field = "tools.browser.headless"
+			value = !newState
+		}
+		err := ws.SetConfigField(config.ScopeGlobal, field, value)
 		return toolToggledMsg{key: key, enabled: newState, err: err}
 	}
 }
