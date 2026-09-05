@@ -6,12 +6,21 @@
 // This is a SCAFFOLD, not a finished integration. Anthropic does not
 // publish a public OAuth flow for claude.ai subscriptions the way
 // Google does for Antigravity or OpenAI does for ChatGPT; the client
-// id, authorize/token endpoints, and the request envelope the
-// claude.ai console backend expects are not part of any official
-// documentation and have to be observed against the real client. The
-// shape of this package is the same PKCE flow Antigravity ships
-// (see internal/oauth/antigravity) so swapping in real values is a
-// small change once they are known.
+// id, endpoints, and scopes below are not part of any official
+// documentation. They were confirmed against the real authorize
+// endpoint during development (an earlier guess at the scope value
+// was rejected outright with "Unknown scope: openid"; the values here
+// get past that and reach the user's actual account) but the request
+// envelope the token endpoint expects on the model-call side is still
+// unconfirmed.
+//
+// Unlike Antigravity/ChatGPT, claude.ai's registered client does not
+// accept a loopback (localhost) redirect_uri -- authorizing with one
+// fails with "Authorization failed: Invalid request format". Its
+// redirect_uri is a fixed console.anthropic.com page that displays a
+// "{code}#{state}" string for the user to copy back into the CLI by
+// hand, so this package has no local callback listener; Exchange
+// takes that pasted string directly.
 //
 // Risk note: claude.ai's terms of service restrict the service to
 // first-party clients in the same way Antigravity's do, and Anthropic
@@ -21,13 +30,11 @@
 //
 // To finish wiring this up, a developer with a working claude.ai
 // session needs to:
-//  1. Capture the OAuth client id and (if any) secret the claude.ai
-//     web app uses. The values that ship in this file are placeholders.
-//  2. Replace authorizeURL / tokenURL with the real endpoints.
-//  3. Implement the project/account-id discovery in Wait (the
-//     Antigravity equivalent is discoverProject; claude.ai will have
-//     a similar step that resolves an "accountId"/"orgId" pair).
-//  4. Implement the model call layer in
+//  1. Confirm the account/organization id discovery step (the
+//     Antigravity equivalent is discoverProject); claude.ai may need a
+//     similar step that resolves an "accountId"/"orgId" pair before
+//     model calls will work.
+//  2. Implement the model call layer in
 //     internal/deps/atlas-llm/providers/claude: the request/response
 //     envelope claude.ai's console backend speaks.
 package claude
@@ -41,21 +48,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
-	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/callback"
 )
 
-// TODO(claude-oauth): replace these with the real values captured
-// from a logged-in claude.ai web session. They are placeholders that
-// will make Start() fail at the authorize step; the rest of the
-// package is built to be the drop-in replacement once the real
-// values are known.
 const (
 	// clientID is the OAuth client id the official Claude Code CLI
 	// registers itself as. This value is not published in any official
@@ -75,13 +75,11 @@ const (
 	// client exchanges the code against console.anthropic.com, not
 	// claude.ai itself.
 	tokenURL = "https://console.anthropic.com/v1/oauth/token"
-	// redirectPort is the localhost port the registered OAuth
-	// client expects the redirect on. Antigravity uses 36742;
-	// whatever claude.ai's web app actually uses, that exact value
-	// must go here because the redirect URI is part of the registered
-	// client.
-	redirectPort = 41537
-	redirectPath = "/oauth-callback"
+	// redirectURL is fixed: claude.ai's registered client for this
+	// client_id does not accept an arbitrary loopback redirect_uri the
+	// way Antigravity/ChatGPT's clients do. This console.anthropic.com
+	// page shows a "{code}#{state}" string for the user to paste back.
+	redirectURL = "https://console.anthropic.com/oauth/code/callback"
 	// scopes is the space-separated list of OAuth scopes Claude Code's
 	// own client requests. "openid profile email offline_access" is an
 	// OIDC-shaped guess that claude.ai's authorize endpoint rejects
@@ -90,32 +88,21 @@ const (
 	scopes = "org:create_api_key user:profile user:inference"
 )
 
-var redirectURL = fmt.Sprintf("http://localhost:%d%s", redirectPort, redirectPath)
-
 // AuthSession is one in-flight authorization attempt: a PKCE
-// verifier/state pair plus the localhost listener waiting for the
-// browser redirect. Same shape as Antigravity's AuthSession so the
-// CLI login flow does not need to know which provider it is driving.
+// verifier/state pair and the authorize URL to open in the browser.
+// There is no local callback listener (see the package doc) -- call
+// Exchange with the code the user pastes back from the browser.
 type AuthSession struct {
 	verifier string
 	state    string
 	url      string
-
-	server   *http.Server
-	resultCh chan authResult
 }
 
-type authResult struct {
-	code string
-	err  error
-}
-
-// Start generates a fresh PKCE challenge, binds the localhost callback
-// port, and returns a session whose AuthURL should be opened in the
-// browser. Call Wait afterwards to block for the redirect, exchange
-// the code, and discover the account/organization id needed for model
-// calls.
-func Start(ctx context.Context) (*AuthSession, error) {
+// Start generates a fresh PKCE challenge and returns a session whose
+// AuthURL should be opened in the browser. The browser page shows a
+// "{code}#{state}" string once the user approves access; pass that
+// string to Exchange to complete the login.
+func Start(_ context.Context) (*AuthSession, error) {
 	verifier, err := randomURLSafe(32)
 	if err != nil {
 		return nil, fmt.Errorf("generate pkce verifier: %w", err)
@@ -128,16 +115,9 @@ func Start(ctx context.Context) (*AuthSession, error) {
 	sum := sha256.Sum256([]byte(verifier))
 	challenge := base64.RawURLEncoding.EncodeToString(sum[:])
 
-	lc := &net.ListenConfig{}
-	listener, err := lc.Listen(ctx, "tcp", fmt.Sprintf("localhost:%d", redirectPort))
-	if err != nil {
-		return nil, fmt.Errorf("bind localhost:%d for Claude sign-in (is another login already running?): %w", redirectPort, err)
-	}
-
 	sess := &AuthSession{
 		verifier: verifier,
 		state:    state,
-		resultCh: make(chan authResult, 1),
 	}
 
 	q := url.Values{}
@@ -148,16 +128,7 @@ func Start(ctx context.Context) (*AuthSession, error) {
 	q.Set("code_challenge", challenge)
 	q.Set("code_challenge_method", "S256")
 	q.Set("state", state)
-	q.Set("access_type", "offline")
-	q.Set("prompt", "consent")
 	sess.url = authorizeURL + "?" + q.Encode()
-
-	mux := http.NewServeMux()
-	mux.HandleFunc(redirectPath, sess.handleCallback)
-	sess.server = &http.Server{Handler: mux}
-	go func() {
-		_ = sess.server.Serve(listener)
-	}()
 
 	return sess, nil
 }
@@ -165,84 +136,35 @@ func Start(ctx context.Context) (*AuthSession, error) {
 // AuthURL returns the URL to open in the user's browser.
 func (s *AuthSession) AuthURL() string { return s.url }
 
-func (s *AuthSession) handleCallback(w http.ResponseWriter, r *http.Request) {
-	q := r.URL.Query()
-	result := callback.Result{
-		Subject:          "Claude",
-		ErrorCode:        q.Get("error"),
-		ErrorDescription: q.Get("error_description"),
-	}
-	if err := callback.Serve(w, result); err != nil {
-		s.send(authResult{err: fmt.Errorf("render callback page: %w", err)})
-		return
+// Exchange takes the string the user copied from the browser page
+// after approving access -- either a bare authorization code or a
+// "{code}#{state}" pair -- and exchanges it for tokens. When a state
+// half is present it is verified against the one generated by Start.
+func (s *AuthSession) Exchange(ctx context.Context, pasted string) (*oauth.Token, error) {
+	pasted = strings.TrimSpace(pasted)
+	if pasted == "" {
+		return nil, errors.New("no authorization code provided")
 	}
 
-	switch {
-	case result.Failed():
-		s.send(authResult{err: fmt.Errorf("authorization failed: %s: %s", result.ErrorCode, result.ErrorDescription)})
-	case q.Get("state") != s.state:
-		s.send(authResult{err: errors.New("oauth state mismatch")})
-	case q.Get("code") == "":
-		s.send(authResult{err: errors.New("no authorization code returned")})
-	default:
-		s.send(authResult{code: q.Get("code")})
-	}
-}
-
-func (s *AuthSession) send(r authResult) {
-	select {
-	case s.resultCh <- r:
-	default:
-	}
-}
-
-// Wait blocks until the browser redirect arrives or ctx is cancelled,
-// exchanges the code for tokens, and (TODO) discovers the
-// account/organization id needed for model calls.
-func (s *AuthSession) Wait(ctx context.Context) (*oauth.Token, error) {
-	return s.WaitWithProgress(ctx, nil)
-}
-
-// WaitWithProgress is Wait but calls progress with a short status
-// string before each network step so a CLI caller can narrate what
-// would otherwise be a silent wait.
-func (s *AuthSession) WaitWithProgress(ctx context.Context, progress func(string)) (*oauth.Token, error) {
-	defer s.close()
-	report := func(msg string) {
-		if progress != nil {
-			progress(msg)
+	code := pasted
+	if idx := strings.IndexByte(pasted, '#'); idx != -1 {
+		code = pasted[:idx]
+		if returnedState := pasted[idx+1:]; returnedState != "" && returnedState != s.state {
+			return nil, errors.New("oauth state mismatch")
 		}
 	}
-
-	select {
-	case res := <-s.resultCh:
-		if res.err != nil {
-			return nil, res.err
-		}
-		report("Exchanging authorization code for tokens...")
-		tok, err := exchangeCode(ctx, res.code, s.verifier)
-		if err != nil {
-			return nil, err
-		}
-		// TODO(claude-oauth): once the claude.ai account/org
-		// discovery step is known, set tok.AccountID and
-		// tok.PlanType here, the way Antigravity does from its
-		// loadCodeAssist response.
-		return tok, nil
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	if code == "" {
+		return nil, errors.New("no authorization code provided")
 	}
-}
 
-// Close abandons the session, releasing the callback listener
-// without waiting for a redirect. Safe to call after Wait has
-// already returned.
-func (s *AuthSession) Close() { s.close() }
-
-func (s *AuthSession) close() {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-	_ = s.server.Shutdown(ctx)
+	tok, err := exchangeCode(ctx, code, s.verifier)
+	if err != nil {
+		return nil, err
+	}
+	// TODO(claude-oauth): once the claude.ai account/org discovery
+	// step is known, set tok.AccountID and tok.PlanType here, the way
+	// Antigravity does from its loadCodeAssist response.
+	return tok, nil
 }
 
 func randomURLSafe(nBytes int) (string, error) {

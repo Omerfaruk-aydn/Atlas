@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
@@ -347,8 +349,8 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 		}
 	}
 
-	fmt.Println("Note: the Claude Pro/Max OAuth client and the model call envelope are not yet wired up.")
-	fmt.Println("Until the real claude.ai OAuth credentials are filled in, this login will fail at the authorize step.")
+	fmt.Println("Note: the Claude model call envelope is not yet wired up.")
+	fmt.Println("You can complete sign-in, but chatting through this login will return \"not implemented\" for now.")
 	fmt.Println("See internal/oauth/claude/oauth.go for the TODOs.")
 	fmt.Println()
 
@@ -366,12 +368,17 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 		fmt.Println("Could not open the URL. You'll need to manually open the URL in your browser.")
 	}
 
-	fmt.Println("Waiting for authorization...")
+	fmt.Println()
+	fmt.Println("After you approve access, the page shows a code. Copy it and paste it here:")
+	pasted, err := readPastedLine()
+	if err != nil {
+		return fmt.Errorf("read pasted code: %w", err)
+	}
+
 	waitCtx, waitCancel := context.WithTimeout(loginCtx, 5*time.Minute)
 	defer waitCancel()
-	token, err := session.WaitWithProgress(waitCtx, func(msg string) {
-		fmt.Println(msg)
-	})
+	fmt.Println("Exchanging authorization code for tokens...")
+	token, err := session.Exchange(waitCtx, pasted)
 	if err != nil {
 		return err
 	}
@@ -384,6 +391,17 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 	fmt.Println("You're now authenticated with Claude (Pro/Max)!")
 	fmt.Println("(Reminder: the model call layer is still a stub; see the docs in internal/oauth/claude.)")
 	return nil
+}
+
+// readPastedLine reads a single line the user pastes into the
+// terminal (e.g. an authorization code), trimming surrounding
+// whitespace.
+func readPastedLine() (string, error) {
+	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
+	if err != nil && line == "" {
+		return "", err
+	}
+	return strings.TrimSpace(line), nil
 }
 
 // loginGrokWeb signs in to an xAI SuperGrok subscription via the
