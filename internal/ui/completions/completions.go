@@ -184,6 +184,30 @@ func (c *Completions) SetItems(files []FileCompletionValue, resources []Resource
 		items = append(items, item)
 	}
 
+	c.finishOpen(items)
+}
+
+// SetCommandItems opens the popup with commands to run instead of text
+// to insert -- the "/" trigger's source, built synchronously from the
+// command palette's own item list rather than loaded asynchronously
+// the way file/resource completions are.
+func (c *Completions) SetCommandItems(cmds []CommandCompletionValue) {
+	items := make([]list.FilterableItem, 0, len(cmds))
+	for _, cmd := range cmds {
+		items = append(items, NewCompletionItem(
+			cmd.Label,
+			cmd,
+			c.normalStyle,
+			c.focusedStyle,
+			c.matchStyle,
+		))
+	}
+	c.finishOpen(items)
+}
+
+// finishOpen finishes opening the popup with the given items, shared
+// by SetItems and SetCommandItems.
+func (c *Completions) finishOpen(items []list.FilterableItem) {
 	c.open = true
 	c.query = ""
 	c.allItems = items
@@ -382,6 +406,11 @@ func (c *Completions) selectCurrent(keepOpen bool) tea.Msg {
 		}
 	case FileCompletionValue:
 		return SelectionMsg[FileCompletionValue]{
+			Value:    item,
+			KeepOpen: keepOpen,
+		}
+	case CommandCompletionValue:
+		return SelectionMsg[CommandCompletionValue]{
 			Value:    item,
 			KeepOpen: keepOpen,
 		}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ansi"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-style/v2"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/dialog"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
 	"github.com/rivo/uniseg"
 	"github.com/sahilm/fuzzy"
@@ -21,6 +22,16 @@ type ResourceCompletionValue struct {
 	URI      string
 	Title    string
 	MIMEType string
+}
+
+// CommandCompletionValue wraps one command-palette entry for the "/"
+// inline completion popup: selecting it runs Action directly, exactly
+// as picking the same entry from the full command palette would,
+// rather than inserting text the way a file or resource completion
+// does.
+type CommandCompletionValue struct {
+	Label  string
+	Action dialog.Action
 }
 
 // CompletionItem represents an item in the completions list.
