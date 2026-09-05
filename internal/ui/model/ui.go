@@ -2107,12 +2107,21 @@ func (m *UI) handleChildSessionMessage(event pubsub.Event[message.Message]) tea.
 }
 
 func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
-	var cmds []tea.Cmd
 	action := m.dialog.Update(msg)
 	if action == nil {
-		return tea.Batch(cmds...)
+		return nil
 	}
+	return m.dispatchDialogAction(action)
+}
 
+// dispatchDialogAction processes an [dialog.Action] regardless of where
+// it came from: a dialog's own HandleMsg (via handleDialogMsg above), or
+// a source with no open Dialog on the overlay stack at all -- the "/"
+// inline completion popup runs a selected command's action straight
+// through here, the same action a click in the full palette would have
+// produced.
+func (m *UI) dispatchDialogAction(action dialog.Action) tea.Cmd {
+	var cmds []tea.Cmd
 	isOnboarding := m.state == uiOnboarding
 
 	switch msg := action.(type) {
@@ -3022,6 +3031,14 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 						if !msg.KeepOpen {
 							m.closeCompletions()
 						}
+					case completions.SelectionMsg[completions.CommandCompletionValue]:
+						if !msg.KeepOpen {
+							m.closeCompletions()
+						}
+						if cmd := m.clearSlashQuery(); cmd != nil {
+							cmds = append(cmds, cmd)
+						}
+						cmds = append(cmds, m.dispatchDialogAction(msg.Value.Action))
 					case completions.ClosedMsg:
 						m.completionsOpen = false
 					}
@@ -3190,6 +3207,20 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 					}
 				}
 
+				// Trigger the slash-command popup, but only as the very
+				// first character of an empty message. Unlike @ mentions,
+				// a slash command only makes sense there; restricting it
+				// this tightly (rather than also after whitespace, like
+				// @) keeps "/" free to type literally everywhere else --
+				// a path pasted mid-message, for instance.
+				if msg.String() == "/" && !m.completionsOpen && curIdx == 0 {
+					m.completionsOpen = true
+					m.completionsQuery = ""
+					m.completionsStartIndex = curIdx
+					m.completionsPositionStart = m.completionsPosition()
+					m.completions.SetCommandItems(m.slashCommandItems())
+				}
+
 				// remove the details if they are open when user starts typing
 				if m.detailsOpen {
 					m.detailsOpen = false
@@ -3230,8 +3261,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				m.updateHistoryDraft(curValue)
 
 				// After updating textarea, check if we need to filter completions.
-				// Skip filtering on the initial @ keystroke since items are loading async.
-				if m.completionsOpen && msg.String() != "@" {
+				// Skip filtering on the initial @ or / keystroke: @'s
+				// items are still loading async at that point, and /'s
+				// were just set to the full, unfiltered list.
+				if m.completionsOpen && msg.String() != "@" && msg.String() != "/" {
 					newValue := m.textarea.Value()
 					newIdx := len(newValue)
 
@@ -3244,10 +3277,14 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 					} else {
 						// Extract current word and filter.
 						word := m.textareaWord()
-						if strings.HasPrefix(word, "@") {
+						switch {
+						case strings.HasPrefix(word, "@"):
 							m.completionsQuery = word[1:]
 							m.completions.Filter(m.completionsQuery)
-						} else if m.completionsOpen {
+						case strings.HasPrefix(word, "/"):
+							m.completionsQuery = word[1:]
+							m.completions.Filter(m.completionsQuery)
+						case m.completionsOpen:
 							m.closeCompletions()
 						}
 					}
@@ -4502,6 +4539,24 @@ func (m *UI) insertCompletionText(text string) bool {
 	return true
 }
 
+// clearSlashQuery removes the typed "/query" text from the textarea.
+// Unlike a file or resource completion, selecting a command runs it
+// directly rather than inserting anything in its place, so there is no
+// insertCompletionText-style replacement text here -- just the removal.
+func (m *UI) clearSlashQuery() tea.Cmd {
+	value := m.textarea.Value()
+	if m.completionsStartIndex > len(value) {
+		return nil
+	}
+
+	prevHeight := m.textarea.Height()
+	word := m.textareaWord()
+	endIdx := min(m.completionsStartIndex+len(word), len(value))
+	m.textarea.SetValue(value[:m.completionsStartIndex] + value[endIdx:])
+	m.textarea.SetCursorColumn(m.completionsStartIndex)
+	return m.handleTextareaHeightChange(prevHeight)
+}
+
 // insertFileCompletion inserts the selected file path into the textarea,
 // replacing the @query, and adds the file as an attachment.
 func (m *UI) insertFileCompletion(path string) tea.Cmd {
@@ -5187,13 +5242,12 @@ func (m *UI) openModelsDialog() tea.Cmd {
 }
 
 // openCommandsDialog opens the commands dialog.
-func (m *UI) openCommandsDialog() tea.Cmd {
-	if m.dialog.ContainsDialog(dialog.CommandsID) {
-		// Bring to front
-		m.dialog.BringToFront(dialog.CommandsID)
-		return nil
-	}
-
+// newCommandsDialog builds a Commands dialog from the session's current
+// state. Shared by openCommandsDialog, which shows it, and the "/"
+// inline completion trigger, which only wants its item list -- built
+// fresh each time rather than cached, since which commands apply (a
+// session existing, a queue, incomplete todos) can change turn to turn.
+func (m *UI) newCommandsDialog() (*dialog.Commands, error) {
 	var sessionID string
 	hasSession := m.session != nil
 	if hasSession {
@@ -5202,7 +5256,17 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 	hasTodos := hasSession && hasIncompleteTodos(m.session.Todos)
 	hasQueue := m.promptQueue > 0
 
-	commands, err := dialog.NewCommands(m.com, sessionID, hasSession, m.previousSessionID != "", hasTodos, hasQueue, m.customCommands, m.mcpPrompts)
+	return dialog.NewCommands(m.com, sessionID, hasSession, m.previousSessionID != "", hasTodos, hasQueue, m.customCommands, m.mcpPrompts)
+}
+
+func (m *UI) openCommandsDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.CommandsID) {
+		// Bring to front
+		m.dialog.BringToFront(dialog.CommandsID)
+		return nil
+	}
+
+	commands, err := m.newCommandsDialog()
 	if err != nil {
 		return util.ReportError(err)
 	}
@@ -5210,6 +5274,28 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 	m.dialog.OpenDialog(commands)
 
 	return commands.InitialCmd()
+}
+
+// slashCommandItems builds the item list the "/" inline completion
+// popup searches: every command the full palette offers, across all
+// three of its tabs, converted to the shape the completions popup
+// understands. Returns nil (rather than erroring into the editor) if
+// the dialog can't be built -- the popup just won't open that keystroke.
+func (m *UI) slashCommandItems() []completions.CommandCompletionValue {
+	commandsDialog, err := m.newCommandsDialog()
+	if err != nil {
+		return nil
+	}
+
+	all := commandsDialog.AllItems()
+	items := make([]completions.CommandCompletionValue, 0, len(all))
+	for _, cmd := range all {
+		items = append(items, completions.CommandCompletionValue{
+			Label:  cmd.Title(),
+			Action: cmd.Action(),
+		})
+	}
+	return items
 }
 
 // openReasoningDialog opens the reasoning effort dialog.
