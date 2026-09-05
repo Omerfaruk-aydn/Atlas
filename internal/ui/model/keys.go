@@ -10,7 +10,6 @@ type KeyMap struct {
 		AddImage    key.Binding
 		PasteImage  key.Binding
 		MentionFile key.Binding
-		Commands    key.Binding
 
 		// Attachments key maps
 		AttachmentDeleteMode key.Binding
@@ -231,10 +230,6 @@ func DefaultKeyMap() KeyMap {
 	km.Editor.MentionFile = key.NewBinding(
 		key.WithKeys("@"),
 		key.WithHelp("@", "mention file"),
-	)
-	km.Editor.Commands = key.NewBinding(
-		key.WithKeys("/"),
-		key.WithHelp("/", "commands"),
 	)
 	km.Editor.AttachmentDeleteMode = key.NewBinding(
 		key.WithKeys("ctrl+r"),

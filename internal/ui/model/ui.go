@@ -2336,6 +2336,23 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		if cmd := m.handleSaveFallbackCooldown(msg); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.ActionBackToPreviousSession:
+		m.dialog.CloseDialog(dialog.CommandsID)
+		if cmd := m.backToPreviousSession(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSelectSessionMode:
+		if cmd := m.handleSelectSessionMode(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionOpenAutoCompactThresholdForm:
+		if cmd := m.handleOpenAutoCompactThresholdForm(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSaveAutoCompactThreshold:
+		if cmd := m.handleSaveAutoCompactThreshold(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case dialog.ActionOpenSubagentForm:
 		if cmd := m.handleOpenSubagentForm(msg); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -2868,12 +2885,9 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			}
 			return true
 		case key.Matches(msg, m.keyMap.BackToSession):
-			if m.previousSessionID == "" {
-				return true
+			if cmd := m.backToPreviousSession(); cmd != nil {
+				cmds = append(cmds, cmd)
 			}
-			target := m.previousSessionID
-			m.previousSessionID = ""
-			cmds = append(cmds, m.loadSession(target))
 			return true
 		case key.Matches(msg, m.keyMap.FocusMode):
 			if m.state != uiChat || m.isCompact {
@@ -3143,10 +3157,6 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			case key.Matches(msg, m.keyMap.Editor.Escape):
 				cmd := m.handleHistoryEscape(msg)
 				if cmd != nil {
-					cmds = append(cmds, cmd)
-				}
-			case key.Matches(msg, m.keyMap.Editor.Commands) && m.textarea.Value() == "":
-				if cmd := m.openCommandsDialog(); cmd != nil {
 					cmds = append(cmds, cmd)
 				}
 			default:
@@ -3628,9 +3638,6 @@ func (m *UI) ShortHelp() []key.Binding {
 
 	tab := k.Tab
 	commands := k.Commands
-	if m.focus == uiFocusEditor && m.textarea.Value() == "" {
-		commands.SetHelp("/ or ctrl+p", "commands")
-	}
 
 	switch m.state {
 	case uiInitialize:
@@ -3724,9 +3731,6 @@ func (m *UI) FullHelp() [][]key.Binding {
 	hasAttachments := len(m.attachments.List()) > 0
 	hasSession := m.hasSession()
 	commands := k.Commands
-	if m.focus == uiFocusEditor && m.textarea.Value() == "" {
-		commands.SetHelp("/ or ctrl+p", "commands")
-	}
 
 	switch m.state {
 	case uiInitialize:
@@ -5117,6 +5121,10 @@ func (m *UI) openDialog(id string) tea.Cmd {
 		if cmd := m.openToolSettingsDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.ModesID:
+		if cmd := m.openModesDialog(); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
 	case dialog.ChatSearchID:
 		if cmd := m.openChatSearchDialog(); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -5194,7 +5202,7 @@ func (m *UI) openCommandsDialog() tea.Cmd {
 	hasTodos := hasSession && hasIncompleteTodos(m.session.Todos)
 	hasQueue := m.promptQueue > 0
 
-	commands, err := dialog.NewCommands(m.com, sessionID, hasSession, hasTodos, hasQueue, m.customCommands, m.mcpPrompts)
+	commands, err := dialog.NewCommands(m.com, sessionID, hasSession, m.previousSessionID != "", hasTodos, hasQueue, m.customCommands, m.mcpPrompts)
 	if err != nil {
 		return util.ReportError(err)
 	}
