@@ -377,6 +377,22 @@ func (c *Config) configureProviders(ctx context.Context, store *ConfigStore, env
 			prepared.SetupChatGPT()
 		case p.ID == catwalk.InferenceProviderAntigravity && config.OAuthToken != nil:
 			prepared.SetupAntigravity()
+		case p.ID == catwalk.InferenceProviderClaude && config.OAuthToken != nil:
+			prepared.SetupClaude()
+		case p.ID == catwalk.InferenceProviderGrokWeb && config.OAuthToken != nil:
+			prepared.SetupGrokWeb()
+		case p.ID == catwalk.InferenceProviderWindsurf && config.OAuthToken != nil:
+			prepared.SetupWindsurf()
+		case p.ID == catwalk.InferenceProviderJetBrains && config.OAuthToken != nil:
+			prepared.SetupJetBrains()
+		case p.ID == catwalk.InferenceProviderAugment && config.OAuthToken != nil:
+			prepared.SetupAugment()
+		case p.ID == catwalk.InferenceProviderFactory && config.OAuthToken != nil:
+			prepared.SetupFactory()
+		case p.ID == catwalk.InferenceProviderCodeRabbit && config.OAuthToken != nil:
+			prepared.SetupCodeRabbit()
+		case p.ID == catwalk.InferenceProviderZed && config.OAuthToken != nil:
+			prepared.SetupZed()
 		}
 
 		switch p.ID {
