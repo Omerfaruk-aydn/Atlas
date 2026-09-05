@@ -14,8 +14,26 @@ const (
 	TypeAzure        Type = "azure"
 	TypeBedrock      Type = "bedrock"
 	TypeVertexAI     Type = "google-vertex"
-	TypeAntigravity  Type = "antigravity"
+	TypeAntigravity Type = "antigravity"
+	TypeClaude      Type = "claude"
+	TypeGrokWeb     Type = "grok-web"
+	TypeWindsurf    Type = "windsurf"
+	TypeJetBrains   Type = "jetbrains"
+	TypeAugment     Type = "augment"
+	TypeFactory     Type = "factory"
+	TypeCodeRabbit  Type = "coderabbit"
+	TypeZed         Type = "zed"
 )
+
+// Coding-plan provider types: these are the custom protocol adapters
+// Atlas-Agent ships for subscription plans whose public API is either
+// not documented (claude.ai console, grok.com, codeium-backed
+// Windsurf) or routed through a JWT exchange (JetBrains AI). Each one
+// is implemented as its own fantasy.Provider under
+// internal/deps/atlas-llm/providers/<name> and wired into the
+// coordinator by Type. Adding a new coding plan = (1) add a Type
+// constant, (2) implement a provider package, (3) add a case to
+// buildProvider in coordinator.go, (4) add a login subcommand.
 
 // InferenceProvider represents the inference provider identifier.
 type InferenceProvider string
@@ -46,6 +64,14 @@ const (
 	InferenceProviderCopilot          InferenceProvider = "copilot"
 	InferenceProviderChatGPT          InferenceProvider = "chatgpt"
 	InferenceProviderAntigravity      InferenceProvider = "antigravity"
+	InferenceProviderClaude           InferenceProvider = "claude"
+	InferenceProviderGrokWeb          InferenceProvider = "grok-web"
+	InferenceProviderWindsurf         InferenceProvider = "windsurf"
+	InferenceProviderJetBrains        InferenceProvider = "jetbrains"
+	InferenceProviderAugment          InferenceProvider = "augment"
+	InferenceProviderFactory          InferenceProvider = "factory"
+	InferenceProviderCodeRabbit       InferenceProvider = "coderabbit"
+	InferenceProviderZed              InferenceProvider = "zed"
 	InferenceProviderCortecs          InferenceProvider = "cortecs"
 	InferenceProviderVercel           InferenceProvider = "vercel"
 	InferenceProviderMiniMax          InferenceProvider = "minimax"
@@ -162,5 +188,13 @@ func KnownProviderTypes() []Type {
 		TypeBedrock,
 		TypeVertexAI,
 		TypeAntigravity,
+		TypeClaude,
+		TypeGrokWeb,
+		TypeWindsurf,
+		TypeJetBrains,
+		TypeAugment,
+		TypeFactory,
+		TypeCodeRabbit,
+		TypeZed,
 	}
 }
