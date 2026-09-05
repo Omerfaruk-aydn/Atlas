@@ -537,6 +537,22 @@ func (s *ConfigStore) SetProviderAPIKey(scope Scope, providerID string, apiKey a
 				providerConfig.SetupChatGPT()
 			case string(catwalk.InferenceProviderAntigravity):
 				providerConfig.SetupAntigravity()
+			case string(catwalk.InferenceProviderClaude):
+				providerConfig.SetupClaude()
+			case string(catwalk.InferenceProviderGrokWeb):
+				providerConfig.SetupGrokWeb()
+			case string(catwalk.InferenceProviderWindsurf):
+				providerConfig.SetupWindsurf()
+			case string(catwalk.InferenceProviderJetBrains):
+				providerConfig.SetupJetBrains()
+			case string(catwalk.InferenceProviderAugment):
+				providerConfig.SetupAugment()
+			case string(catwalk.InferenceProviderFactory):
+				providerConfig.SetupFactory()
+			case string(catwalk.InferenceProviderCodeRabbit):
+				providerConfig.SetupCodeRabbit()
+			case string(catwalk.InferenceProviderZed):
+				providerConfig.SetupZed()
 			}
 		}
 	}
@@ -866,6 +882,22 @@ func (s *ConfigStore) applyToken(providerConfig ProviderConfig, token *oauth.Tok
 		providerConfig.SetupChatGPT()
 	case string(catwalk.InferenceProviderAntigravity):
 		providerConfig.SetupAntigravity()
+	case string(catwalk.InferenceProviderClaude):
+		providerConfig.SetupClaude()
+	case string(catwalk.InferenceProviderGrokWeb):
+		providerConfig.SetupGrokWeb()
+	case string(catwalk.InferenceProviderWindsurf):
+		providerConfig.SetupWindsurf()
+	case string(catwalk.InferenceProviderJetBrains):
+		providerConfig.SetupJetBrains()
+	case string(catwalk.InferenceProviderAugment):
+		providerConfig.SetupAugment()
+	case string(catwalk.InferenceProviderFactory):
+		providerConfig.SetupFactory()
+	case string(catwalk.InferenceProviderCodeRabbit):
+		providerConfig.SetupCodeRabbit()
+	case string(catwalk.InferenceProviderZed):
+		providerConfig.SetupZed()
 	}
 	s.Config().Providers.Set(providerID, providerConfig)
 	return nil
