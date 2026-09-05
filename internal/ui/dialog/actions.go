@@ -139,6 +139,25 @@ type (
 		Args map[string]string
 	}
 
+	// ActionBackToPreviousSession returns to the session the user came
+	// from after stepping into another one (a sub-agent's run, say).
+	ActionBackToPreviousSession struct{}
+
+	// ActionSelectSessionMode puts the session into a mode, or -- with
+	// an empty Mode -- back onto the ordinary coder prompt.
+	ActionSelectSessionMode struct {
+		Mode string
+	}
+
+	// ActionOpenAutoCompactThresholdForm opens the auto-compact
+	// threshold-editing form.
+	ActionOpenAutoCompactThresholdForm struct{}
+	// ActionSaveAutoCompactThreshold is the threshold form's result:
+	// Args holds "percent" -- empty resets to the built-in thresholds.
+	ActionSaveAutoCompactThreshold struct {
+		Args map[string]string
+	}
+
 	// ActionOpenSubagentForm opens the add/edit form for a subagent's
 	// name, description, and model role. An empty ExistingName means
 	// creating a new one, in which case the form includes a name field
