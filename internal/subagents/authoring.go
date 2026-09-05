@@ -129,6 +129,9 @@ func DeleteNamed(searchDirs []string, name string) error {
 	if !ok {
 		return fmt.Errorf("no subagent named %q is configured", name)
 	}
+	if existing.Builtin {
+		return fmt.Errorf("%q is a built-in mode and has no file to remove; save one under the same name to override it", name)
+	}
 
 	base := filepath.Base(existing.Path)
 	if base != name+FileExt {
