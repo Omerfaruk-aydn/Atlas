@@ -39,6 +39,11 @@ type Subagent struct {
 	// Path is the file this subagent was parsed from. Empty for a
 	// Subagent built in memory rather than discovered from disk.
 	Path string `yaml:"-" json:"path"`
+	// Builtin marks a definition that ships inside the binary rather
+	// than coming from a file on disk (see Builtin). Such a subagent has
+	// no Path, so it cannot be edited or deleted in place -- saving one
+	// under the same name writes a real file that overrides it.
+	Builtin bool `yaml:"-" json:"builtin,omitempty"`
 }
 
 // Validate checks that the subagent has the fields required to be saved or
