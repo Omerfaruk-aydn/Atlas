@@ -10,8 +10,12 @@ import (
 
 // Build-time parameters set via -ldflags.
 
+// defaultVersion is what Version holds when no -ldflags set it, and so
+// the signal that the build info below may fill it in.
+const defaultVersion = "devel"
+
 var (
-	Version = "devel"
+	Version = defaultVersion
 	Commit  = "unknown"
 	// BuildID is a unique identifier for this build. For release builds it
 	// equals Commit; for development builds (go run / go build without
@@ -20,16 +24,24 @@ var (
 	BuildID = ""
 )
 
-// A user may install Atlas-Agent using `go install github.com/Omerfaruk-aydn/Atlas-Agent@latest`.
+// A user may install Atlas-Agent using `go install github.com/Omerfaruk-aydn/Atlas-Agent@latest`
 // without -ldflags, in which case the version above is unset. As a workaround
 // we use the embedded build version that *is* set when using `go install` (and
 // is only set for `go install` and not for `go build`).
+//
+// This only ever fills in a version; it never replaces one. Go also
+// synthesizes info.Main.Version from VCS state, so a build made from a
+// tagged but dirty tree reports something like "v0.9.18+dirty" -- and
+// letting that win over -ldflags meant a release binary could disagree
+// with the tag it was cut from, and that `atlas-agent update` then
+// refused to run because the string contains "dirty".
 func init() {
-	info, ok := debug.ReadBuildInfo()
-	if ok {
-		mainVersion := info.Main.Version
-		if mainVersion != "" && mainVersion != "(devel)" {
-			Version = mainVersion
+	if Version == defaultVersion {
+		if info, ok := debug.ReadBuildInfo(); ok {
+			mainVersion := info.Main.Version
+			if mainVersion != "" && mainVersion != "(devel)" {
+				Version = mainVersion
+			}
 		}
 	}
 
