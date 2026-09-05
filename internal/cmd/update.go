@@ -35,7 +35,7 @@ If you installed Atlas Agent via 'go install' instead, run:
 		ctx, cancel := context.WithTimeout(cmd.Context(), 2*time.Minute)
 		defer cancel()
 
-		fmt.Printf("Current version: v%s\n", version.Version)
+		fmt.Printf("Current version: v%s\n", strings.TrimPrefix(version.Version, "v"))
 
 		info, err := update.Check(ctx, version.Version, update.Default)
 		if err != nil {
