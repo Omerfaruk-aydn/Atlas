@@ -241,6 +241,9 @@ func (a *Arguments) HandleMsg(msg tea.Msg) Action {
 				case ActionSaveFallbackCooldown:
 					action.Args = args
 					return action
+				case ActionSaveAutoCompactThreshold:
+					action.Args = args
+					return action
 				case ActionSaveSubagentMeta:
 					action.Args = args
 					return action
