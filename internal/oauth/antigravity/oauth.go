@@ -68,14 +68,15 @@ const (
 var codeAssistEndpoint = "https://cloudcode-pa.googleapis.com"
 
 // pollDelay is the wait between onboardUser polls while a project is
-// still provisioning. rateLimitBackoff replaces it for one round after
-// a 429, since retrying immediately at the usual cadence would just
-// compound whatever quota is currently exhausted (shared, as best
-// documented, across every user of this OAuth client, not per-account).
-// Both are vars, not consts, so a test can shrink them.
+// still provisioning. rateLimitBackoff is the starting wait after a 429
+// instead, doubling on each consecutive one up to rateLimitBackoffMax:
+// retrying immediately at the usual cadence would just compound
+// whatever has the onboarding backend saying it is busy. All three are
+// vars, not consts, so a test can shrink them.
 var (
-	pollDelay        = 5 * time.Second
-	rateLimitBackoff = 15 * time.Second
+	pollDelay           = 5 * time.Second
+	rateLimitBackoff    = 15 * time.Second
+	rateLimitBackoffMax = 60 * time.Second
 )
 
 var redirectURL = fmt.Sprintf("http://localhost:%d%s", redirectPort, redirectPath)
@@ -407,41 +408,59 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 	}
 
 	// No project yet: this account needs onboarding, which provisions one
-	// asynchronously. Poll until it reports done with a project id. 24
-	// attempts at 5s gives 2 minutes, which is closer to what onboarding a
-	// genuinely brand-new Google Cloud identity has been observed to take
-	// than the original 10 (50s) -- too short in practice.
-	const maxAttempts = 24
+	// asynchronously. Poll until it reports done with a project id.
+	//
+	// A 429 here is ambiguous, and Google's own gemini-cli issue tracker
+	// has reports both ways: sometimes it clears after a short wait
+	// (interleaved with otherwise-clean "not done yet" polls, reading
+	// like the onboarding backend saying "busy, still working"), and
+	// sometimes it is a persistent account-level quota/entitlement
+	// problem that no amount of retrying resolves -- and in at least one
+	// reported case, a client that retried it unconditionally "hung
+	// indefinitely without surfacing error", which is its own bug, not a
+	// better one than failing too fast. So: retry with a growing
+	// backoff, same as an ordinary not-done response, but only up to
+	// maxConsecutiveRateLimits in a row -- a run that long is treated as
+	// the persistent case and reported as such, distinctly from an
+	// ordinary provisioning timeout, rather than left to run out the
+	// clock on ctx looking identical to one.
+	const maxConsecutiveRateLimits = 6
 
+	started := time.Now()
+	backoff := rateLimitBackoff
 	var lastDone bool
-	var rateLimited int
-	for attempt := 0; attempt < maxAttempts; attempt++ {
-		report(fmt.Sprintf("Setting up your Cloud project (attempt %d/%d)...", attempt+1, maxAttempts))
+	var attempts, rateLimited, consecutiveRateLimits int
+	for {
+		attempts++
+		report(fmt.Sprintf("Setting up your Cloud project (attempt %d, %s elapsed)...", attempts, time.Since(started).Round(time.Second)))
 		onboard, err := postCodeAssist[onboardUserResponse](ctx, accessToken, "onboardUser", onboardUserRequest{
 			TierID:   tierID,
 			Metadata: metadata(),
 		})
 		if err != nil {
-			// A 429 here is Google's onboarding backend telling us to
-			// slow down, not a rejection of this account: still-honest
-			// provisioning is in progress underneath it. Treating it as
-			// fatal (the previous behavior) aborted logins that would
-			// have succeeded on the next poll -- observed failing at
-			// attempt 18/24 after seventeen clean "not done yet" polls.
-			// Keep polling instead, at a longer interval.
 			var codeErr *codeAssistError
-			if errors.As(err, &codeErr) && codeErr.statusCode == http.StatusTooManyRequests {
-				rateLimited++
-				report(fmt.Sprintf("Google rate-limited that request (attempt %d/%d); waiting longer before retrying...", attempt+1, maxAttempts))
-				select {
-				case <-time.After(rateLimitBackoff):
-					continue
-				case <-ctx.Done():
-					return "", "", ctx.Err()
-				}
+			if !errors.As(err, &codeErr) || codeErr.statusCode != http.StatusTooManyRequests {
+				return "", "", fmt.Errorf("onboardUser: %w", err)
 			}
-			return "", "", fmt.Errorf("onboardUser: %w", err)
+			rateLimited++
+			consecutiveRateLimits++
+			if consecutiveRateLimits > maxConsecutiveRateLimits {
+				return "", "", fmt.Errorf(
+					"Antigravity's onboarding is rate-limiting this account after %d attempts in a row over %s; this can be a persistent quota/entitlement issue on Google's side rather than a transient one -- try again later, or with a different Google account (tier=%q)",
+					consecutiveRateLimits, time.Since(started).Round(time.Second), tierID)
+			}
+			report(fmt.Sprintf("Google rate-limited that request (%d/%d in a row); waiting %s before retrying...", consecutiveRateLimits, maxConsecutiveRateLimits, backoff.Round(time.Second)))
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts over %s (%d rate-limited; tier=%q, last onboardUser done=%v): %w",
+					attempts, time.Since(started).Round(time.Second), rateLimited, tierID, lastDone, ctx.Err())
+			}
+			backoff = min(backoff*2, rateLimitBackoffMax)
+			continue
 		}
+		backoff = rateLimitBackoff
+		consecutiveRateLimits = 0
 		lastDone = onboard.Done
 		if onboard.Done && onboard.Response.CloudaicompanionProject.ID != "" {
 			return onboard.Response.CloudaicompanionProject.ID, tierID, nil
@@ -449,10 +468,10 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 		select {
 		case <-time.After(pollDelay):
 		case <-ctx.Done():
-			return "", "", ctx.Err()
+			return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts over %s (%d rate-limited; tier=%q, last onboardUser done=%v): %w",
+				attempts, time.Since(started).Round(time.Second), rateLimited, tierID, lastDone, ctx.Err())
 		}
 	}
-	return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts (%d rate-limited; tier=%q, last onboardUser done=%v)", maxAttempts, rateLimited, tierID, lastDone)
 }
 
 // codeAssistError carries the HTTP status of a non-200 response from
