@@ -3,12 +3,14 @@ package dialog
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	tea "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ui/v2"
 	uv "github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-ultraviolet"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/help"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-widgets/v2/key"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/list"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/util"
@@ -17,17 +19,68 @@ import (
 // ModelRolesID is the identifier for the model roles dialog.
 const ModelRolesID = "model_roles"
 
+// presetRole is a role name the app offers before the user has
+// configured anything, so a model can be assigned to a well-known
+// purpose without having to invent and remember a name first.
+type presetRole struct {
+	name        string
+	description string
+}
+
+// featureModelRoles are the names built-in features look up directly
+// (see ModelRoles' doc comment in internal/config). They are offered
+// whether or not any mode exists.
+var featureModelRoles = []presetRole{
+	{"compact", "Summarizes the session (auto or /summarize) instead of using the session's own model."},
+	{"advisor", "Reviews each finished turn and leaves a note for the next prompt."},
+	{"escalate", "A stronger model consulted when the primary agent gets stuck."},
+}
+
+// presetModelRoles returns every role the dialog offers up front: the
+// feature roles above, then one per shipped mode. Each mode runs on the
+// role sharing its name -- when it is delegated to as a subagent and
+// when it is worn as the session's own mode -- so deriving this half
+// from the mode catalog rather than repeating it means adding a mode can
+// never leave its role missing here.
+//
+// Unassigned entries still show, reading "not set" until the user
+// presses Edit and picks a provider/model.
+func presetModelRoles() []presetRole {
+	out := append([]presetRole(nil), featureModelRoles...)
+	for _, mode := range subagents.Builtin() {
+		out = append(out, presetRole{
+			name:        mode.Name,
+			description: "Mode: " + firstSentence(mode.Description),
+		})
+	}
+	return out
+}
+
+// firstSentence trims a mode's description down to its opening sentence,
+// which is the part that says what the mode does; the rest says when to
+// reach for it and does not fit on a list row.
+func firstSentence(s string) string {
+	if i := strings.Index(s, ". "); i != -1 {
+		return s[:i+1]
+	}
+	return s
+}
+
 // modelRoleEntry is one row: a named model role and the provider/model
 // it resolves to. The two built-in roles (large/small) are shown for
 // reference but cannot be edited or deleted here -- they already have
-// their own dedicated Models dialog.
+// their own dedicated Models dialog. A preset row without an assigned
+// model still shows (see presetModelRoles) so it can be picked and
+// filled in without typing its name.
 type modelRoleEntry struct {
 	*list.Versioned
-	name    string
-	model   config.SelectedModel
-	builtin bool
-	t       *common.Common
-	focused bool
+	name        string
+	description string
+	model       config.SelectedModel
+	builtin     bool
+	assigned    bool
+	t           *common.Common
+	focused     bool
 }
 
 var _ list.Item = &modelRoleEntry{}
@@ -37,6 +90,13 @@ func (e *modelRoleEntry) Finished() bool { return true }
 func (e *modelRoleEntry) Filter() string { return e.name }
 
 func (e *modelRoleEntry) info() string {
+	if !e.assigned {
+		info := "not set"
+		if e.description != "" {
+			info += " -- " + e.description
+		}
+		return info
+	}
 	info := fmt.Sprintf("%s / %s", e.model.Provider, e.model.Model)
 	if e.model.ReasoningEffort != "" {
 		info += " · " + e.model.ReasoningEffort + " reasoning"
@@ -128,21 +188,39 @@ func (d *ModelRoles) buildItems() []list.FilterableItem {
 	var items []list.FilterableItem
 	for _, t := range []config.SelectedModelType{config.SelectedModelTypeLarge, config.SelectedModelTypeSmall} {
 		if model, ok := cfg.Models[t]; ok {
-			items = append(items, &modelRoleEntry{Versioned: list.NewVersioned(), name: string(t), model: model, builtin: true, t: d.com})
+			items = append(items, &modelRoleEntry{Versioned: list.NewVersioned(), name: string(t), model: model, builtin: true, assigned: true, t: d.com})
 		}
 	}
 
-	var names []string
 	var roles map[string]config.SelectedModel
 	if cfg.Options != nil {
 		roles = cfg.Options.ModelRoles
 	}
+
+	// Presets first, in a fixed (not alphabetical) order, whether or not
+	// a model has been assigned yet -- picking one and pressing Edit is
+	// how a user assigns it for the first time.
+	presets := presetModelRoles()
+	isPreset := make(map[string]bool, len(presets))
+	for _, p := range presets {
+		isPreset[p.name] = true
+		model, ok := roles[p.name]
+		items = append(items, &modelRoleEntry{
+			Versioned: list.NewVersioned(), name: p.name, description: p.description,
+			model: model, assigned: ok, t: d.com,
+		})
+	}
+
+	// Then any other custom role the user named themselves, sorted.
+	var names []string
 	for name := range roles {
-		names = append(names, name)
+		if !isPreset[name] {
+			names = append(names, name)
+		}
 	}
 	sort.Strings(names)
 	for _, name := range names {
-		items = append(items, &modelRoleEntry{Versioned: list.NewVersioned(), name: name, model: roles[name], t: d.com})
+		items = append(items, &modelRoleEntry{Versioned: list.NewVersioned(), name: name, model: roles[name], assigned: true, t: d.com})
 	}
 	return items
 }
@@ -205,7 +283,7 @@ func (d *ModelRoles) HandleMsg(msg tea.Msg) Action {
 			}
 		case key.Matches(msg, d.keyMap.Delete):
 			entry, ok := d.selectedCustomEntry()
-			if !ok {
+			if !ok || !entry.assigned {
 				return nil
 			}
 			return ActionCmd{d.deleteCmd(entry.name)}
