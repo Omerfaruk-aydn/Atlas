@@ -235,8 +235,12 @@ func loginAntigravity(ws workspace.Workspace, force bool) error {
 	fmt.Println("Waiting for authorization...")
 	// Bounded on top of getLoginContext's signal-only cancellation: a
 	// network-level stall here (proxy, AV, DNS) would otherwise hang with
-	// no feedback at all instead of failing with a clear timeout.
-	waitCtx, waitCancel := context.WithTimeout(loginCtx, 5*time.Minute)
+	// no feedback at all instead of failing with a clear timeout. 10
+	// minutes rather than 5: project provisioning has no fixed attempt
+	// cap of its own anymore (see antigravity.discoverProject) and backs
+	// off up to 60s between retries while Google's onboarding backend
+	// reports itself busy, so it needs real room to ride that out.
+	waitCtx, waitCancel := context.WithTimeout(loginCtx, 10*time.Minute)
 	defer waitCancel()
 	token, err := session.WaitWithProgress(waitCtx, func(msg string) {
 		fmt.Println(msg)
