@@ -3,6 +3,7 @@ package dialog
 import (
 	"testing"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/commands"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/config"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/common"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/ui/styles"
@@ -36,4 +37,25 @@ func TestCommandsOffersBackToSessionOnlyAfterSteppingIntoOne(t *testing.T) {
 
 func TestCommandsAlwaysOffersSessionMode(t *testing.T) {
 	require.True(t, commandIDs(newCommandsDialog(t, false))["session-mode"])
+}
+
+// AllItems feeds the "/" inline completion popup: it must offer every
+// command the full palette does, across all three of its tabs at once,
+// not just the system tab someone would land on by default.
+func TestAllItemsCombinesSystemCustomAndMCPCommands(t *testing.T) {
+	sty := styles.AtlasPantera()
+	com := &common.Common{Workspace: &modelRolesWorkspace{cfg: &config.Config{Options: &config.Options{}}}, Styles: &sty}
+	custom := []commands.CustomCommand{{ID: "c1", Name: "My Custom Command"}}
+	mcp := []commands.MCPPrompt{{ID: "m1", PromptID: "my_mcp_prompt"}}
+
+	c, err := NewCommands(com, "s1", true, false, false, false, custom, mcp)
+	require.NoError(t, err)
+
+	var titles []string
+	for _, item := range c.AllItems() {
+		titles = append(titles, item.Title())
+	}
+	require.Contains(t, titles, "New Session", "a system command must be included")
+	require.Contains(t, titles, "My Custom Command")
+	require.Contains(t, titles, "my_mcp_prompt")
 }
