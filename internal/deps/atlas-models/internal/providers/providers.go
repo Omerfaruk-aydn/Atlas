@@ -24,6 +24,63 @@ var antigravityConfig []byte
 //go:embed configs/anthropic.json
 var anthropicConfig []byte
 
+//go:embed configs/claude.json
+var claudeConfig []byte
+
+//go:embed configs/grok-web.json
+var grokWebConfig []byte
+
+//go:embed configs/windsurf.json
+var windsurfConfig []byte
+
+//go:embed configs/jetbrains.json
+var jetbrainsConfig []byte
+
+//go:embed configs/augment.json
+var augmentConfig []byte
+
+//go:embed configs/factory.json
+var factoryConfig []byte
+
+//go:embed configs/coderabbit.json
+var coderabbitConfig []byte
+
+//go:embed configs/zed.json
+var zedConfig []byte
+
+//go:embed configs/minimax-coding.json
+var miniMaxCodingConfig []byte
+
+//go:embed configs/mistral.json
+var mistralConfig []byte
+
+//go:embed configs/cohere.json
+var cohereConfig []byte
+
+//go:embed configs/amp.json
+var ampConfig []byte
+
+//go:embed configs/huggingface.json
+var huggingFaceConfigNew []byte
+
+//go:embed configs/vercel-v0.json
+var vercelV0Config []byte
+
+//go:embed configs/bolt.json
+var boltConfig []byte
+
+//go:embed configs/perplexity.json
+var perplexityConfig []byte
+
+//go:embed configs/phind.json
+var phindConfig []byte
+
+//go:embed configs/codex-ide.json
+var codexIdeConfig []byte
+
+//go:embed configs/yi.json
+var yiConfig []byte
+
 //go:embed configs/atlascloud.json
 var atlasCloudConfig []byte
 
@@ -151,8 +208,27 @@ var providerRegistry = []ProviderFunc{
 	kimiCodingProvider,
 	miniMaxProvider,
 	miniMaxChinaProvider,
+	miniMaxCodingProvider,
 	moonshotProvider,
 	syntheticProvider,
+	claudeProvider,
+	grokWebProvider,
+	windsurfProvider,
+	jetbrainsProvider,
+	augmentProvider,
+	factoryProvider,
+	coderabbitProvider,
+	zedProvider,
+	mistralProvider,
+	cohereProvider,
+	ampProvider,
+	huggingFaceProviderNew,
+	vercelV0Provider,
+	boltProvider,
+	perplexityProvider,
+	phindProvider,
+	codexIdeProvider,
+	yiProvider,
 
 	// The remaining will be in alphabetical order.
 	aiHubMixProvider,
@@ -302,6 +378,82 @@ func kimiCodingProvider() catwalk.Provider {
 
 func miniMaxProvider() catwalk.Provider {
 	return loadProviderFromConfig(miniMaxConfig)
+}
+
+func miniMaxCodingProvider() catwalk.Provider {
+	return loadProviderFromConfig(miniMaxCodingConfig)
+}
+
+func claudeProvider() catwalk.Provider {
+	return loadProviderFromConfig(claudeConfig)
+}
+
+func grokWebProvider() catwalk.Provider {
+	return loadProviderFromConfig(grokWebConfig)
+}
+
+func windsurfProvider() catwalk.Provider {
+	return loadProviderFromConfig(windsurfConfig)
+}
+
+func jetbrainsProvider() catwalk.Provider {
+	return loadProviderFromConfig(jetbrainsConfig)
+}
+
+func augmentProvider() catwalk.Provider {
+	return loadProviderFromConfig(augmentConfig)
+}
+
+func factoryProvider() catwalk.Provider {
+	return loadProviderFromConfig(factoryConfig)
+}
+
+func coderabbitProvider() catwalk.Provider {
+	return loadProviderFromConfig(coderabbitConfig)
+}
+
+func zedProvider() catwalk.Provider {
+	return loadProviderFromConfig(zedConfig)
+}
+
+func mistralProvider() catwalk.Provider {
+	return loadProviderFromConfig(mistralConfig)
+}
+
+func cohereProvider() catwalk.Provider {
+	return loadProviderFromConfig(cohereConfig)
+}
+
+func ampProvider() catwalk.Provider {
+	return loadProviderFromConfig(ampConfig)
+}
+
+func huggingFaceProviderNew() catwalk.Provider {
+	return loadProviderFromConfig(huggingFaceConfigNew)
+}
+
+func vercelV0Provider() catwalk.Provider {
+	return loadProviderFromConfig(vercelV0Config)
+}
+
+func boltProvider() catwalk.Provider {
+	return loadProviderFromConfig(boltConfig)
+}
+
+func perplexityProvider() catwalk.Provider {
+	return loadProviderFromConfig(perplexityConfig)
+}
+
+func phindProvider() catwalk.Provider {
+	return loadProviderFromConfig(phindConfig)
+}
+
+func codexIdeProvider() catwalk.Provider {
+	return loadProviderFromConfig(codexIdeConfig)
+}
+
+func yiProvider() catwalk.Provider {
+	return loadProviderFromConfig(yiConfig)
 }
 
 func miniMaxChinaProvider() catwalk.Provider {
