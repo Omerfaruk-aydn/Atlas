@@ -21,7 +21,7 @@ import (
 	"time"
 )
 
-//go:embed page.html page.css page.js heartbit.svg heartbit-grumpy.svg atlas.svg
+//go:embed page.html page.css page.js atlas-mark.svg atlas-mark-cracked.svg atlas.svg
 var assets embed.FS
 
 // closeDelay is how long the page counts down before asking the browser to
@@ -65,13 +65,13 @@ func Write(w io.Writer, r Result) error {
 	if err != nil {
 		return fmt.Errorf("read callback script: %w", err)
 	}
-	mark, err := assets.ReadFile("heartbit.svg")
+	mark, err := assets.ReadFile("atlas-mark.svg")
 	if err != nil {
 		return fmt.Errorf("read callback artwork: %w", err)
 	}
-	grumpy, err := assets.ReadFile("heartbit-grumpy.svg")
+	cracked, err := assets.ReadFile("atlas-mark-cracked.svg")
 	if err != nil {
-		return fmt.Errorf("read callback grumpy artwork: %w", err)
+		return fmt.Errorf("read callback cracked artwork: %w", err)
 	}
 	logo, err := assets.ReadFile("atlas.svg")
 	if err != nil {
@@ -90,7 +90,7 @@ func Write(w io.Writer, r Result) error {
 		CloseDelay       int
 		CSS              template.CSS
 		JS               template.JS
-		Heartbit         template.HTML
+		Mark             template.HTML
 		Atlas            template.HTML
 		Favicon          template.URL
 	}{
@@ -102,14 +102,14 @@ func Write(w io.Writer, r Result) error {
 		Atlas:            template.HTML(logo),
 	}
 
-	// The artwork reflects the outcome: a smiling heart on success, a
-	// grumpy one when the authorization did not go through. The favicon
+	// The artwork reflects the outcome: an intact mark on success, a
+	// cracked one when the authorization did not go through. The favicon
 	// matches so the tab itself carries the state.
 	art := mark
 	if r.Failed() {
-		art = grumpy
+		art = cracked
 	}
-	data.Heartbit = template.HTML(art)
+	data.Mark = template.HTML(art)
 	data.Favicon = template.URL("data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString(art))
 
 	if r.Failed() {
@@ -122,11 +122,11 @@ func Write(w io.Writer, r Result) error {
 		}
 		// A failed page keeps itself open: the reader needs the reason,
 		// and closing the tab out from under them would take it away.
-		data.Status = "Close this tab and try again from ATLAS-AGENT."
+		data.Status = "Close this tab and run the command again."
 	} else {
 		data.Title = "Authorized — ATLAS-AGENT"
 		data.Kind = "ok"
-		data.Heading = "You’re all set"
+		data.Heading = "Authorized"
 		data.Detail = "ATLAS-AGENT is now connected to"
 		if r.Subject == "" {
 			data.Detail = "ATLAS-AGENT is now connected."

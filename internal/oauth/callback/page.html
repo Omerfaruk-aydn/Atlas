@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,33 +18,43 @@
   </head>
   <body>
     <main class="card {{.Kind}}">
-      <div class="mark">{{.Heartbit}}</div>
+      <p class="echo">atlas-agent login{{with .Subject}} {{.}}{{end}}</p>
 
-      <h1>{{.Heading}}</h1>
-
-      <p class="detail">
-        {{.Detail}}{{with .Subject}} <span class="subject">{{.}}</span>{{end}}
-      </p>
+      <div class="headline">
+        <div class="mark">{{.Mark}}</div>
+        <div class="headline-text">
+          <h1>{{.Heading}}</h1>
+          <p class="detail">
+            {{.Detail}}{{with .Subject}}
+            <span class="subject">{{.}}</span>{{end}}
+          </p>
+        </div>
+      </div>
 
       {{if .ErrorCode}}
       <div class="reason">
         <span class="code">{{.ErrorCode}}</span>
-        {{with .ErrorDescription}}{{.}}{{else}}The authorization server did not
-        say why.{{end}}
-      </div>
-      {{end}} {{if .CloseDelay}}
-      <div class="rail" id="rail" data-delay="{{.CloseDelay}}">
-        <span></span>
+        {{with .ErrorDescription}}{{.}}{{else}}
+        <span>The authorization server did not say why.</span>
+        {{end}}
       </div>
       {{end}}
 
-      <p class="status" id="status">{{.Status}}</p>
+      <div class="tail">
+        <p class="status" id="status">{{.Status}}</p>
+
+        {{if .CloseDelay}}
+        <div class="rail" id="rail" data-delay="{{.CloseDelay}}">
+          <span></span>
+        </div>
+        {{end}}
+      </div>
 
       <p class="brand">
         <a
-          href="https://charm.land"
+          href="https://github.com/Omerfaruk-aydn/Atlas-Agent"
           aria-label="Atlas"
-          title="Visit Atlas's Website"
+          title="Atlas-Agent on GitHub"
           >{{.Atlas}}</a
         >
       </p>

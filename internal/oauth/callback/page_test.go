@@ -17,7 +17,7 @@ func TestWrite_Success(t *testing.T) {
 	page := b.String()
 
 	require.Contains(t, page, `class="card ok"`)
-	require.Contains(t, page, "You’re all set")
+	require.Contains(t, page, "Authorized")
 	require.Contains(t, page, "linear")
 	// A successful page counts itself down and closes.
 	require.Contains(t, page, `data-delay="5"`)
@@ -48,23 +48,22 @@ func TestWrite_FailureDoesNotAutoClose(t *testing.T) {
 	require.NotContains(t, page, `data-delay=`)
 }
 
-// TestWrite_GrumpyOnFailure proves the artwork matches the outcome: a
-// grumpy heart when authorization fails, the smiling one when it works.
-// The two are told apart by a path unique to each drawing.
-func TestWrite_GrumpyOnFailure(t *testing.T) {
+// TestWrite_CrackedMarkOnFailure proves the artwork matches the outcome:
+// a cracked Atlas mark when authorization fails, the intact one when it
+// works. Both drawings paint in currentColor so the page can theme them,
+// which leaves the accessible label as the thing that distinguishes them.
+func TestWrite_CrackedMarkOnFailure(t *testing.T) {
 	t.Parallel()
 
-	// The grumpy drawing carries a dark red accent (#ab2454) that the
-	// smiling heart does not.
-	const grumpy = "#ab2454"
+	const cracked = `aria-label="Atlas, authorization failed"`
 
 	var failed strings.Builder
 	require.NoError(t, Write(&failed, Result{ErrorCode: "access_denied"}))
-	require.Contains(t, failed.String(), grumpy)
+	require.Contains(t, failed.String(), cracked)
 
 	var ok strings.Builder
 	require.NoError(t, Write(&ok, Result{Subject: "linear"}))
-	require.NotContains(t, ok.String(), grumpy)
+	require.NotContains(t, ok.String(), cracked)
 }
 
 // TestWrite_TerseFailure covers providers that report an error code with no

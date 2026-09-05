@@ -19,11 +19,9 @@
 
   const render = () => {
     status.innerHTML =
-      'Closing in <span class="count">' +
+      'Returning you to the terminal in <span class="count">' +
       left +
-      "</span> " +
-      (left === 1 ? "second" : "seconds") +
-      "…";
+      "s</span>";
   };
 
   const tick = () => {
@@ -37,7 +35,7 @@
     // Still running, so the browser refused. Say so rather than leaving a
     // countdown frozen at zero.
     setTimeout(() => {
-      status.textContent = "You can close this tab.";
+      status.textContent = "Done here. Close this tab.";
     }, 250);
   };
 

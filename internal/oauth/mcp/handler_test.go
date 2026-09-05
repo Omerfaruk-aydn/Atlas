@@ -497,7 +497,7 @@ func TestCallbackReceiver_IgnoresNonCallbackPaths(t *testing.T) {
 	resp.Body.Close()
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
-	require.Contains(t, string(body), "You’re all set")
+	require.Contains(t, string(body), "Authorized")
 
 	<-flight.done
 	require.NoError(t, flight.err)
