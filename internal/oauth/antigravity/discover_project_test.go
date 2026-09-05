@@ -1,6 +1,7 @@
 package antigravity
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -82,16 +83,22 @@ func TestDiscoverProjectRetriesPast429AndSucceeds(t *testing.T) {
 }
 
 // If onboardUser is rate-limited on every attempt, discoverProject must
-// still give up eventually (never hang) and say so, distinguishing the
-// case from an ordinary "still provisioning" timeout.
-func TestDiscoverProjectGivesUpAfterPersistent429s(t *testing.T) {
+// give up well before ctx expires rather than run out the clock --
+// google-gemini/gemini-cli's own issue tracker has a report of a client
+// that retried a 429 unconditionally "hanging indefinitely without
+// surfacing error" for exactly this case, since a 429 this persistent
+// tends to be an account-level quota problem retrying cannot fix. The
+// error must say so distinctly, not just that it timed out.
+func TestDiscoverProjectGivesUpAfterPersistent429sWithoutWaitingForCtx(t *testing.T) {
 	withFastPolling(t)
 
+	var onboardCalls atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.HasSuffix(r.URL.Path, "loadCodeAssist"):
 			writeJSON(w, loadCodeAssistResponse{AllowedTiers: []tierInfo{{ID: "free"}}})
 		case strings.HasSuffix(r.URL.Path, "onboardUser"):
+			onboardCalls.Add(1)
 			w.WriteHeader(http.StatusTooManyRequests)
 			_, _ = w.Write([]byte(`{"error":{"code":429,"status":"RESOURCE_EXHAUSTED"}}`))
 		}
@@ -99,11 +106,60 @@ func TestDiscoverProjectGivesUpAfterPersistent429s(t *testing.T) {
 	defer srv.Close()
 	pointCodeAssistAt(t, srv)
 
-	_, _, err := discoverProject(t.Context(), "token", nil)
+	// Generous relative to how fast the persistent-rate-limit path
+	// should give up (a handful of near-instant retries under
+	// withFastPolling): if this fires first, the give-up path failed to
+	// trigger and the test below would otherwise hang until it did.
+	ctx, cancel := context.WithTimeout(t.Context(), 5*time.Second)
+	defer cancel()
+	_, _, err := discoverProject(ctx, "token", nil)
 
 	require.Error(t, err)
-	require.Contains(t, err.Error(), "timed out")
-	require.Contains(t, err.Error(), "24 rate-limited", "the timeout message must say every attempt was rate-limited, not just that it timed out")
+	require.NotContains(t, err.Error(), "timed out", "a persistent rate limit is a distinct outcome from an ordinary provisioning timeout")
+	require.Contains(t, err.Error(), "rate-limiting")
+	require.Contains(t, err.Error(), "persistent")
+	require.EqualValues(t, 7, onboardCalls.Load(), "gives up after maxConsecutiveRateLimits (6) retries, i.e. the 7th attempt")
+}
+
+// Interleaved 429s (a couple, then progress, then a couple more) must
+// not trip the persistent-rate-limit give-up path: it counts consecutive
+// 429s, resetting on any clean response, so a backend that is merely
+// flaky rather than exhausted still gets to finish onboarding.
+func TestDiscoverProjectResetsConsecutiveCountOnACleanResponse(t *testing.T) {
+	withFastPolling(t)
+
+	var onboardCalls atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "loadCodeAssist"):
+			writeJSON(w, loadCodeAssistResponse{AllowedTiers: []tierInfo{{ID: "free"}}})
+		case strings.HasSuffix(r.URL.Path, "onboardUser"):
+			n := onboardCalls.Add(1)
+			// 429, 429, not-done, 429, 429, not-done, then done -- twice
+			// as many consecutive 429s total (4) as any single run (2)
+			// ever reaches, which would trip maxConsecutiveRateLimits
+			// (6) if the count were not reset between runs.
+			switch {
+			case n == 1 || n == 2 || n == 4 || n == 5:
+				w.WriteHeader(http.StatusTooManyRequests)
+				_, _ = w.Write([]byte(`{"error":{"code":429,"status":"RESOURCE_EXHAUSTED"}}`))
+			case n == 7:
+				resp := onboardUserResponse{Done: true}
+				resp.Response.CloudaicompanionProject.ID = "proj-456"
+				writeJSON(w, resp)
+			default:
+				writeJSON(w, onboardUserResponse{Done: false})
+			}
+		}
+	}))
+	defer srv.Close()
+	pointCodeAssistAt(t, srv)
+
+	project, _, err := discoverProject(t.Context(), "token", nil)
+
+	require.NoError(t, err)
+	require.Equal(t, "proj-456", project)
+	require.EqualValues(t, 7, onboardCalls.Load())
 }
 
 // A non-429 failure (a real rejection, not a rate limit) must still
