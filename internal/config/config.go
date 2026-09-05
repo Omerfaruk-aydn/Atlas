@@ -242,6 +242,145 @@ func (c *ProviderConfig) SetupAntigravity() {
 	maps.Copy(c.ExtraHeaders, antigravity.RequestHeaders())
 }
 
+// SetupClaude records the account id a signed-in claude.ai
+// (Claude Pro/Max/Team) session was authorized against, and the
+// headers the claude.ai console backend expects on every model
+// request. The actual request envelope is filled in by the
+// claude fantasy.Provider (see internal/deps/atlas-llm/providers/
+// claude for the TODO list).
+func (c *ProviderConfig) SetupClaude() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = map[string]string{}
+	}
+	// PlanType carries the subscription tier (e.g. "pro", "max",
+	// "team") that claude.ai's billing API expects. Surfaced as a
+	// header so a future claude envelope can route accordingly.
+	if c.OAuthToken.PlanType != "" {
+		c.ExtraHeaders["x-claude-plan"] = c.OAuthToken.PlanType
+	}
+}
+
+// SetupGrokWeb records the account id a signed-in grok.com (xAI
+// SuperGrok) session was authorized against. The actual request
+// envelope is filled in by the grokweb fantasy.Provider (see
+// internal/deps/atlas-llm/providers/grokweb for the TODO list).
+func (c *ProviderConfig) SetupGrokWeb() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = map[string]string{}
+	}
+	if c.OAuthToken.PlanType != "" {
+		c.ExtraHeaders["x-grok-plan"] = c.OAuthToken.PlanType
+	}
+}
+
+// SetupWindsurf records the account id a signed-in Windsurf
+// (Codeium Pro/Teams) session was authorized against. The actual
+// request envelope is filled in by the windsurf fantasy.Provider.
+func (c *ProviderConfig) SetupWindsurf() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+}
+
+// SetupJetBrains records the subscription tier a signed-in JetBrains
+// (Pro/Ultimate) account carries, surfaced as a header so the
+// jetbrains fantasy.Provider can route to the right model tier.
+func (c *ProviderConfig) SetupJetBrains() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraHeaders == nil {
+		c.ExtraHeaders = map[string]string{}
+	}
+	if c.OAuthToken.PlanType != "" {
+		c.ExtraHeaders["x-jetbrains-plan"] = c.OAuthToken.PlanType
+	}
+}
+
+// SetupAugment records the account id a signed-in Augment Code
+// session was authorized against. The actual request envelope is a
+// TODO in the augment fantasy.Provider.
+func (c *ProviderConfig) SetupAugment() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+}
+
+// SetupFactory records the account id a signed-in Factory AI
+// Droids session was authorized against. The actual request
+// envelope is a TODO in the factory fantasy.Provider.
+func (c *ProviderConfig) SetupFactory() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+}
+
+// SetupCodeRabbit records the account id a signed-in CodeRabbit
+// session was authorized against. The actual request envelope is a
+// TODO in the coderabbit fantasy.Provider.
+func (c *ProviderConfig) SetupCodeRabbit() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+}
+
+// SetupZed records the account id a signed-in Zed Pro session was
+// authorized against. The actual request envelope is a TODO in the
+// zed fantasy.Provider.
+func (c *ProviderConfig) SetupZed() {
+	if c.OAuthToken == nil {
+		return
+	}
+	if c.ExtraParams == nil {
+		c.ExtraParams = map[string]string{}
+	}
+	if c.OAuthToken.AccountID != "" {
+		c.ExtraParams["account_id"] = c.OAuthToken.AccountID
+	}
+}
+
 type MCPType string
 
 const (
