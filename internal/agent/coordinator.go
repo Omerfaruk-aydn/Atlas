@@ -740,6 +740,11 @@ func (c *coordinator) buildAgent(ctx context.Context, prompt *prompt.Prompt, age
 		if err != nil {
 			return err
 		}
+		// Only the session the user talks to wears a mode; a sub-agent
+		// carries its own instructions already (see agent_tool.go).
+		if !isSubAgent {
+			systemPrompt = c.withSessionMode(systemPrompt)
+		}
 		result.SetSystemPrompt(systemPrompt)
 		return nil
 	})
@@ -1123,17 +1128,35 @@ func (c *coordinator) buildAgentModels(ctx context.Context, isSubAgent bool) (Mo
 	largeFallbacks := c.buildFallbackChain(ctx, config.SelectedModelTypeLarge, isSubAgent)
 	smallFallbacks := c.buildFallbackChain(ctx, config.SelectedModelTypeSmall, isSubAgent)
 
-	return Model{
-			Model:      largeModel,
-			CatwalkCfg: *largeCatwalkModel,
-			ModelCfg:   largeModelCfg,
-			FlatRate:   largeProviderCfg.FlatRate,
-		}, Model{
-			Model:      smallModel,
-			CatwalkCfg: *smallCatwalkModel,
-			ModelCfg:   smallModelCfg,
-			FlatRate:   smallProviderCfg.FlatRate,
-		}, largeFallbacks, smallFallbacks, nil
+	large := Model{
+		Model:      largeModel,
+		CatwalkCfg: *largeCatwalkModel,
+		ModelCfg:   largeModelCfg,
+		FlatRate:   largeProviderCfg.FlatRate,
+	}
+	small := Model{
+		Model:      smallModel,
+		CatwalkCfg: *smallCatwalkModel,
+		ModelCfg:   smallModelCfg,
+		FlatRate:   smallProviderCfg.FlatRate,
+	}
+
+	// An active session mode runs the main session on the model role
+	// sharing its name, the same way a named subagent runs on the role
+	// its "model" field points at. Sub-agents are excluded: they have
+	// already resolved whichever model they were asked for, and a mode
+	// worn by the parent session must not follow them down. The large
+	// chain is dropped with the override for the same reason it is in
+	// buildSubagentSessionAgent -- fallbacks are keyed by large/small,
+	// so there is nothing configured to back a role up with.
+	if !isSubAgent {
+		if modeModel, ok := c.sessionModeModel(ctx); ok {
+			large = modeModel
+			largeFallbacks = nil
+		}
+	}
+
+	return large, small, largeFallbacks, smallFallbacks, nil
 }
 
 // buildFallbackChain resolves Options.ModelFallbacks[role] into ready-to-use
@@ -1684,6 +1707,22 @@ func (c *coordinator) UpdateModels(ctx context.Context) error {
 		return err
 	}
 	c.currentAgent.SetTools(tools)
+
+	// Rebuild the system prompt too: this is how a session-mode switch
+	// takes effect without restarting. It is rebuilt unconditionally
+	// rather than only when the mode changed, because the prompt is
+	// built from the provider and model as well -- so a plain model
+	// switch, which is the other caller, was already getting a prompt
+	// that no longer matched the model it describes.
+	coderSystemPrompt, err := coderPrompt(prompt.WithWorkingDir(c.cfg.WorkingDir()))
+	if err != nil {
+		return err
+	}
+	systemPrompt, err := coderSystemPrompt.Build(ctx, large.Model.Provider(), large.Model.Model(), c.cfg)
+	if err != nil {
+		return err
+	}
+	c.currentAgent.SetSystemPrompt(c.withSessionMode(systemPrompt))
 	return nil
 }
 
