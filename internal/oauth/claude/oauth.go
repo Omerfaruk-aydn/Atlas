@@ -57,11 +57,13 @@ import (
 // package is built to be the drop-in replacement once the real
 // values are known.
 const (
-	// clientID is the OAuth client id the claude.ai console registers
-	// itself as. Capture from the browser DevTools network tab on a
-	// fresh sign-in: the authorize redirect URL contains it as
-	// "client_id".
-	clientID = "REPLACE_WITH_REAL_CLAUDE_AI_OAUTH_CLIENT_ID"
+	// clientID is the OAuth client id the official Claude Code CLI
+	// registers itself as. This value is not published in any official
+	// Anthropic documentation; it is the client id widely observed and
+	// reused across open-source reimplementations of Claude Code's own
+	// login flow. It may still be wrong or may be rotated by Anthropic
+	// without notice.
+	clientID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 	// clientSecret is the (optional) OAuth client secret. Most public
 	// PKCE flows for installed applications do not require a secret;
 	// the Antigravity/ChatGPT integrations both ship without one. Set
@@ -69,8 +71,10 @@ const (
 	clientSecret = ""
 	// authorizeURL is the OAuth2 authorization endpoint.
 	authorizeURL = "https://claude.ai/oauth/authorize"
-	// tokenURL is the OAuth2 token-exchange endpoint.
-	tokenURL = "https://claude.ai/oauth/token"
+	// tokenURL is the OAuth2 token-exchange endpoint. Claude Code's own
+	// client exchanges the code against console.anthropic.com, not
+	// claude.ai itself.
+	tokenURL = "https://console.anthropic.com/v1/oauth/token"
 	// redirectPort is the localhost port the registered OAuth
 	// client expects the redirect on. Antigravity uses 36742;
 	// whatever claude.ai's web app actually uses, that exact value
@@ -78,11 +82,12 @@ const (
 	// client.
 	redirectPort = 41537
 	redirectPath = "/oauth-callback"
-	// scopes is the space-separated list of OAuth scopes the
-	// claude.ai web app requests. The Antigravity scopes hint at the
-	// shape: an "openid" plus an account/billing plus a "profile"
-	// scope. Replace with the real values once known.
-	scopes = "openid profile email offline_access"
+	// scopes is the space-separated list of OAuth scopes Claude Code's
+	// own client requests. "openid profile email offline_access" is an
+	// OIDC-shaped guess that claude.ai's authorize endpoint rejects
+	// outright ("Unknown scope: openid"); these three are the scopes
+	// observed on Claude Code's real authorize request.
+	scopes = "org:create_api_key user:profile user:inference"
 )
 
 var redirectURL = fmt.Sprintf("http://localhost:%d%s", redirectPort, redirectPath)
