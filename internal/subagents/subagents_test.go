@@ -15,6 +15,20 @@ func writeSubagentFile(t *testing.T, dir, name, content string) string {
 	return path
 }
 
+// fromDisk drops the modes that ship in the binary, leaving what Discover
+// actually read off disk. Discover always includes the built-ins (see
+// builtin.go), so the tests below -- which are about the file scanning
+// itself -- filter them out rather than restating the shipped catalog.
+func fromDisk(all []*Subagent) []*Subagent {
+	var out []*Subagent
+	for _, s := range all {
+		if !s.Builtin {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
 func TestParseContentReadsFrontmatterAndBody(t *testing.T) {
 	content := "---\nname: research\ndescription: Deep research tasks.\nmodel: \"@research\"\n---\n\nDig deep before answering.\n"
 
@@ -61,7 +75,7 @@ func TestDiscoverFindsFilesInEachDir(t *testing.T) {
 	writeSubagentFile(t, dirA, "frontend", "---\nname: frontend\ndescription: UI work.\n---\nBody.\n")
 	writeSubagentFile(t, dirB, "backend", "---\nname: backend\ndescription: API work.\n---\nBody.\n")
 
-	found := Discover([]string{dirA, dirB})
+	found := fromDisk(Discover([]string{dirA, dirB}))
 
 	require.Len(t, found, 2)
 	require.Equal(t, "backend", found[0].Name)
@@ -73,7 +87,7 @@ func TestDiscoverSkipsInvalidFilesWithoutFailing(t *testing.T) {
 	writeSubagentFile(t, dir, "broken", "not even frontmatter")
 	writeSubagentFile(t, dir, "good", "---\nname: good\ndescription: Fine.\n---\nBody.\n")
 
-	found := Discover([]string{dir})
+	found := fromDisk(Discover([]string{dir}))
 
 	require.Len(t, found, 1)
 	require.Equal(t, "good", found[0].Name)
@@ -84,7 +98,7 @@ func TestDiscoverIgnoresNonMarkdownFiles(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "notes.txt"), []byte("hello"), 0o644))
 	writeSubagentFile(t, dir, "good", "---\nname: good\ndescription: Fine.\n---\nBody.\n")
 
-	found := Discover([]string{dir})
+	found := fromDisk(Discover([]string{dir}))
 
 	require.Len(t, found, 1)
 	require.Equal(t, "good", found[0].Name)
@@ -96,13 +110,13 @@ func TestDiscoverIsNotRecursive(t *testing.T) {
 	require.NoError(t, os.MkdirAll(sub, 0o755))
 	writeSubagentFile(t, sub, "hidden", "---\nname: hidden\ndescription: Should not be found.\n---\nBody.\n")
 
-	found := Discover([]string{dir})
+	found := fromDisk(Discover([]string{dir}))
 
 	require.Empty(t, found)
 }
 
 func TestDiscoverIgnoresAMissingDirectory(t *testing.T) {
-	found := Discover([]string{filepath.Join(t.TempDir(), "does-not-exist")})
+	found := fromDisk(Discover([]string{filepath.Join(t.TempDir(), "does-not-exist")}))
 	require.Empty(t, found)
 }
 
