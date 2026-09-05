@@ -258,6 +258,106 @@ func (m *UI) handleSaveFallbackCooldown(msg dialog.ActionSaveFallbackCooldown) t
 	}
 }
 
+// backToPreviousSession returns to the session the user stepped away
+// from when they opened another one -- a sub-agent's run from the jobs
+// dialog or the agent hub. The breadcrumb is cleared on the way out, so
+// a second invocation does nothing instead of bouncing between the two.
+func (m *UI) backToPreviousSession() tea.Cmd {
+	if m.previousSessionID == "" {
+		return nil
+	}
+	target := m.previousSessionID
+	m.previousSessionID = ""
+	return m.loadSession(target)
+}
+
+// -- Session mode --
+
+func (m *UI) openModesDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.ModesID) {
+		m.dialog.BringToFront(dialog.ModesID)
+		return nil
+	}
+	m.dialog.OpenDialog(dialog.NewModes(m.com))
+	return nil
+}
+
+// handleSelectSessionMode writes the chosen mode and rebuilds the agent
+// around it. The rebuild is what actually applies the change: it is
+// where the mode's instructions join the system prompt and where the
+// role sharing the mode's name becomes the session's model (see
+// internal/agent's session_mode.go).
+func (m *UI) handleSelectSessionMode(msg dialog.ActionSelectSessionMode) tea.Cmd {
+	if m.isAgentBusy() {
+		return util.ReportWarn("Agent is busy, please wait...")
+	}
+	m.dialog.CloseDialog(dialog.ModesID)
+
+	mode := strings.TrimSpace(msg.Mode)
+	ws := m.com.Workspace
+	return m.updateAgentModelCmd(func() tea.Msg {
+		if err := ws.SetConfigField(config.ScopeGlobal, "options.session_mode", mode); err != nil {
+			return util.ReportError(fmt.Errorf("switching mode: %w", err))()
+		}
+		if mode == "" {
+			return util.NewInfoMsg("Session mode cleared -- back to the ordinary coder prompt.")
+		}
+		if cfg := ws.Config(); cfg != nil {
+			if selected, ok := cfg.ResolveRole(mode); ok {
+				return util.NewInfoMsg(fmt.Sprintf("Session mode: %s, on %s/%s.", mode, selected.Provider, selected.Model))
+			}
+		}
+		return util.NewInfoMsg(fmt.Sprintf("Session mode: %s. Assign a model to the %q role to give it its own model.", mode, mode))
+	})
+}
+
+func (m *UI) handleOpenAutoCompactThresholdForm() tea.Cmd {
+	m.dialog.CloseDialog(dialog.CommandsID)
+
+	current := ""
+	if cfg := m.com.Config(); cfg != nil && cfg.Options != nil && cfg.Options.AutoSummarizeAt > 0 && cfg.Options.AutoSummarizeAt < 1 {
+		current = strconv.Itoa(int(cfg.Options.AutoSummarizeAt*100 + 0.5))
+	}
+	form := dialog.NewArguments(m.com, "Auto-Compact Threshold",
+		"Percentage of the model's context window that may be used before the session auto-summarizes. Leave empty to use the built-in thresholds.",
+		[]commands.Argument{
+			{ID: "percent", Title: "Percent", Description: "e.g. 80 for 80% -- empty resets to built-in"},
+		},
+		dialog.ActionSaveAutoCompactThreshold{},
+	)
+	form.SetValues(map[string]string{"percent": current})
+	m.dialog.OpenDialog(form)
+	return nil
+}
+
+func (m *UI) handleSaveAutoCompactThreshold(msg dialog.ActionSaveAutoCompactThreshold) tea.Cmd {
+	m.dialog.CloseDialog(dialog.ArgumentsID)
+
+	raw := strings.TrimSpace(msg.Args["percent"])
+	ws := m.com.Workspace
+
+	if raw == "" {
+		return func() tea.Msg {
+			if err := ws.SetConfigField(config.ScopeGlobal, "options.auto_summarize_at", 0.0); err != nil {
+				return util.ReportError(err)()
+			}
+			return util.NewInfoMsg("Auto-compact threshold reset to the built-in defaults.")
+		}
+	}
+
+	percent, err := strconv.ParseFloat(raw, 64)
+	if err != nil || percent <= 0 || percent >= 100 {
+		return util.ReportWarn("Threshold must be a number between 1 and 99 (percent of context used).")
+	}
+
+	return func() tea.Msg {
+		if err := ws.SetConfigField(config.ScopeGlobal, "options.auto_summarize_at", percent/100); err != nil {
+			return util.ReportError(err)()
+		}
+		return util.NewInfoMsg(fmt.Sprintf("Auto-compact threshold set to %g%% of the context window.", percent))
+	}
+}
+
 // -- Subagents --
 
 func (m *UI) handleOpenSubagentForm(msg dialog.ActionOpenSubagentForm) tea.Cmd {

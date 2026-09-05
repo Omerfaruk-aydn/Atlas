@@ -191,6 +191,47 @@ func TestHandleSaveFallbackCooldownWritesTheField(t *testing.T) {
 	require.Equal(t, 300, ws.setValue)
 }
 
+func TestHandleSaveAutoCompactThresholdRejectsNonNumeric(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: &config.Config{}}
+	m := newModelManagementTestUI(ws)
+
+	cmd := m.handleSaveAutoCompactThreshold(dialog.ActionSaveAutoCompactThreshold{Args: map[string]string{"percent": "lots"}})
+	require.NotNil(t, cmd)
+	cmd()
+	require.Empty(t, ws.setKey, "an invalid threshold must not reach the workspace")
+}
+
+func TestHandleSaveAutoCompactThresholdRejectsOutOfRange(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: &config.Config{}}
+	m := newModelManagementTestUI(ws)
+
+	for _, percent := range []string{"0", "100", "-10", "150"} {
+		cmd := m.handleSaveAutoCompactThreshold(dialog.ActionSaveAutoCompactThreshold{Args: map[string]string{"percent": percent}})
+		cmd()
+		require.Empty(t, ws.setKey, "percent %q must not reach the workspace", percent)
+	}
+}
+
+func TestHandleSaveAutoCompactThresholdWritesTheField(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: &config.Config{}}
+	m := newModelManagementTestUI(ws)
+
+	cmd := m.handleSaveAutoCompactThreshold(dialog.ActionSaveAutoCompactThreshold{Args: map[string]string{"percent": "80"}})
+	cmd()
+	require.Equal(t, "options.auto_summarize_at", ws.setKey)
+	require.Equal(t, 0.8, ws.setValue)
+}
+
+func TestHandleSaveAutoCompactThresholdEmptyResetsToBuiltIn(t *testing.T) {
+	ws := &modelManagementWorkspace{cfg: &config.Config{}}
+	m := newModelManagementTestUI(ws)
+
+	cmd := m.handleSaveAutoCompactThreshold(dialog.ActionSaveAutoCompactThreshold{Args: map[string]string{"percent": ""}})
+	cmd()
+	require.Equal(t, "options.auto_summarize_at", ws.setKey)
+	require.Equal(t, 0.0, ws.setValue)
+}
+
 func TestHandleSaveSubagentMetaRequiresNameAndDescription(t *testing.T) {
 	ws := &modelManagementWorkspace{}
 	m := newModelManagementTestUI(ws)
