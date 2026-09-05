@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/subagents"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 )
@@ -48,13 +49,19 @@ func TestAgentListFlagsAnUnresolvedModelRole(t *testing.T) {
 	require.Contains(t, out.String(), "@research (unresolved)")
 }
 
-func TestAgentListWithNoSubagents(t *testing.T) {
+// With nothing authored, the list is not empty: the modes that ship in
+// the binary (see subagents.Builtin) are always available.
+func TestAgentListWithNothingAuthoredShowsTheBuiltinModes(t *testing.T) {
 	c := newSkillTestCmd(t, runAgentList, t.TempDir(), t.TempDir())
 	var out bytes.Buffer
 	c.SetOut(&out)
 
 	require.NoError(t, c.RunE(c, nil))
-	require.Contains(t, out.String(), "No subagents found.")
+	got := out.String()
+	require.NotContains(t, got, "No subagents found.")
+	for _, mode := range subagents.Builtin() {
+		require.Contains(t, got, mode.Name+" --")
+	}
 }
 
 func TestAgentListJSON(t *testing.T) {
@@ -71,9 +78,11 @@ func TestAgentListJSON(t *testing.T) {
 
 	var got []jsonSubagent
 	require.NoError(t, json.Unmarshal(out.Bytes(), &got))
-	require.Equal(t, []jsonSubagent{
-		{Name: "frontend", Description: "Handles UI work.", ModelResolves: true},
-	}, got)
+	// The built-in modes are listed alongside anything authored, and
+	// "frontend" is itself a mode name, so the project file replaces the
+	// shipped one rather than adding to it.
+	require.Len(t, got, len(subagents.Builtin()))
+	require.Contains(t, got, jsonSubagent{Name: "frontend", Description: "Handles UI work.", ModelResolves: true})
 }
 
 func TestAgentShowRendersTheSubagent(t *testing.T) {
