@@ -53,10 +53,14 @@ type Commands struct {
 		Close key.Binding
 	}
 
-	sessionID  string
-	hasSession bool
-	hasTodos   bool
-	hasQueue   bool
+	sessionID string
+	// hasPreviousSession reports whether the user arrived here from
+	// another session -- viewing a sub-agent's run from the jobs dialog
+	// or the agent hub -- and so has somewhere to go back to.
+	hasPreviousSession bool
+	hasSession         bool
+	hasTodos           bool
+	hasQueue           bool
 	selected   CommandType
 
 	spinner spinner.Model
@@ -78,16 +82,17 @@ type Commands struct {
 var _ Dialog = (*Commands)(nil)
 
 // NewCommands creates a new commands dialog.
-func NewCommands(com *common.Common, sessionID string, hasSession, hasTodos, hasQueue bool, customCommands []commands.CustomCommand, mcpPrompts []commands.MCPPrompt) (*Commands, error) {
+func NewCommands(com *common.Common, sessionID string, hasSession, hasPreviousSession, hasTodos, hasQueue bool, customCommands []commands.CustomCommand, mcpPrompts []commands.MCPPrompt) (*Commands, error) {
 	c := &Commands{
-		com:            com,
-		selected:       SystemCommands,
-		sessionID:      sessionID,
-		hasSession:     hasSession,
-		hasTodos:       hasTodos,
-		hasQueue:       hasQueue,
-		customCommands: customCommands,
-		mcpPrompts:     mcpPrompts,
+		com:                com,
+		selected:           SystemCommands,
+		sessionID:          sessionID,
+		hasSession:         hasSession,
+		hasPreviousSession: hasPreviousSession,
+		hasTodos:           hasTodos,
+		hasQueue:           hasQueue,
+		customCommands:     customCommands,
+		mcpPrompts:         mcpPrompts,
 	}
 
 	help := help.New()
@@ -453,6 +458,13 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.com.Styles, "switch_model", "Switch Model", "ctrl+l", ActionOpenDialog{ModelsID}),
 	}
 
+	// Leaving a sub-agent's session you stepped into. The key for this
+	// (f3) only shows in the expanded help, so without a palette entry
+	// the way back is easy to miss once you are already in there.
+	if c.hasPreviousSession {
+		commands = append(commands, NewCommandItem(c.com.Styles, "back_to_session", "Back to Previous Session", "f3", ActionBackToPreviousSession{}).WithAliases("leave", "exit agent"))
+	}
+
 	// Only show compact command if there's an active session
 	if c.hasSession {
 		commands = append(commands, NewCommandItem(c.com.Styles, "summarize", "Summarize Session", "", ActionSummarize{SessionID: c.sessionID}).WithAliases("compact"))
@@ -466,6 +478,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 			autoCompactLabel = "Enable Auto-Compact"
 		}
 		commands = append(commands, NewCommandItem(c.com.Styles, "toggle_auto_compact", autoCompactLabel, "", ActionToggleAutoCompact{}))
+		commands = append(commands, NewCommandItem(c.com.Styles, "auto_compact_threshold", "Set Auto-Compact Threshold", "", ActionOpenAutoCompactThresholdForm{}))
 	}
 
 	// Add reasoning toggle for models that support it
@@ -551,6 +564,7 @@ func (c *Commands) defaultCommands() []*CommandItem {
 		NewCommandItem(c.com.Styles, "rewind", "Rewind to Checkpoint", "ctrl+shift+r", ActionOpenDialog{DialogID: RewindID}),
 		NewCommandItem(c.com.Styles, "jobs", "Background Jobs", "p", ActionOpenDialog{DialogID: JobsID}),
 		NewCommandItem(c.com.Styles, "agent-hub", "Agent Hub", "alt+a", ActionOpenDialog{DialogID: AgentHubID}),
+		NewCommandItem(c.com.Styles, "session-mode", sessionModeCommandLabel(c.com.Config()), "", ActionOpenDialog{DialogID: ModesID}).WithAliases("mode"),
 		NewCommandItem(c.com.Styles, "model-roles", "Model Roles", "", ActionOpenDialog{DialogID: ModelRolesID}),
 		NewCommandItem(c.com.Styles, "model-fallbacks", "Model Fallbacks", "", ActionOpenDialog{DialogID: FallbacksID}),
 		NewCommandItem(c.com.Styles, "subagents", "Subagents", "", ActionOpenDialog{DialogID: SubagentsID}),
