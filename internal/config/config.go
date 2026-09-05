@@ -514,6 +514,14 @@ type Options struct {
 	// and "compact", which -- when set -- summarization (auto or
 	// /summarize) runs on instead of the session's own model.
 	ModelRoles map[string]SelectedModel `json:"model_roles,omitempty" jsonschema:"description=Named model roles a subagent's model field can reference by name\\, e.g. \"frontend\" or \"research\". A few names are recognized by built-in features when present: advisor\\, escalate\\, and compact (used to summarize with a different model than the session's own).,example={\"research\":{\"model\":\"o3\",\"provider\":\"openai\"}}"`
+	// SessionMode names a mode (see internal/subagents' built-in modes,
+	// plus any subagent the user has authored) whose instructions are
+	// folded into the main session's own system prompt, so the agent you
+	// are talking to takes on that specialty instead of delegating to it.
+	// When a model role shares the mode's name, the session also switches
+	// to that model. Empty -- the default -- leaves the session on its
+	// ordinary coder prompt and its large model.
+	SessionMode string `json:"session_mode,omitempty" jsonschema:"description=Name of the mode whose instructions are folded into the main session's system prompt\\, e.g. review or security. A model role of the same name also switches the session's model. Empty runs the ordinary coder prompt.,example=security"`
 	// Advisor enables a second model that reviews each finished turn (the
 	// user's prompt and the assistant's final response) with read-only
 	// tools (glob, grep, ls, view) of its own, and can leave a note that
