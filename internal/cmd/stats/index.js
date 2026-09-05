@@ -13,6 +13,8 @@ const colors = {
   coral: rootStyles.getPropertyValue("--coral").trim(),
   violet: rootStyles.getPropertyValue("--violet").trim(),
   malibu: rootStyles.getPropertyValue("--malibu").trim(),
+  tick: rootStyles.getPropertyValue("--tick").trim(),
+  grid: rootStyles.getPropertyValue("--grid").trim(),
 };
 
 const easeDuration = 500;
@@ -89,15 +91,22 @@ document.getElementById("total-tokens").textContent = formatCompact(
 document.getElementById("total-cost").textContent = formatCost(
   stats.total.total_cost,
 );
-document.getElementById("avg-tokens").innerHTML =
-  '<span title="Average">x̅</span> ' +
-  formatCompact(stats.total.avg_tokens_per_session);
-document.getElementById("avg-response").innerHTML =
-  '<span title="Average">x̅</span> ' + formatTime(stats.avg_response_time_ms);
+// No mean marker: the combining overline in "x̅" does not compose in the
+// page's monospace face and lands as a stray "x", and the figure's own
+// label already says it is a per-session average.
+document.getElementById("avg-tokens").textContent = formatCompact(
+  stats.total.avg_tokens_per_session,
+);
+document.getElementById("avg-response").textContent = formatTime(
+  stats.avg_response_time_ms,
+);
 
 // Chart defaults
-Chart.defaults.color = colors.squid;
-Chart.defaults.borderColor = colors.squid;
+// Axis furniture is deliberately quieter than any series: ticks read,
+// grid lines recede. Both come from the stylesheet so the two themes can
+// set them independently.
+Chart.defaults.color = colors.tick;
+Chart.defaults.borderColor = colors.grid;
 
 if (stats.recent_activity?.length > 0) {
   new Chart(document.getElementById("recentActivityChart"), {
@@ -385,7 +394,7 @@ if (projectStats && projectStats.length > 1) {
   const projectSection = document.createElement("div");
   projectSection.className = "chart-card full-width";
   projectSection.innerHTML = `
-    <h2>Per-Project Breakdown</h2>
+    <h2>By project</h2>
     <div style="overflow-x: auto">
       <table id="project-table">
         <thead>
@@ -417,8 +426,15 @@ if (projectStats && projectStats.length > 1) {
     sortedProjects.forEach((p) => {
       const row = document.createElement("tr");
       const displayPath = p.project_path || "unknown";
-      const projectName = displayPath.split("/").pop() || displayPath;
-      const dirPath = displayPath.substring(0, displayPath.length - projectName.length) || "/";
+      // Split on both separators: a Windows path has no "/" in it, so
+      // splitting on that alone left the whole path as the "name" and a
+      // bare "/" as its directory.
+      const segments = displayPath.split(/[\\/]/).filter(Boolean);
+      const projectName = segments[segments.length - 1] || displayPath;
+      const dirPath = displayPath.slice(
+        0,
+        displayPath.length - projectName.length,
+      );
       row.innerHTML = `
         <td>
           <div class="project-name">${projectName}</div>

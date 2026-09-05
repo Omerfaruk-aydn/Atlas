@@ -37,8 +37,8 @@ var statsJS string
 //go:embed stats/header.svg
 var headerSVG string
 
-//go:embed stats/heartbit.svg
-var heartbitSVG string
+//go:embed stats/atlas-mark.svg
+var markSVG string
 
 //go:embed stats/footer.svg
 var footerSVG string
@@ -722,7 +722,7 @@ func generateHTML(stats *Stats, projectStats []ProjectStats, projName, username,
 		CSS              template.CSS
 		JS               template.JS
 		Header           template.HTML
-		Heartbit         template.HTML
+		Mark             template.HTML
 		Footer           template.HTML
 		Favicon          template.URL
 		GeneratedAt      string
@@ -734,9 +734,9 @@ func generateHTML(stats *Stats, projectStats []ProjectStats, projName, username,
 		CSS:              template.CSS(statsCSS),
 		JS:               template.JS(statsJS),
 		Header:           template.HTML(headerSVG),
-		Heartbit:         template.HTML(heartbitSVG),
+		Mark:             template.HTML(markSVG),
 		Footer:           template.HTML(footerSVG),
-		Favicon:          template.URL("data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString([]byte(heartbitSVG))),
+		Favicon:          template.URL("data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString([]byte(markSVG))),
 		GeneratedAt:      stats.GeneratedAt.Format("2006-01-02"),
 		ProjectName:      projName,
 		Username:         username,
