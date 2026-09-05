@@ -48,13 +48,21 @@ import (
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/anthropic"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/antigravity"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/augment"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/azure"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/bedrock"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/claude"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/coderabbit"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/factory"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/google"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/grokweb"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/jetbrains"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openai"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openaicompat"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/openrouter"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/vercel"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/windsurf"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/deps/atlas-llm/providers/zed"
 	openaisdk "github.com/openai/openai-go/v3/option"
 	"github.com/qjebbs/go-jsons"
 )
@@ -1561,6 +1569,115 @@ func (c *coordinator) buildAntigravityProvider(baseURL, apiKey string, headers m
 	return antigravity.New(opts...)
 }
 
+// buildClaudeProvider wires a Claude Pro/Max/Team subscription
+// into a fantasy.Provider for the claude.ai console backend. The
+// request envelope is currently a TODO in the claude package;
+// once a real envelope is wired, the call sites are ready.
+func (c *coordinator) buildClaudeProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []claude.Option{
+		claude.WithAccessToken(apiKey),
+		claude.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, claude.WithBaseURL(baseURL))
+	}
+	return claude.New(opts...)
+}
+
+// buildGrokWebProvider wires a SuperGrok subscription into a
+// fantasy.Provider for the grok.com console backend. Same caveat as
+// claude: the request envelope is a TODO until the real
+// grok.com backend is captured.
+func (c *coordinator) buildGrokWebProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []grokweb.Option{
+		grokweb.WithAccessToken(apiKey),
+		grokweb.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, grokweb.WithBaseURL(baseURL))
+	}
+	return grokweb.New(opts...)
+}
+
+// buildWindsurfProvider wires a Windsurf Pro/Teams subscription into
+// a fantasy.Provider for the Codeium/Windsurf backend. Same caveat
+// as claude/grokweb: the request envelope is a TODO.
+func (c *coordinator) buildWindsurfProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []windsurf.Option{
+		windsurf.WithAccessToken(apiKey),
+	}
+	if baseURL != "" {
+		opts = append(opts, windsurf.WithBaseURL(baseURL))
+	}
+	return windsurf.New(opts...)
+}
+
+// buildJetBrainsProvider wires a JetBrains Pro/Ultimate subscription
+// into a fantasy.Provider for the api.jetbrains.ai gateway. Same
+// caveat as the other coding-plan providers: the request envelope is
+// a TODO.
+func (c *coordinator) buildJetBrainsProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []jetbrains.Option{
+		jetbrains.WithAccessToken(apiKey),
+	}
+	if baseURL != "" {
+		opts = append(opts, jetbrains.WithBaseURL(baseURL))
+	}
+	return jetbrains.New(opts...)
+}
+
+// buildAugmentProvider wires an Augment Code Pro/Enterprise
+// subscription into a fantasy.Provider. Same caveat: envelope TODO.
+func (c *coordinator) buildAugmentProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []augment.Option{
+		augment.WithAccessToken(apiKey),
+		augment.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, augment.WithBaseURL(baseURL))
+	}
+	return augment.New(opts...)
+}
+
+// buildFactoryProvider wires a Factory AI Droids Pro/Enterprise
+// subscription into a fantasy.Provider. Same caveat: envelope TODO.
+func (c *coordinator) buildFactoryProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []factory.Option{
+		factory.WithAccessToken(apiKey),
+		factory.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, factory.WithBaseURL(baseURL))
+	}
+	return factory.New(opts...)
+}
+
+// buildCodeRabbitProvider wires a CodeRabbit Pro/Enterprise
+// subscription into a fantasy.Provider. Same caveat: envelope TODO.
+func (c *coordinator) buildCodeRabbitProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []coderabbit.Option{
+		coderabbit.WithAccessToken(apiKey),
+		coderabbit.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, coderabbit.WithBaseURL(baseURL))
+	}
+	return coderabbit.New(opts...)
+}
+
+// buildZedProvider wires a Zed Pro subscription into a
+// fantasy.Provider. Same caveat: envelope TODO.
+func (c *coordinator) buildZedProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
+	opts := []zed.Option{
+		zed.WithAccessToken(apiKey),
+		zed.WithAccountID(options["account_id"]),
+	}
+	if baseURL != "" {
+		opts = append(opts, zed.WithBaseURL(baseURL))
+	}
+	return zed.New(opts...)
+}
+
 func (c *coordinator) isAnthropicThinking(model config.SelectedModel) bool {
 	if model.Think {
 		return true
@@ -1626,6 +1743,22 @@ func (c *coordinator) buildProvider(providerCfg config.ProviderConfig, model con
 		return c.buildGoogleVertexProvider(headers, providerCfg.ExtraParams)
 	case antigravity.Name:
 		return c.buildAntigravityProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case claude.Name:
+		return c.buildClaudeProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case grokweb.Name:
+		return c.buildGrokWebProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case windsurf.Name:
+		return c.buildWindsurfProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case jetbrains.Name:
+		return c.buildJetBrainsProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case augment.Name:
+		return c.buildAugmentProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case factory.Name:
+		return c.buildFactoryProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case coderabbit.Name:
+		return c.buildCodeRabbitProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
+	case zed.Name:
+		return c.buildZedProvider(baseURL, apiKey, headers, providerCfg.ExtraParams)
 	case openaicompat.Name:
 		switch providerCfg.ID {
 		case string(catwalk.InferenceProviderZAI):
