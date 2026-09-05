@@ -38,6 +38,23 @@ type Token struct {
 	// Empty for providers that don't need them.
 	AccountID string `json:"account_id,omitempty"`
 	PlanType  string `json:"plan_type,omitempty"`
+
+	// Email, OrgID, OrgName, and IssuedAt carry provider-specific
+	// identity metadata. They are all optional; providers that do not
+	// surface them (Codex, Antigravity) leave them empty. The Claude
+	// subscription flow populates them from the
+	// `/api/claude_cli/bootstrap` endpoint after the initial token
+	// exchange, never on refresh -- re-resolving org on every refresh
+	// could silently re-key stored credentials.
+	//
+	// IssuedAt is Unix seconds for the moment the access token was
+	// first issued. The Claude subscription grant expires ~30 days
+	// after this regardless of refresh activity, so consumers use it
+	// to surface a pre-deadline warning. Zero means "unknown".
+	Email    string `json:"email,omitempty"`
+	OrgID    string `json:"org_id,omitempty"`
+	OrgName  string `json:"org_name,omitempty"`
+	IssuedAt int64  `json:"issued_at,omitempty"`
 }
 
 // SetExpiresAt calculates and sets the ExpiresAt field based on the

@@ -17,6 +17,7 @@ import (
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/lock"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/antigravity"
+	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/claude"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/codex"
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/oauth/copilot"
 	"github.com/tidwall/gjson"
@@ -838,6 +839,8 @@ func (s *ConfigStore) exchange(ctx context.Context, providerID, refreshToken str
 		return codex.RefreshToken(ctx, refreshToken)
 	case string(catwalk.InferenceProviderAntigravity):
 		return antigravity.RefreshToken(ctx, refreshToken)
+	case string(catwalk.InferenceProviderClaude):
+		return claude.RefreshToken(ctx, refreshToken)
 	default:
 		return nil, fmt.Errorf("OAuth refresh not supported for provider %s", providerID)
 	}

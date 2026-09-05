@@ -3,14 +3,17 @@
 // subscription's flat-rate quota instead of a separate pay-per-token
 // Anthropic API key.
 //
-// None of this is officially documented by Anthropic. The client id,
-// endpoints, scopes, and request shapes below were confirmed against
-// the real authorize/token endpoints (two earlier guesses were
-// rejected outright: an OIDC-shaped scope list with "Unknown scope:
-// openid", then a wrong redirect_uri with "Authorization failed:
-// Invalid request format") and cross-checked against Claude Code's own
-// auth configuration as reverse-engineered by other open-source
-// projects. It may still drift if Anthropic changes the client
+// None of this is officially documented by Anthropic. Every value here
+// was confirmed by extracting the literal strings out of the official
+// Claude Code CLI's own compiled binary (@anthropic-ai/claude-code):
+// the exact authorize-URL-builder and token-exchange functions, byte
+// for byte. Three earlier guesses were each rejected differently
+// before landing here: an OIDC-shaped scope list ("Unknown scope:
+// openid"), then a plausible-looking but wrong redirect_uri/token
+// endpoint pair, then the right endpoints missing the "code=true"
+// param the real client always sends -- each got further before
+// failing, which is what made the wrong assumption non-obvious each
+// time. It may still drift if Anthropic changes the client
 // registration.
 //
 // Risk note: claude.ai's terms of service restrict the service to
@@ -49,30 +52,56 @@ const (
 	// documentation; observed and reused across open-source
 	// reimplementations of Claude Code's own login flow.
 	clientID = "9d1c250a-e61b-44d9-88ed-5944d1962f5e"
-	// authorizeURL is the OAuth2 authorization endpoint.
-	authorizeURL = "https://claude.ai/oauth/authorize"
-	// tokenURL is the OAuth2 token-exchange endpoint. Claude Code's own
-	// client exchanges the code against api.anthropic.com, not
-	// claude.ai or console.anthropic.com.
-	tokenURL = "https://api.anthropic.com/v1/oauth/token"
-	// redirectPort/redirectPath are the loopback callback address
-	// registered for clientID. Claude Code listens on this exact
-	// port/path; a different one is why an earlier attempt at this
-	// login failed with "Invalid request format" (a fixed
-	// console.anthropic.com redirect_uri isn't what's registered).
-	redirectPort = 54545
+	// authorizeURL is the OAuth2 authorization endpoint for the
+	// Claude Pro/Max subscription flow specifically. Claude Code's
+	// client has two distinct authorize endpoints depending on which
+	// account type is signing in -- CONSOLE_AUTHORIZE_URL
+	// (platform.claude.com, for pay-per-token API key accounts) and
+	// CLAUDE_AI_AUTHORIZE_URL (this one, for Pro/Max/Team
+	// subscriptions). Using claude.ai/oauth/authorize directly, or
+	// api.anthropic.com for the token endpoint below, both looked
+	// plausible but are wrong: they reached a real login screen and
+	// still failed with "Authorization failed: Invalid request
+	// format", because that's not the endpoint pair this client_id is
+	// registered against for this account type.
+	authorizeURL = "https://claude.com/cai/oauth/authorize"
+	// redirectPath is the loopback callback path. The port is not
+	// fixed: the official client listens on 127.0.0.1:0 and sends
+	// whichever port the OS handed it, so the port is not part of the
+	// client registration. Binding an ephemeral port here too avoids
+	// the failure mode a fixed port has -- an earlier sign-in attempt
+	// that ended without closing its listener makes every later
+	// attempt fail to start.
 	redirectPath = "/callback"
-	// scopes is the space-separated list of OAuth scopes Claude Code's
-	// own client requests. Two earlier, smaller guesses were rejected
-	// or incomplete; this is the full set Claude Code sends.
-	scopes = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload"
+	// authorizeScopes is the scope set the authorize request must ask
+	// for, verbatim and in this order. Read out of the official Claude
+	// Code binary, where it is built as the deduplicated concatenation
+	// of ["org:create_api_key", "user:profile"] and refreshScopes below.
+	//
+	// "org:create_api_key" looks like it belongs to the console
+	// (pay-per-token) flow and not to a subscription login -- a
+	// working credential on disk never lists it, because the consent
+	// screen strips it back out of what it grants. It is nevertheless
+	// required on the way in: omitting it is what makes the authorize
+	// page fail with "Authorization failed: Invalid request format".
+	authorizeScopes = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload"
+	// refreshScopes is the narrower set restated on every token
+	// refresh -- the same list, minus "org:create_api_key". It matches
+	// both what the official client sends on refresh and what a
+	// granted subscription credential actually holds.
+	refreshScopes = "user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload"
 	// anthropicBeta is the beta header Claude Code sends on refresh
 	// (not on the initial code exchange) so the OAuth-token grant is
 	// recognized by api.anthropic.com.
 	anthropicBeta = "oauth-2025-04-20"
 )
 
-var redirectURL = fmt.Sprintf("http://localhost:%d%s", redirectPort, redirectPath)
+// tokenURL is the OAuth2 token-exchange endpoint. Shared by both
+// account types; served from platform.claude.com, not claude.ai
+// or api.anthropic.com. Declared as a `var` (not `const`) so
+// tests can redirect it at a local httptest server; production
+// callers must not mutate it.
+var tokenURL = "https://platform.claude.com/v1/oauth/token"
 
 // AuthSession is one in-flight authorization attempt: a PKCE
 // verifier/state pair plus the localhost listener waiting for the
@@ -82,6 +111,11 @@ type AuthSession struct {
 	verifier string
 	state    string
 	url      string
+	// redirect is the loopback callback URL for this session,
+	// including the port the OS actually assigned. The token exchange
+	// has to repeat it verbatim, so it is captured per session rather
+	// than derived from a constant.
+	redirect string
 
 	server   *http.Server
 	resultCh chan authResult
@@ -102,7 +136,10 @@ func Start(ctx context.Context) (*AuthSession, error) {
 	if err != nil {
 		return nil, fmt.Errorf("generate pkce verifier: %w", err)
 	}
-	state, err := randomURLSafe(16)
+	// 32 bytes, matching the official client's randomBytes(32) for both
+	// the verifier and the state. A shorter state is a plausible-looking
+	// but rejected request.
+	state, err := randomURLSafe(32)
 	if err != nil {
 		return nil, fmt.Errorf("generate oauth state: %w", err)
 	}
@@ -111,30 +148,54 @@ func Start(ctx context.Context) (*AuthSession, error) {
 	challenge := base64.RawURLEncoding.EncodeToString(sum[:])
 
 	lc := &net.ListenConfig{}
-	listener, err := lc.Listen(ctx, "tcp", fmt.Sprintf("localhost:%d", redirectPort))
+	listener, err := lc.Listen(ctx, "tcp", "127.0.0.1:0")
 	if err != nil {
-		return nil, fmt.Errorf("bind localhost:%d for Claude sign-in (is another login already running?): %w", redirectPort, err)
+		return nil, fmt.Errorf("bind a loopback port for Claude sign-in: %w", err)
+	}
+
+	addr, ok := listener.Addr().(*net.TCPAddr)
+	if !ok {
+		_ = listener.Close()
+		return nil, fmt.Errorf("unexpected listener address %T", listener.Addr())
 	}
 
 	sess := &AuthSession{
 		verifier: verifier,
 		state:    state,
+		redirect: fmt.Sprintf("http://localhost:%d%s", addr.Port, redirectPath),
 		resultCh: make(chan authResult, 1),
 	}
 
-	q := url.Values{}
-	q.Set("client_id", clientID)
-	q.Set("response_type", "code")
-	q.Set("redirect_uri", redirectURL)
-	q.Set("scope", scopes)
-	q.Set("code_challenge", challenge)
-	q.Set("code_challenge_method", "S256")
-	q.Set("state", state)
-	// Claude Code's own authorize request carries this fixed
-	// "code=true" param; its meaning isn't documented but omitting it
-	// is not known to be safe, so it's reproduced as observed.
-	q.Set("code", "true")
-	sess.url = authorizeURL + "?" + q.Encode()
+	// The query string is assembled by hand rather than with
+	// url.Values.Encode() because that sorts parameters alphabetically.
+	// The official client appends them in this exact order, and the
+	// authorize endpoint is picky enough about the request shape that
+	// it is not worth betting on order being ignored.
+	//
+	// The leading fixed "code=true" is what the real client always
+	// sends -- on the loopback flow too, not just the manual
+	// copy-the-code one. Its purpose isn't documented; it is reproduced
+	// verbatim rather than guessed at.
+	params := [][2]string{
+		{"code", "true"},
+		{"client_id", clientID},
+		{"response_type", "code"},
+		{"redirect_uri", sess.redirect},
+		{"scope", authorizeScopes},
+		{"code_challenge", challenge},
+		{"code_challenge_method", "S256"},
+		{"state", state},
+	}
+	var q strings.Builder
+	for i, p := range params {
+		if i > 0 {
+			q.WriteByte('&')
+		}
+		q.WriteString(url.QueryEscape(p[0]))
+		q.WriteByte('=')
+		q.WriteString(url.QueryEscape(p[1]))
+	}
+	sess.url = authorizeURL + "?" + q.String()
 
 	mux := http.NewServeMux()
 	mux.HandleFunc(redirectPath, sess.handleCallback)
@@ -204,10 +265,40 @@ func (s *AuthSession) WaitWithProgress(ctx context.Context, progress func(string
 			return nil, res.err
 		}
 		report("Exchanging authorization code for tokens...")
-		return exchangeCode(ctx, res.code, s.verifier, s.state)
+		tok, err := exchangeCode(ctx, res.code, s.verifier, s.state, s.redirect)
+		if err != nil {
+			return nil, err
+		}
+		// The token-exchange response sometimes omits account email
+		// and organization identity; the bootstrap endpoint fills
+		// the gap. Called here on the login path only -- RefreshToken
+		// deliberately does not call it, so a background refresh can
+		// never silently re-key a stored credential.
+		report("Resolving account and workspace...")
+		enrichWithBootstrap(ctx, tok, progress)
+		return tok, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+// enrichWithBootstrap is the login-side counterpart to oh-my-pi's
+// `anthropic-identity` after-exchange hook. Best-effort: an error
+// here logs and continues rather than failing the login, because
+// the user has just authorized and the worst case ("we have a
+// valid token but no email") is still a working session.
+func enrichWithBootstrap(ctx context.Context, tok *oauth.Token, progress func(string)) {
+	if tok == nil || tok.AccessToken == "" {
+		return
+	}
+	id, err := FetchIdentity(ctx, tok.AccessToken)
+	if err != nil {
+		if progress != nil {
+			progress("Identity lookup failed; continuing without email/org metadata")
+		}
+		return
+	}
+	EnrichToken(tok, id)
 }
 
 // Close abandons the session, releasing the callback listener
@@ -252,11 +343,11 @@ type tokenResponse struct {
 	identity
 }
 
-func exchangeCode(ctx context.Context, code, verifier, state string) (*oauth.Token, error) {
+func exchangeCode(ctx context.Context, code, verifier, state, redirect string) (*oauth.Token, error) {
 	body := map[string]string{
 		"grant_type":    "authorization_code",
 		"code":          code,
-		"redirect_uri":  redirectURL,
+		"redirect_uri":  redirect,
 		"client_id":     clientID,
 		"code_verifier": verifier,
 		"state":         state,
@@ -266,15 +357,29 @@ func exchangeCode(ctx context.Context, code, verifier, state string) (*oauth.Tok
 
 // RefreshToken exchanges a refresh token for a new access token.
 // The caller (config.ConfigStore) carries forward the previously
-// discovered account/org ids; claude.ai does not require them for
-// the token endpoint itself.
+// discovered account/org ids; the token endpoint does not require
+// them.
+//
+// Anthropic rotates refresh tokens, and a grant imported from the
+// official Claude Code CLI is shared with it, so a successful refresh
+// is written back to that CLI's credential file when it still holds
+// the token being spent -- otherwise refreshing here would quietly log
+// the user out of Claude Code. See syncBack.
 func RefreshToken(ctx context.Context, refreshToken string) (*oauth.Token, error) {
 	body := map[string]string{
 		"grant_type":    "refresh_token",
 		"refresh_token": refreshToken,
 		"client_id":     clientID,
+		// The real client restates the scope set on every refresh; the
+		// grant is re-issued against it rather than inherited.
+		"scope": refreshScopes,
 	}
-	return doTokenRequest(ctx, body, true)
+	tok, err := doTokenRequest(ctx, body, true)
+	if err != nil {
+		return nil, err
+	}
+	syncBack(refreshToken, tok)
+	return tok, nil
 }
 
 func doTokenRequest(ctx context.Context, body map[string]string, refresh bool) (*oauth.Token, error) {

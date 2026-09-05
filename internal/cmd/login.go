@@ -350,6 +350,50 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 	fmt.Println("See internal/oauth/claude/oauth.go for the TODOs.")
 	fmt.Println()
 
+	// A machine that already runs the official Claude Code CLI has a
+	// working subscription grant on disk. Reusing it skips the browser
+	// consent screen entirely -- which matters because Anthropic's
+	// consent screen rejects this flow for third-party callers.
+	//
+	// This runs even under --force: there, "re-authenticate" means
+	// "pick up the current grant again", which is precisely what
+	// someone does after refreshing their Claude Code login. The
+	// browser flow below is the fallback when there is nothing
+	// importable, not the thing --force selects.
+	{
+		if summary, err := claude.DescribeExisting(); err == nil {
+			plan := summary.PlanType
+			if plan == "" {
+				plan = "unknown plan"
+			}
+			fmt.Printf("Found an existing Claude Code login (%s) at %s\n", plan, summary.Path)
+			if summary.Expired {
+				fmt.Println("Its access token has lapsed, but the refresh token renews it automatically.")
+			}
+			token, err := claude.ImportExisting()
+			if err != nil {
+				return fmt.Errorf("import existing Claude Code login: %w", err)
+			}
+			if err := ws.SetProviderAPIKey(config.ScopeGlobal, "claude", token); err != nil {
+				return err
+			}
+			fmt.Println()
+			fmt.Println("Imported it. You're now authenticated with Claude (Pro/Max)!")
+			return nil
+		} else if errors.Is(err, claude.ErrNoExistingLogin) {
+			// Nothing to import; the browser flow below is the fallback.
+		} else if errors.Is(err, claude.ErrExistingLoginExpired) {
+			fmt.Println("An existing Claude Code login was found, but its grant has expired.")
+			fmt.Println("Sign in again with the official CLI (`claude`) and re-run this command to import it.")
+			fmt.Println("Continuing with browser sign-in instead.")
+			fmt.Println()
+		} else {
+			// A corrupt or unreadable credential file is worth saying
+			// out loud, but it shouldn't block the browser flow.
+			fmt.Printf("Could not read the existing Claude Code login (%v); falling back to browser sign-in.\n\n", err)
+		}
+	}
+
 	session, err := claude.Start(loginCtx)
 	if err != nil {
 		return fmt.Errorf("failed to start Claude sign-in: %w", err)

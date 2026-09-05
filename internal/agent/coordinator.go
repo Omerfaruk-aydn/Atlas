@@ -1569,14 +1569,16 @@ func (c *coordinator) buildAntigravityProvider(baseURL, apiKey string, headers m
 	return antigravity.New(opts...)
 }
 
-// buildClaudeProvider wires a Claude Pro/Max/Team subscription
-// into a fantasy.Provider for the claude.ai console backend. The
-// request envelope is currently a TODO in the claude package;
-// once a real envelope is wired, the call sites are ready.
+// buildClaudeProvider wires a Claude Pro/Max/Team subscription into a
+// fantasy.Provider. The subscription token authenticates against the
+// ordinary Anthropic Messages API, so the claude package is a thin
+// re-configuration of the anthropic one (Bearer auth plus the OAuth
+// beta flag) rather than a separate wire format.
 func (c *coordinator) buildClaudeProvider(baseURL, apiKey string, headers map[string]string, options map[string]string) (fantasy.Provider, error) {
 	opts := []claude.Option{
 		claude.WithAccessToken(apiKey),
 		claude.WithAccountID(options["account_id"]),
+		claude.WithHeaders(headers),
 	}
 	if baseURL != "" {
 		opts = append(opts, claude.WithBaseURL(baseURL))

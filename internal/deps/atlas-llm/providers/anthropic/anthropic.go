@@ -466,8 +466,15 @@ func (a languageModel) prepareParams(call fantasy.Call) (
 	return params, rawTools, warnings, betaFlags, nil
 }
 
+// Name reports the configured provider name. It is not always the
+// package's own Name: this provider backs every Anthropic-shaped
+// deployment (Vertex, Bedrock, and the subscription-token claude
+// provider), each of which sets its own via WithName so config lookups
+// and model roles resolve to the right entry. The language models this
+// provider hands out already report options.name; returning the
+// constant here made the two disagree.
 func (a *provider) Name() string {
-	return Name
+	return cmp.Or(a.options.name, Name)
 }
 
 // GetCacheControl extracts cache control settings from provider options.
