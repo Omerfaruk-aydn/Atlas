@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
 	"os"
 	"os/signal"
-	"strings"
 	"time"
 
 	"github.com/Omerfaruk-aydn/Atlas-Agent/internal/clipboard"
@@ -329,12 +327,10 @@ func waitEnter() {
 }
 
 // loginClaude signs in to a Claude Pro/Max/Team subscription via
-// the claude.ai console OAuth flow (internal/oauth/claude). The flow
-// itself is a scaffold: the OAuth client id and the model call
-// envelope are TODOs that need to be captured from a real claude.ai
-// session before this login can actually issue model calls. The
-// login/token persistence path is the same one the other coding
-// plans use.
+// the claude.ai console OAuth flow (internal/oauth/claude). Sign-in
+// itself is real; only the model call envelope is still a stub (see
+// internal/oauth/claude/oauth.go). The login/token persistence path is
+// the same one the other coding plans use.
 func loginClaude(ws workspace.Workspace, force bool) error {
 	loginCtx := getLoginContext()
 
@@ -368,17 +364,12 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 		fmt.Println("Could not open the URL. You'll need to manually open the URL in your browser.")
 	}
 
-	fmt.Println()
-	fmt.Println("After you approve access, the page shows a code. Copy it and paste it here:")
-	pasted, err := readPastedLine()
-	if err != nil {
-		return fmt.Errorf("read pasted code: %w", err)
-	}
-
+	fmt.Println("Waiting for authorization...")
 	waitCtx, waitCancel := context.WithTimeout(loginCtx, 5*time.Minute)
 	defer waitCancel()
-	fmt.Println("Exchanging authorization code for tokens...")
-	token, err := session.Exchange(waitCtx, pasted)
+	token, err := session.WaitWithProgress(waitCtx, func(msg string) {
+		fmt.Println(msg)
+	})
 	if err != nil {
 		return err
 	}
@@ -391,17 +382,6 @@ func loginClaude(ws workspace.Workspace, force bool) error {
 	fmt.Println("You're now authenticated with Claude (Pro/Max)!")
 	fmt.Println("(Reminder: the model call layer is still a stub; see the docs in internal/oauth/claude.)")
 	return nil
-}
-
-// readPastedLine reads a single line the user pastes into the
-// terminal (e.g. an authorization code), trimming surrounding
-// whitespace.
-func readPastedLine() (string, error) {
-	line, err := bufio.NewReader(os.Stdin).ReadString('\n')
-	if err != nil && line == "" {
-		return "", err
-	}
-	return strings.TrimSpace(line), nil
 }
 
 // loginGrokWeb signs in to an xAI SuperGrok subscription via the
