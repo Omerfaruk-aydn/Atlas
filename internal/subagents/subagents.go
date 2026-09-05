@@ -139,13 +139,19 @@ func splitFrontmatter(content string) (frontmatter, body string, err error) {
 	return frontmatter, body, nil
 }
 
-// Discover finds every subagent definition (a *.md file directly inside one
-// of dirs -- unlike skills, a subagent is one file, not a folder) across
-// dirs, skipping files that fail to parse or validate. It is not recursive:
-// a subdirectory of one of dirs is not scanned, keeping "what counts as a
-// subagent" a flat, easy-to-audit convention.
+// Discover returns the built-in modes (see Builtin) plus every subagent
+// definition found on disk: a *.md file directly inside one of dirs --
+// unlike skills, a subagent is one file, not a folder -- skipping files
+// that fail to parse or validate. It is not recursive: a subdirectory of
+// one of dirs is not scanned, keeping "what counts as a subagent" a
+// flat, easy-to-audit convention. A file that reuses a built-in's name
+// replaces it.
 func Discover(dirs []string) []*Subagent {
-	var all []*Subagent
+	// The shipped modes come first so a same-named file in any search
+	// directory replaces one: the sort below is stable and Deduplicate
+	// keeps the last occurrence, so a user's own definition always wins
+	// over the built-in it shadows.
+	all := Builtin()
 	seen := make(map[string]bool)
 
 	for _, dir := range dirs {
