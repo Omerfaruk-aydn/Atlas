@@ -52,10 +52,6 @@ const (
 	authorizeURL = "https://accounts.google.com/o/oauth2/auth"
 	tokenURL     = "https://oauth2.googleapis.com/token"
 
-	// codeAssistEndpoint is the Cloud Code backend used for both the
-	// project-discovery calls here and (eventually) model inference.
-	codeAssistEndpoint = "https://cloudcode-pa.googleapis.com"
-
 	redirectPort = 36742
 	redirectPath = "/oauth-callback"
 
@@ -64,6 +60,22 @@ const (
 		" https://www.googleapis.com/auth/userinfo.profile" +
 		" https://www.googleapis.com/auth/cclog" +
 		" https://www.googleapis.com/auth/experimentsandconfigs"
+)
+
+// codeAssistEndpoint is the Cloud Code backend used for both the
+// project-discovery calls here and (eventually) model inference. A var,
+// not a const, so a test can point it at an httptest.Server instead.
+var codeAssistEndpoint = "https://cloudcode-pa.googleapis.com"
+
+// pollDelay is the wait between onboardUser polls while a project is
+// still provisioning. rateLimitBackoff replaces it for one round after
+// a 429, since retrying immediately at the usual cadence would just
+// compound whatever quota is currently exhausted (shared, as best
+// documented, across every user of this OAuth client, not per-account).
+// Both are vars, not consts, so a test can shrink them.
+var (
+	pollDelay        = 5 * time.Second
+	rateLimitBackoff = 15 * time.Second
 )
 
 var redirectURL = fmt.Sprintf("http://localhost:%d%s", redirectPort, redirectPath)
@@ -399,11 +411,10 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 	// attempts at 5s gives 2 minutes, which is closer to what onboarding a
 	// genuinely brand-new Google Cloud identity has been observed to take
 	// than the original 10 (50s) -- too short in practice.
-	const (
-		maxAttempts = 24
-		pollDelay   = 5 * time.Second
-	)
+	const maxAttempts = 24
+
 	var lastDone bool
+	var rateLimited int
 	for attempt := 0; attempt < maxAttempts; attempt++ {
 		report(fmt.Sprintf("Setting up your Cloud project (attempt %d/%d)...", attempt+1, maxAttempts))
 		onboard, err := postCodeAssist[onboardUserResponse](ctx, accessToken, "onboardUser", onboardUserRequest{
@@ -411,6 +422,24 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 			Metadata: metadata(),
 		})
 		if err != nil {
+			// A 429 here is Google's onboarding backend telling us to
+			// slow down, not a rejection of this account: still-honest
+			// provisioning is in progress underneath it. Treating it as
+			// fatal (the previous behavior) aborted logins that would
+			// have succeeded on the next poll -- observed failing at
+			// attempt 18/24 after seventeen clean "not done yet" polls.
+			// Keep polling instead, at a longer interval.
+			var codeErr *codeAssistError
+			if errors.As(err, &codeErr) && codeErr.statusCode == http.StatusTooManyRequests {
+				rateLimited++
+				report(fmt.Sprintf("Google rate-limited that request (attempt %d/%d); waiting longer before retrying...", attempt+1, maxAttempts))
+				select {
+				case <-time.After(rateLimitBackoff):
+					continue
+				case <-ctx.Done():
+					return "", "", ctx.Err()
+				}
+			}
 			return "", "", fmt.Errorf("onboardUser: %w", err)
 		}
 		lastDone = onboard.Done
@@ -423,7 +452,22 @@ func discoverProject(ctx context.Context, accessToken string, report func(string
 			return "", "", ctx.Err()
 		}
 	}
-	return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts (tier=%q, last onboardUser done=%v)", maxAttempts, tierID, lastDone)
+	return "", "", fmt.Errorf("timed out waiting for Antigravity project provisioning after %d attempts (%d rate-limited; tier=%q, last onboardUser done=%v)", maxAttempts, rateLimited, tierID, lastDone)
+}
+
+// codeAssistError carries the HTTP status of a non-200 response from
+// the Cloud Code Assist backend, so a caller can distinguish a
+// transient condition (429: rate limited) from a hard failure worth
+// aborting on immediately.
+type codeAssistError struct {
+	method     string
+	statusCode int
+	status     string
+	body       string
+}
+
+func (e *codeAssistError) Error() string {
+	return fmt.Sprintf("%s failed: %s: %s", e.method, e.status, e.body)
 }
 
 func postCodeAssist[T any](ctx context.Context, accessToken, method string, body any) (*T, error) {
@@ -451,7 +495,7 @@ func postCodeAssist[T any](ctx context.Context, accessToken, method string, body
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s failed: %s: %s", method, resp.Status, string(respBody))
+		return nil, &codeAssistError{method: method, statusCode: resp.StatusCode, status: resp.Status, body: string(respBody)}
 	}
 
 	var out T
