@@ -1,0 +1,51 @@
+{
+  "name": "Vercel v0 (Pro/Team)",
+  "id": "vercel-v0",
+  "type": "openai-compat",
+  "api_key": "$V0_API_KEY",
+  "api_endpoint": "https://api.v0.dev/v1",
+  "default_large_model_id": "v0-1.5-md",
+  "default_small_model_id": "v0-1.5-sm",
+  "models": [
+    {
+      "id": "v0-1.5-md",
+      "name": "v0 1.5 Medium (v0 Pro)",
+      "cost_per_1m_in": 0,
+      "cost_per_1m_out": 0,
+      "cost_per_1m_in_cached": 0,
+      "cost_per_1m_out_cached": 0,
+      "context_window": 524288,
+      "default_max_tokens": 32000,
+      "can_reason": true,
+      "reasoning_levels": ["low", "medium", "high"],
+      "default_reasoning_effort": "medium",
+      "supports_attachments": true
+    },
+    {
+      "id": "v0-1.5-lg",
+      "name": "v0 1.5 Large (v0 Team)",
+      "cost_per_1m_in": 0,
+      "cost_per_1m_out": 0,
+      "cost_per_1m_in_cached": 0,
+      "cost_per_1m_out_cached": 0,
+      "context_window": 524288,
+      "default_max_tokens": 64000,
+      "can_reason": true,
+      "reasoning_levels": ["low", "medium", "high"],
+      "default_reasoning_effort": "high",
+      "supports_attachments": true
+    },
+    {
+      "id": "v0-1.5-sm",
+      "name": "v0 1.5 Small",
+      "cost_per_1m_in": 0,
+      "cost_per_1m_out": 0,
+      "cost_per_1m_in_cached": 0,
+      "cost_per_1m_out_cached": 0,
+      "context_window": 131072,
+      "default_max_tokens": 16000,
+      "can_reason": false,
+      "supports_attachments": true
+    }
+  ]
+}
