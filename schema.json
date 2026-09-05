@@ -773,6 +773,13 @@
           "type": "object",
           "description": "Named model roles a subagent's model field can reference by name, e.g. \"frontend\" or \"research\". A few names are recognized by built-in features when present: advisor, escalate, and compact (used to summarize with a different model than the session's own)."
         },
+        "session_mode": {
+          "type": "string",
+          "description": "Name of the mode whose instructions are folded into the main session's system prompt, e.g. review or security. A model role of the same name also switches the session's model. Empty runs the ordinary coder prompt.",
+          "examples": [
+            "security"
+          ]
+        },
         "advisor": {
           "$ref": "#/$defs/Advisor",
           "description": "A second model that reviews each turn and can leave a note for the next one. Needs a \"advisor\" entry in model_roles to run on."
